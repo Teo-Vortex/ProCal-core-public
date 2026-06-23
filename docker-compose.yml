@@ -1,0 +1,69 @@
+name: procal-core
+
+services:
+  db:
+    image: linuxserver/mariadb:11.4.8
+    container_name: procal-core-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${PROCAL_SELF_DB_ROOT_PASSWORD:?Set PROCAL_SELF_DB_ROOT_PASSWORD in .env}
+      - MYSQL_DATABASE=${PROCAL_SELF_DB_NAME:-procal}
+      - MYSQL_USER=${PROCAL_SELF_DB_USER:-procal}
+      - MYSQL_PASSWORD=${PROCAL_SELF_DB_PASSWORD:?Set PROCAL_SELF_DB_PASSWORD in .env}
+      - TZ=${TZ:-Europe/Sofia}
+    volumes:
+      - procal_core_db:/config
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  app:
+    build:
+      context: .
+    image: procal-core:self-hosted
+    container_name: procal-core-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - CONFIG_PATH=/app/config/config.json
+      - BACKUP_DIR=/app/backups
+      - LOG_LEVEL=${PROCAL_SELF_LOG_LEVEL:-info}
+      - TZ=${TZ:-Europe/Sofia}
+      - PROCAL_TRUST_PROXY=${PROCAL_SELF_TRUST_PROXY:-0}
+      - ACCESS_TTL_SEC=${PROCAL_SELF_ACCESS_TTL_SEC:-900}
+      - REFRESH_TTL_SEC=${PROCAL_SELF_REFRESH_TTL_SEC:-1209600}
+      - PROCAL_RELEASE_CHANNEL=self
+      - REALM_RELEASE_CHANNEL=self
+      - PROCAL_APP_VERSION=${PROCAL_SELF_APP_VERSION:-0.9.9-community}
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=${PROCAL_SELF_DB_NAME:-procal}
+      - DB_USER=${PROCAL_SELF_DB_USER:-procal}
+      - DB_PASSWORD=${PROCAL_SELF_DB_PASSWORD:?Set PROCAL_SELF_DB_PASSWORD in .env}
+    ports:
+      - "${PROCAL_SELF_BIND_IP:-0.0.0.0}:${PROCAL_SELF_PORT:-8080}:8080"
+    volumes:
+      - procal_core_config:/app/config
+      - procal_core_backups:/app/backups
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "const http=require('http');const req=http.get('http://127.0.0.1:8080/health',(res)=>{process.exit(res.statusCode===200?0:1);});req.on('error',()=>process.exit(1));req.setTimeout(4000,()=>{req.destroy();process.exit(1);});"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  procal_core_config: {}
+  procal_core_db: {}
+  procal_core_backups: {}

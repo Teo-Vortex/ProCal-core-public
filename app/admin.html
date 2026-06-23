@@ -1,0 +1,505 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ProCal Admin</title>
+  <script>
+    try {
+      if (localStorage.getItem("procal_theme") === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    } catch (_) {}
+  </script>
+  <style>
+    body{font-family:system-ui;margin:0;background:#f3f5f8;color:#1f2937}
+    .wrap{max-width:1520px;margin:0 auto;padding:16px}
+    .head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .card{background:#fff;border:1px solid #d7dde6;border-radius:10px;padding:12px;margin-top:12px}
+    h1,h2,h3{margin:6px 0 12px}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{border-bottom:1px solid #e5e7eb;padding:8px;text-align:left;vertical-align:middle}
+    input,select,textarea,button{font:inherit}
+    input,select,textarea{padding:6px;border:1px solid #cbd5e1;border-radius:6px}
+    textarea{width:100%;min-height:56px}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .muted{color:#6b7280;font-size:13px}
+    .btn{padding:7px 10px;border:1px solid #cbd5e1;background:#fff;border-radius:7px;cursor:pointer;transition:transform .08s ease, box-shadow .12s ease, background-color .12s ease}
+    .btn:hover{box-shadow:0 1px 6px rgba(15,23,42,.10)}
+    .btn:active,.btn.btn-pressed{transform:translateY(1px) scale(.985);box-shadow:inset 0 2px 5px rgba(15,23,42,.18)}
+    .btn.primary{background:#2563eb;color:#fff;border-color:#2563eb}
+    .btn.just-saved{box-shadow:0 0 0 2px rgba(16,185,129,.28)}
+    .btn.just-error{box-shadow:0 0 0 2px rgba(239,68,68,.28)}
+    .danger{color:#b91c1c}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;font-size:12px}
+    .hidden{display:none}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tab-btn.active{background:#111827;color:#fff;border-color:#111827}
+    .tab-pane{display:none}
+    .tab-pane.active{display:block}
+    .perm-grid{display:grid;gap:8px}
+    .perm-section{border:1px solid #e5e7eb;border-radius:8px;padding:8px}
+    .perm-title{font-size:12px;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+    .actions-col{display:flex;gap:6px;flex-wrap:nowrap;white-space:nowrap}
+    .actions-col .btn{padding:6px 8px}
+    .table-wrap{overflow:auto}.table-wrap table td{text-align:center}.table-wrap table td:first-child,.table-wrap table th:first-child{text-align:left}
+    .modal{position:fixed;inset:0;background:rgba(15,23,42,.38);display:none;align-items:center;justify-content:center;padding:14px;z-index:30}
+    .modal.show{display:flex}
+    .modal-card{background:#fff;border:1px solid #d7dde6;border-radius:10px;padding:12px;width:min(920px,96vw)}
+    .modal-card.wide{width:min(1280px,96vw);max-height:88vh;overflow:auto}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+    .global-status{margin-top:10px;padding:8px 10px;border-radius:8px;border:1px solid #d7dde6;background:#fff;font-size:13px;color:#475569;min-height:18px}
+    .global-status.ok{border-color:#86efac;background:#ecfdf5;color:#166534}
+    .global-status.err{border-color:#fca5a5;background:#fef2f2;color:#991b1b}
+    .backup-hero{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr);gap:14px;align-items:stretch;background:linear-gradient(135deg,#f8fafc 0%,#ffffff 52%,#ecfdf5 100%)}
+    .backup-hero h2{font-size:26px;margin-bottom:8px}
+    .backup-hero-copy{display:grid;gap:10px}
+    .backup-badges{display:flex;gap:8px;flex-wrap:wrap}
+    .backup-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;border:1px solid #cbd5e1;background:#fff;font-size:12px;font-weight:700;color:#334155}
+    .backup-badge.safe{border-color:#99f6e4;background:#f0fdfa;color:#0f766e}
+    .backup-badge.warn{border-color:#fed7aa;background:#fff7ed;color:#9a3412}
+    .backup-badge.lock{border-color:#bfdbfe;background:#eff6ff;color:#1d4ed8}
+    .backup-routine{border:1px solid #d1fae5;border-radius:14px;background:rgba(236,253,245,.76);padding:12px;display:grid;gap:6px}
+    .backup-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,.48fr);gap:12px;align-items:start}
+    .backup-panel{display:grid;gap:12px}
+    .backup-panel-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+    .backup-panel-head h2,.backup-panel-head h3{margin-bottom:4px}
+    .backup-action-strip{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc}
+    .backup-note{border-left:4px solid #0f766e;background:#f0fdfa;color:#115e59;border-radius:10px;padding:10px;font-size:13px;line-height:1.45}
+    .backup-warning{border-left-color:#f59e0b;background:#fffbeb;color:#92400e}
+    .backup-setting-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .backup-setting-card{border:1px solid #e2e8f0;border-radius:12px;background:#fff;padding:10px;display:grid;gap:8px}
+    .backup-setting-card label{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    .backup-setting-card input[type="number"]{width:92px}
+    .backup-catalog-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+    .backup-status-line{display:block;margin-top:2px}
+    .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:#e0f2fe;color:#075985;font-size:12px;font-weight:700}
+    .badge.encrypted{background:#dcfce7;color:#166534}
+    .badge.plain{background:#fef3c7;color:#92400e}
+    :root[data-theme="dark"]{color-scheme:dark;--d-bg:#071017;--d-card:#102531;--d-card-2:#162f3d;--d-ink:#e6edf0;--d-muted:#a6bac3;--d-line:rgba(184,208,216,.24);--d-accent:#36d6bf;--d-danger:#fda4af;--d-warn:#fde68a;--d-ok:#86efac}
+    :root[data-theme="dark"] body{background:radial-gradient(900px 520px at 8% 0%,rgba(54,214,191,.12),transparent 62%),linear-gradient(180deg,#071017,#0a1720);color:var(--d-ink)}
+    :root[data-theme="dark"] .card,:root[data-theme="dark"] .modal-card,:root[data-theme="dark"] .global-status,:root[data-theme="dark"] .backup-setting-card,:root[data-theme="dark"] .backup-routine,:root[data-theme="dark"] .backup-action-strip,:root[data-theme="dark"] .perm-section{background:var(--d-card);border-color:var(--d-line);color:var(--d-ink);box-shadow:0 18px 44px rgba(0,0,0,.28)}
+    :root[data-theme="dark"] .backup-hero{background:linear-gradient(135deg,rgba(18,39,50,.98),rgba(12,27,37,.96) 54%,rgba(21,77,69,.34))}
+    :root[data-theme="dark"] input,:root[data-theme="dark"] select,:root[data-theme="dark"] textarea{background:#08141d;border-color:var(--d-line);color:var(--d-ink)}
+    :root[data-theme="dark"] .btn{background:#102531;border-color:var(--d-line);color:var(--d-ink)}
+    :root[data-theme="dark"] .btn:hover{background:#1d3d4d;border-color:rgba(54,214,191,.45)}
+    :root[data-theme="dark"] .btn.primary{background:linear-gradient(180deg,#48e0ca,#18a99a);border-color:rgba(54,214,191,.72);color:#06251f}
+    :root[data-theme="dark"] .tab-btn.active{background:rgba(54,214,191,.24);border-color:rgba(54,214,191,.7);color:#effffb}
+    :root[data-theme="dark"] .muted,:root[data-theme="dark"] .perm-title{color:var(--d-muted)}
+    :root[data-theme="dark"] th,:root[data-theme="dark"] td{border-color:rgba(184,208,216,.14)}
+    :root[data-theme="dark"] thead,:root[data-theme="dark"] tbody tr:hover{background:rgba(24,52,66,.72)}
+    :root[data-theme="dark"] .pill,:root[data-theme="dark"] .badge,:root[data-theme="dark"] .backup-badge{background:rgba(24,52,66,.82);border-color:var(--d-line);color:#d8e7ed}
+    :root[data-theme="dark"] .backup-badge.safe,:root[data-theme="dark"] .badge.encrypted,:root[data-theme="dark"] .global-status.ok{background:rgba(74,222,128,.14);border-color:rgba(74,222,128,.34);color:var(--d-ok)}
+    :root[data-theme="dark"] .backup-badge.warn,:root[data-theme="dark"] .badge.plain,:root[data-theme="dark"] .backup-warning{background:rgba(251,191,36,.16);border-color:rgba(251,191,36,.34);color:var(--d-warn)}
+    :root[data-theme="dark"] .backup-badge.lock{background:rgba(56,189,248,.16);border-color:rgba(56,189,248,.34);color:#bae6fd}
+    :root[data-theme="dark"] .backup-note{background:rgba(54,214,191,.14);border-left-color:var(--d-accent);color:#ccfbf1}
+    :root[data-theme="dark"] .danger,:root[data-theme="dark"] .global-status.err{color:var(--d-danger)}
+    :root[data-theme="dark"] .global-status.err{background:rgba(251,113,133,.14);border-color:rgba(251,113,133,.34)}
+                            @media(max-width:900px){.backup-hero,.backup-layout{grid-template-columns:1fr}.backup-setting-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <h1>Admin Panel</h1>
+        <div class="muted">Users, roles, overrides, and categories.</div>
+      </div>
+      <div class="row">
+        <span id="me" class="pill">-</span>
+        <a class="btn" href="/">Back to calendar</a>
+      </div>
+    </div>
+    <div id="globalStatus" class="global-status"></div>
+
+    <div id="forbidden" class="card hidden">
+      <h2 class="danger">Forbidden</h2>
+      <p>You do not have access to this page.</p>
+    </div>
+
+    <div id="content" class="hidden">
+      <section class="card">
+        <div class="tabs">
+          <button class="btn tab-btn active" data-tab="personnel">Personnel</button>
+          <button class="btn tab-btn" data-tab="realm">This realm</button>
+          <button class="btn tab-btn" data-tab="roles">Roles</button>
+          <button class="btn tab-btn" data-tab="categories">Categories</button>
+          <button class="btn tab-btn" data-tab="holidays">Holidays</button>
+          <button class="btn tab-btn" data-tab="leave-template">Leave Form</button>
+          <button class="btn tab-btn" data-tab="notifications">Notifications</button>
+          <button class="btn tab-btn" data-tab="files">Files</button>
+          <button class="btn tab-btn" data-tab="backups">Backups</button>
+          <button class="btn tab-btn" data-tab="audit">Audit</button>
+        </div>
+      </section>
+
+      <section id="tab-personnel" class="tab-pane active">
+        <section class="card">
+          <h2>Users</h2>
+          <div class="row" style="margin-bottom:10px;">
+            <button id="reloadUsers" class="btn">Reload users</button>
+            <span id="usersMsg" class="muted"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>User</th><th>Nickname</th><th>Full name</th><th>Workplace</th><th>Job title</th><th>Role</th><th>Status</th><th>View</th><th>Color</th><th>Tint %</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="tab-roles" class="tab-pane">
+        <section class="card">
+          <h2>Roles</h2>
+          <p class="muted">Permissions matrix with checkboxes. System/Admin are locked as full access.</p>
+          <div id="rolesWrap"></div>
+        </section>
+      </section>
+
+      <section id="tab-categories" class="tab-pane">
+        <section class="card">
+          <h2>Categories</h2>
+          <p class="muted">Shared categories for the calendar.</p>
+          <div class="row" style="margin-bottom:10px;">
+            <input id="newCategoryName" placeholder="category name">
+            <input id="newCategoryColor" type="color" value="#64748b">
+            <button id="addCategoryBtn" class="btn primary">Add category</button>
+            <button id="reloadCategories" class="btn">Reload categories</button>
+            <span id="categoriesMsg" class="muted"></span>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Color</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="categoriesBody"></tbody>
+          </table>
+        </section>
+      </section>
+
+      <section id="tab-holidays" class="tab-pane">
+        <section class="card">
+          <h2>Official Holidays</h2>
+          <p class="muted">Define fixed and floating holidays with yearly recurrence. These dates will be highlighted as weekends in the main calendar.</p>
+          <div class="row" style="margin-bottom:10px;">
+            <button id="addHolidayRuleBtn" class="btn primary" type="button">Add rule</button>
+            <button id="reloadHolidaysBtn" class="btn" type="button">Reload rules</button>
+            <button id="saveHolidaysBtn" class="btn" type="button">Save rules</button>
+            <span id="holidaysMsg" class="muted"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Day off</th>
+                  <th>Type</th>
+                  <th>Rule settings</th>
+                  <th>Start year</th>
+                  <th>End year</th>
+                  <th>Days</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="holidaysBody"></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="card">
+          <h3 style="margin-top:0;">Easter (Auto)</h3>
+          <div class="row">
+            <label><input id="easterEnabled" type="checkbox"> Enable auto Easter</label>
+            <label>Calendar
+              <select id="easterCalendar">
+                <option value="orthodox">Orthodox</option>
+                <option value="western">Western</option>
+              </select>
+            </label>
+            <label>Name <input id="easterName" placeholder="Easter"></label>
+            <label><input id="easterDayOff" type="checkbox" checked> Day off</label>
+            <label>Offsets (days) <input id="easterOffsets" placeholder="-2,-1,0,1"></label>
+            <label>Start year <input id="easterStartYear" type="number" min="1900" max="2300" placeholder="any"></label>
+            <label>End year <input id="easterEndYear" type="number" min="1900" max="2300" placeholder="any"></label>
+          </div>
+          <div class="muted">Offsets are relative to Easter Sunday. Example: <code>-2,-1,0,1</code>.</div>
+        </section>
+      </section>
+
+      <section id="tab-leave-template" class="tab-pane">
+        <section class="card">
+          <h2>Leave Form Template</h2>
+          <p class="muted">Upload scanned document image/PDF (as data URL), place fields by coordinates, save template.</p>
+          <div class="row" style="margin-bottom:10px;">
+            <input id="leaveTplFile" type="file" accept="image/*,application/pdf">
+            <button id="leaveTplLoadBtn" class="btn">Load template</button>
+            <button id="leaveTplSaveBtn" class="btn primary">Save template</button>
+            <span id="leaveTplMsg" class="muted"></span>
+          </div>
+          <div class="row" style="margin-bottom:10px; align-items:flex-end;">
+            <label style="min-width:240px;">Template profile
+              <select id="leaveTplTargetUser">
+                <option value="">Global template (default)</option>
+              </select>
+            </label>
+            <button id="leaveTplResetOverrideBtn" class="btn" type="button">Remove selected user override</button>
+            <span id="leaveTplTargetHint" class="muted">Global template is used for all users unless override exists.</span>
+          </div>
+          <div class="row" style="margin-bottom:10px; align-items:flex-end;">
+            <label>Selected field
+              <input id="leaveTplFieldInfo" readonly placeholder="Select field box">
+            </label>
+            <label>Font size (pt)
+              <input id="leaveTplFieldFontSize" type="number" min="6" max="72" step="0.5" value="12">
+            </label>
+            <input id="leaveTplFieldFontSizeRange" type="range" min="6" max="72" step="0.5" value="12" style="max-width:220px;">
+            <button id="leaveTplRemoveFieldBtn" class="btn" type="button">Remove selected field</button>
+          </div>
+          <div class="row" style="margin-bottom:10px;">
+            <button id="leaveTplAddNameBtn" class="btn" type="button">+ Name</button>
+            <button id="leaveTplAddFullNameBtn" class="btn" type="button">+ Full name</button>
+            <button id="leaveTplAddRoleBtn" class="btn" type="button">+ Role</button>
+            <button id="leaveTplAddWorkplaceBtn" class="btn" type="button">+ Workplace</button>
+            <button id="leaveTplAddJobTitleBtn" class="btn" type="button">+ Job title</button>
+            <button id="leaveTplAddPeriodBtn" class="btn" type="button">+ Period</button>
+            <button id="leaveTplAddFromDateBtn" class="btn" type="button">+ From date</button>
+            <button id="leaveTplAddToDateBtn" class="btn" type="button">+ To date</button>
+            <button id="leaveTplAddWorkingDaysBtn" class="btn" type="button">+ Working days</button>
+            <button id="leaveTplAddReturnToWorkDateBtn" class="btn" type="button">+ Return to work date</button>
+            <button id="leaveTplAddTodayDateBtn" class="btn" type="button">+ Today date</button>
+            <button id="leaveTplAddTypeBtn" class="btn" type="button">+ Type</button>
+            <button id="leaveTplAddCreatedBtn" class="btn" type="button">+ Created</button>
+          </div>
+          <div id="leaveTplEditorWrap" style="border:1px solid #e5e7eb;border-radius:8px;padding:8px;background:#f8fafc;">
+            <div id="leaveTplEditor" style="position:relative; width:100%; max-width:960px; aspect-ratio:210/297; background:#fff; border:1px solid #cbd5e1; margin:0 auto; overflow:hidden;">
+              <img id="leaveTplBg" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none;">
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section id="tab-notifications" class="tab-pane">
+        <section class="card">
+          <h2>Important Admin Notification</h2>
+          <p class="muted">Broadcast important message to all active users. It will be highlighted in red in user notifications.</p>
+          <div class="row" style="align-items:flex-start;">
+            <input id="adminImportantNotifTitle" placeholder="Important title" style="min-width:320px;flex:1 1 320px;">
+            <button id="sendAdminImportantNotifBtn" class="btn" type="button" style="background:#dc2626;color:#fff;border-color:#dc2626;">Send to all</button>
+          </div>
+          <div class="row" style="margin-top:8px;">
+            <textarea id="adminImportantNotifBody" placeholder="Important message details..." style="min-height:84px;"></textarea>
+          </div>
+        </section>
+        <section class="card">
+          <h2>Notification Matrix</h2>
+          <p class="muted">X = notification types, Y = people. Column "Self notify" controls whether the user receives notifications for their own actions.</p>
+          <div class="row" style="margin-bottom:10px;">
+            <button id="reloadNotifSettingsBtn" class="btn">Reload matrix</button>
+            <button id="saveNotifSettingsBtn" class="btn primary">Save matrix</button>
+            <span id="notifSettingsMsg" class="muted"></span>
+          </div>
+          <div id="notifSettingsWrap" class="table-wrap"></div>
+        </section>
+        <section class="card">
+          <h2>Notification Records</h2>
+          <div class="row" style="margin-bottom:10px;">
+            <label>User <select id="notifFilterUser"></select></label>
+            <label>Type <select id="notifFilterType"></select></label>
+            <label>Status
+              <select id="notifFilterRead">
+                <option value="all">All</option>
+                <option value="unread">Unread</option>
+                <option value="read">Read</option>
+              </select>
+            </label>
+            <input id="notifFilterQ" placeholder="search title/body/entity">
+            <button id="notifApplyBtn" class="btn primary" type="button">Apply</button>
+            <button id="notifResetBtn" class="btn" type="button">Reset</button>
+            <button id="notifLoadMoreBtn" class="btn" type="button">Load more</button>
+            <span id="notifMsg" class="muted"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>When</th><th>User</th><th>Type</th><th>Title</th><th>Body</th><th>Status</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="notifBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="tab-audit" class="tab-pane">
+        <section class="card">
+          <h2>Audit Log</h2>
+          <div class="row" style="margin-bottom:10px;">
+            <label>From <input id="auditFrom" type="datetime-local"></label>
+            <label>To <input id="auditTo" type="datetime-local"></label>
+            <input id="auditActorUserId" placeholder="actor user id">
+            <input id="auditAction" placeholder="action (e.g. user.update)">
+            <input id="auditEntityType" placeholder="entity type (e.g. user)">
+            <input id="auditSearch" placeholder="search action/entity/id">
+            <label><input id="auditExcludeNoisy" type="checkbox" checked> Hide noisy actions</label>
+            <button id="auditApplyBtn" class="btn primary" type="button">Apply</button>
+            <button id="auditResetBtn" class="btn" type="button">Reset</button>
+            <button id="auditExportBtn" class="btn" type="button">Export CSV</button>
+            <span id="auditMsg" class="muted"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>When</th><th>Actor</th><th>Action</th><th>Entity</th><th>Entity ID</th><th>Meta</th>
+                </tr>
+              </thead>
+              <tbody id="auditBody"></tbody>
+            </table>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <button id="auditLoadMoreBtn" class="btn" type="button">Load more</button>
+          </div>
+        </section>
+      </section>
+
+      <section id="tab-backups" class="tab-pane">
+        <section class="card backup-hero">
+          <div class="backup-hero-copy">
+            <div class="backup-badges">
+              <span class="backup-badge safe">Encrypted realm data</span>
+              <span class="backup-badge lock">Key required for restore</span>
+              <span class="backup-badge warn">Operator cannot recover lost key</span>
+            </div>
+            <div>
+              <h2>Realm backup control</h2>
+              <p class="muted">Realm data stays under the realm admin's control. New backups are encrypted as <code>.procalbak</code> packages and are useful only with the backup key saved outside the platform.</p>
+            </div>
+          </div>
+          <aside class="backup-routine">
+            <strong>Manual export rule</strong>
+            <span class="muted">Export an encrypted full backup, download it, and store the file plus key somewhere outside this server.</span>
+            <span class="muted">Control platform backups do not contain this realm's calendar, tasks, chat or uploaded files.</span>
+          </aside>
+        </section>
+
+        <div class="backup-layout">
+          <section class="card backup-panel">
+            <div class="backup-panel-head">
+              <div>
+                <h2>Export encrypted backup</h2>
+                <p class="muted">The key is generated in the browser prompt. The backup downloads directly and is not retained on this server.</p>
+              </div>
+              <span class="backup-badge safe">Encrypted_Backup_Warning_26.04.01</span>
+            </div>
+            <div class="backup-action-strip">
+              <button id="backupsCreateFullBtn" class="btn primary" type="button">Export encrypted full backup</button>
+              <button id="backupsCreateWorkingBtn" class="btn" type="button">Export encrypted working backup</button>
+            </div>
+            <div class="backup-note">
+              <strong>Full</strong> includes database content and config/files snapshot. <strong>Working</strong> is database-only. Both require the same key flow for validate and restore. The key PDF downloads before the backup file.
+            </div>
+          </section>
+
+          <section class="card backup-panel">
+            <div class="backup-panel-head">
+              <div>
+                <h2>No automatic realm backups</h2>
+                <p class="muted">Realm backups are not scheduled, retained or rotated by the platform. The realm admin owns the exported file and key.</p>
+              </div>
+            </div>
+            <div class="backup-note">
+              There is no server-side backup catalog. Validate and restore upload a backup file only for that operation, then the temporary server copy is deleted.
+            </div>
+          </section>
+        </div>
+
+        <section class="card backup-panel">
+          <div class="backup-panel-head">
+            <div>
+              <h2>Retention</h2>
+              <p class="muted">Operational cleanup for local app data. 0 disables a cleanup window.</p>
+            </div>
+            <span class="muted">Last cleanup: <span id="retentionLastCleanupRun">-</span></span>
+          </div>
+          <div class="backup-action-strip">
+            <label>Notifications days <input id="retentionNotificationsDays" type="number" min="0" max="3650" style="width:100px;"></label>
+            <label>Audit days <input id="retentionAuditDays" type="number" min="0" max="3650" style="width:100px;"></label>
+            <label>Chat days <input id="retentionChatDays" type="number" min="0" max="3650" style="width:100px;"></label>
+            <button id="retentionSaveBtn" class="btn" type="button">Save retention</button>
+          </div>
+        </section>
+
+        <section class="card backup-panel">
+          <div class="backup-catalog-head">
+            <div>
+              <h2>Validate or restore from your file</h2>
+              <p class="muted">Select a backup file from your computer. The file is uploaded temporarily and removed from the server after validate or restore.</p>
+            </div>
+          </div>
+          <div class="backup-action-strip">
+            <input id="backupsRestoreFile" type="file" accept=".procalbak,.json,application/json" style="max-width:420px;">
+            <button id="backupsValidateUploadBtn" class="btn" type="button">Validate selected file</button>
+            <button id="backupsRestoreUploadBtn" class="btn danger" type="button">Restore selected file</button>
+          </div>
+          <span id="backupsMsg" class="muted backup-status-line"></span>
+          <div class="backup-note backup-warning">
+            Restore is destructive for this realm. It does not affect Control metadata or other realms, but it replaces this realm database content and, for full backups, config/files snapshot.
+          </div>
+          <div class="backup-note">
+            Users keep their own backup files and key PDFs. ProCal does not keep a restore list for realm backup packages.
+          </div>
+        </section>
+      </section>
+
+      <section id="tab-files" class="tab-pane">
+        <section class="card">
+          <h2>Files</h2>
+          <p class="muted">Monitor realm file storage, configure chat file retention, and export a full realm files archive.</p>
+          <div class="row" style="margin-bottom:10px; align-items:center;">
+            <strong style="min-width:160px;">Storage usage</strong>
+            <span id="adminFilesStorageLabel" class="pill">0 MB / 0 MB (0%)</span>
+            <button id="adminFilesReloadBtn" class="btn" type="button">Reload usage</button>
+          </div>
+          <div class="row" style="margin-bottom:10px; align-items:center;">
+            <strong style="min-width:160px;">Retention</strong>
+            <label>Chat files days <input id="retentionChatFilesDays" type="number" min="0" max="3650" style="width:110px;"></label>
+            <button id="filesRetentionSaveBtn" class="btn" type="button">Save file retention</button>
+            <span class="muted">0 = disabled</span>
+          </div>
+          <div class="row" style="margin-bottom:10px; align-items:center;">
+            <strong style="min-width:160px;">Realm archive</strong>
+            <button id="filesRealmArchiveBtn" class="btn primary" type="button">Download full files archive</button>
+            <span class="muted">Includes events/chat/shared folders and metadata. Realm backups are exported separately by the realm admin.</span>
+          </div>
+          <div class="row">
+            <span id="filesAdminMsg" class="muted"></span>
+          </div>
+        </section>
+      </section>
+    </div>
+  </div>
+
+  <div id="overrideModal" class="modal">
+    <div class="modal-card wide">
+      <div class="modal-head">
+        <h2 style="margin:0;">Permission override per user</h2>
+        <button id="closeOverrideModalBtn" class="btn" type="button">Close</button>
+      </div>
+      <div class="muted" id="overrideUserLabel">Select user from Users table.</div>
+      <div id="userOverrideWrap" class="perm-grid" style="margin-top:8px;"></div>
+      <div class="row" style="margin-top:8px;">
+        <button id="saveUserOverridesBtn" class="btn">Save overrides</button>
+        <button id="resetUserOverridesBtn" class="btn">Restore role defaults</button>
+        <span id="overrideMsg" class="muted"></span>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
+

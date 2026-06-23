@@ -1,0 +1,6 @@
+server/node_modules
+server/dist
+server/.turbo
+server/coverage
+server/.cache
+*.log

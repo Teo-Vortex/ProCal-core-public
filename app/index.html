@@ -1,0 +1,1306 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ProCal</title>
+  <script>
+    try {
+      if (localStorage.getItem("procal_theme") === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    } catch (_) {}
+  </script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="bg-shape bg-shape-a"></div>
+  <div class="bg-shape bg-shape-b"></div>
+
+  <main class="app">
+    <header class="topbar">
+      <div class="title-wrap">
+        <div class="title-line">
+          <h1 id="appTitle">ProCal</h1>
+          <span id="connectionStatus" class="connection-status offline">
+            <span id="connectionStatusDot" class="connection-dot" aria-hidden="true"></span>
+            <span id="connectionStatusText">Offline</span>
+          </span>
+        </div>
+        <p id="appSubtitle">Shared calendar and task planner</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="notificationsBtn" class="ghost-btn topbar-icon-btn" type="button" title="Notifications" aria-label="Notifications">
+          <span class="topbar-icon" aria-hidden="true">🔔</span>
+          <span id="notificationsLabel" class="sr-only">Notifications</span>
+          <span id="notificationsBadge" class="notifications-badge hidden-section">0</span>
+        </button>
+        <button id="chatBtn" class="ghost-btn topbar-icon-btn" type="button" title="Chat" aria-label="Chat">
+          <span class="topbar-icon" aria-hidden="true">💬</span>
+          <span id="chatBtnLabel" class="sr-only">Chat</span>
+          <span id="chatUnreadBadge" class="notifications-badge hidden-section">0</span>
+        </button>
+        <button id="settingsBtn" class="ghost-btn" type="button">Menu</button>
+</div>
+    </header>
+
+    <section class="layout">
+      <aside class="day-panel card">
+        <section id="dashboardClockCard" class="dashboard-clock-card">
+          <div id="dashboardClockTime" class="dashboard-clock-time">--:--</div>
+          <div id="dashboardClockDate" class="dashboard-clock-date">-</div>
+          <div id="dashboardClockWeekday" class="dashboard-clock-weekday">-</div>
+        </section>
+        <section id="currentCompBalanceCard" class="own-balance-card neutral">
+          <div class="own-balance-row">
+            <strong id="ownBalanceUser" class="own-balance-user">-</strong>
+            <strong id="currentCompBalanceValue" class="own-balance-value">-</strong>
+          </div>
+        </section>
+        <section class="notes-switch-card card">
+          <div class="notes-switch-stack">
+            <div class="hidden-section" aria-hidden="true">
+              <span id="calendarModeWrap" class="status-user">
+                <select id="calendarModeSelect" aria-label="Calendar mode">
+                  <option value="personal">Personal</option>
+                  <option value="shared">Shared</option>
+                </select>
+                <label id="calendarModeLabel" for="calendarModeSelect">Calendar</label>
+              </span>
+            </div>
+            <p id="notesViewModeLabel" class="notes-view-mode-label">Calendar</p>
+            <div id="notesViewToggle" class="notes-view-toggle" role="group" aria-label="Calendar mode">
+              <button id="notesViewMonthBtn" class="ghost-btn notes-view-btn" type="button">Personal</button>
+              <button id="notesViewYearBtn" class="ghost-btn notes-view-btn" type="button">Shared</button>
+            </div>
+            <div id="mainPanelTabs" class="main-panel-tabs" role="tablist" aria-label="Main view">
+              <button id="calendarPanelTabBtn" class="ghost-btn notes-switch-btn main-panel-tab" type="button" role="tab">Calendar</button>
+              <button id="eventsPanelTabBtn" class="ghost-btn notes-switch-btn main-panel-tab" type="button" role="tab">Events</button>
+              <button id="notesToggleBtn" class="ghost-btn notes-switch-btn main-panel-tab" type="button" role="tab">Notes</button>
+            </div>
+          </div>
+        </section>
+        <h3 id="sideDayTitle" class="side-caption">Selected day</h3>
+        <div class="side-day-head">
+          <p id="sideSelectedDateTitle" class="side-date">-</p>
+          <div id="sideDayActions" class="day-actions day-actions-compact">
+            <button id="closeMobileDayBtn" class="ghost-btn mobile-only" type="button" aria-label="Close">×</button>
+            <div id="sideDayQuickAdd" class="day-quick-add side-day-quick-add">
+              <button id="sideDayQuickAddTrigger" class="day-quick-add-trigger side-day-quick-add-trigger accent-btn" type="button" aria-expanded="false">+ Add</button>
+              <div id="sideDayQuickAddMenu" class="day-quick-add-menu side-day-quick-add-menu">
+                <button id="sideAddEventBtn" class="day-quick-add-item side-day-quick-add-item" type="button" title="Add event">Add event</button>
+                <button id="sideAddTaskBtn" class="day-quick-add-item side-day-quick-add-item" type="button" title="Add task">Add task</button>
+                <button id="sideAddCompBtn" class="day-quick-add-item side-day-quick-add-item" type="button" title="Compensations">Compensations</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul id="sideDayList" class="event-list"></ul>
+      </aside>
+
+      <section class="calendar-panel card">
+        <div class="calendar-toolbar">
+          <div class="calendar-nav-row">
+            <button id="prevMonth" class="ghost-btn" type="button">Prev</button>
+            <h2 id="monthLabel" aria-live="polite"></h2>
+            <button id="nextMonth" class="ghost-btn" type="button">Next</button>
+          </div>
+          <div class="calendar-controls-row">
+            <div class="view-toggle" role="group" aria-label="Calendar view">
+              <button id="monthViewBtn" class="ghost-btn" type="button">Month</button>
+              <button id="yearViewBtn" class="ghost-btn" type="button">Year</button>
+            </div>
+            <button id="todayBtn" class="accent-btn" type="button">Today</button>
+            <button id="filtersBtn" class="ghost-btn" type="button">Filters</button>
+            <button id="mobileDayBtn" class="ghost-btn mobile-only" type="button">For day</button>
+            <button id="mobileUpcomingBtn" class="ghost-btn mobile-only" type="button">Upcoming</button>
+          </div>
+        </div>
+        <div class="weekday-row" id="weekdayRow"></div>
+        <div id="calendarGrid" class="calendar-grid" role="grid" aria-label="Calendar month"></div>
+      </section>
+
+      
+      <section id="notesPanel" class="notes-panel card hidden-section">
+        <div class="notes-toolbar">
+          <h2 id="notesPanelTitle">Notes</h2>
+          <button id="addStickyNoteBtn" class="accent-btn" type="button">New note</button>
+        </div>
+        <div class="notes-legend" aria-hidden="true">
+          <span id="notesLegendOwned" class="notes-legend-item notes-legend-owned">Owned</span>
+          <span id="notesLegendShared" class="notes-legend-item notes-legend-shared">Shared with me</span>
+        </div>
+        <div id="stickyNotesList" class="sticky-notes-grid"></div>
+      </section>
+
+      <section id="eventsPanel" class="events-panel card hidden-section">
+        <div class="events-registry-head">
+          <div>
+            <h2 id="eventsRegistryTitle">Events</h2>
+            <p id="eventsRegistrySubtitle" class="muted">Search and review every event in this calendar.</p>
+          </div>
+          <span id="eventsRegistryCount" class="events-registry-count">0 events</span>
+        </div>
+        <div class="events-registry-tools">
+          <label class="events-search-field" for="eventsSearchInput">
+            <span id="eventsSearchLabel">Search events</span>
+            <input id="eventsSearchInput" type="search" placeholder="Search by title, person, category or description">
+          </label>
+          <label class="events-date-field" for="eventsFromDate">
+            <span id="eventsFromLabel">From</span>
+            <input id="eventsFromDate" type="date">
+          </label>
+          <label class="events-date-field" for="eventsToDate">
+            <span id="eventsToLabel">To</span>
+            <input id="eventsToDate" type="date">
+          </label>
+          <button id="eventsSearchClearBtn" class="ghost-btn" type="button">Clear</button>
+          <button id="eventsExportOptionsBtn" class="accent-btn" type="button">Report / export</button>
+        </div>
+        <div class="events-registry-stats">
+          <div class="events-stats-head">
+            <strong id="eventsStatsTitle">Statistics</strong>
+            <span id="eventsStatsSummary" class="muted">-</span>
+          </div>
+          <div id="eventsStatsList" class="events-stats-list"></div>
+        </div>
+        <div class="events-table-wrap">
+          <table class="events-table">
+            <thead>
+              <tr id="eventsRegistryHeadRow"></tr>
+            </thead>
+            <tbody id="eventsRegistryBody"></tbody>
+          </table>
+        </div>
+        <p id="eventsRegistryEmpty" class="events-registry-empty muted hidden-section">No events found.</p>
+      </section>
+
+      <div id="eventsExportMenu" class="modal hidden" aria-hidden="true">
+        <div class="modal-card compact-modal-card events-export-card">
+          <div class="modal-head">
+            <h3 id="eventsExportTitle">Report / export</h3>
+            <button id="closeEventsExportBtn" class="ghost-btn" type="button">Close</button>
+          </div>
+          <div class="events-report-options">
+            <div>
+              <strong id="eventsReportColumnsTitle">Report columns</strong>
+              <p id="eventsReportColumnsHint" class="muted">Choose what to include in the report table, CSV and PDF.</p>
+            </div>
+            <div id="eventsReportColumns" class="events-report-columns">
+              <label><input type="checkbox" value="date" checked> <span id="eventsColumnDateLabel">Date</span></label>
+              <label><input type="checkbox" value="time" checked> <span id="eventsColumnTimeLabel">Time</span></label>
+              <label><input type="checkbox" value="title" checked> <span id="eventsColumnTitleLabel">Title</span></label>
+              <label><input type="checkbox" value="category" checked> <span id="eventsColumnCategoryLabel">Category</span></label>
+              <label><input type="checkbox" value="people" checked> <span id="eventsColumnPeopleLabel">People</span></label>
+            </div>
+            <div class="events-export-actions">
+              <button id="eventsExportCsvBtn" class="ghost-btn" type="button">Export CSV</button>
+              <button id="eventsExportPdfBtn" class="accent-btn" type="button">Export PDF</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside id="upcomingPanel" class="upcoming-panel card">
+        <div class="upcoming-head">
+          <h3 id="upcomingTitle">Next 10 Items</h3>
+          <button id="toggleUpcomingBtn" class="ghost-btn upcoming-toggle-btn" type="button" aria-label="Collapse upcoming panel">&raquo;</button>
+        </div>
+        <ul id="upcomingList" class="event-list"></ul>
+      </aside>
+    </section>
+
+    <section id="dayTimelinePanel" class="day-timeline-panel card">
+      <div class="day-timeline-header">
+        <button id="dayTimelinePrevBtn" class="ghost-btn timeline-nav-btn" type="button" aria-label="Previous day">‹</button>
+        <div class="day-timeline-heading">
+          <h3 id="dayTimelineTitle">Day timeline</h3>
+          <p id="dayTimelineDate" class="muted">-</p>
+          <p id="dayTimelinePrefsSummary" class="muted">-</p>
+        </div>
+        <div class="day-timeline-actions">
+          <button id="openDayTimelineSettingsBtn" class="ghost-btn" type="button">Settings</button>
+        </div>
+        <button id="dayTimelineNextBtn" class="ghost-btn timeline-nav-btn" type="button" aria-label="Next day">›</button>
+      </div>
+      <div id="dayTimelineContent" class="day-timeline-content">
+        <p id="dayTimelineEmpty" class="muted">Select a day to see the timeline.</p>
+      </div>
+    </section>
+
+    <div id="dayTimelineSettingsModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card compact-modal-card">
+        <div class="modal-head">
+          <h3 id="dayTimelineSettingsTitle">Timeline settings</h3>
+          <button id="closeDayTimelineSettingsBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <div class="timeline-settings-modal-grid">
+          <label class="timeline-setting">
+            <span id="timelineWorkingStartLabel">Working day from</span>
+            <span class="time-input-row">
+              <input id="timelineWorkingStart" type="text" placeholder="HH:MM" maxlength="5" inputmode="numeric" autocomplete="off">
+              <button id="timelineWorkingStartPickerBtn" class="ghost-btn time-picker-trigger" type="button" aria-label="Pick time">🕒</button>
+            </span>
+          </label>
+          <label class="timeline-setting">
+            <span id="timelineWorkingEndLabel">Working day to</span>
+            <span class="time-input-row">
+              <input id="timelineWorkingEnd" type="text" placeholder="HH:MM" maxlength="5" inputmode="numeric" autocomplete="off">
+              <button id="timelineWorkingEndPickerBtn" class="ghost-btn time-picker-trigger" type="button" aria-label="Pick time">🕒</button>
+            </span>
+          </label>
+          <label class="timeline-setting">
+            <span id="timelineVisibleStartLabel">Visible from</span>
+            <span class="time-input-row">
+              <input id="timelineVisibleStart" type="text" placeholder="HH:MM" maxlength="5" inputmode="numeric" autocomplete="off">
+              <button id="timelineVisibleStartPickerBtn" class="ghost-btn time-picker-trigger" type="button" aria-label="Pick time">🕒</button>
+            </span>
+          </label>
+          <label class="timeline-setting">
+            <span id="timelineVisibleEndLabel">Visible to</span>
+            <span class="time-input-row">
+              <input id="timelineVisibleEnd" type="text" placeholder="HH:MM" maxlength="5" inputmode="numeric" autocomplete="off">
+              <button id="timelineVisibleEndPickerBtn" class="ghost-btn time-picker-trigger" type="button" aria-label="Pick time">🕒</button>
+            </span>
+          </label>
+          <label class="timeline-setting timeline-setting-toggle" for="timelineAutoFit">
+            <input id="timelineAutoFit" type="checkbox">
+            <span id="timelineAutoFitLabel">Auto-fit events</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <section class="footer-tools">
+      <div class="data-tools">
+        <button id="exportBtn" class="ghost-btn" type="button">Export JSON</button>
+        <label id="importLabel" for="importInput" class="ghost-btn import-label">Import JSON</label>
+        <input id="importInput" type="file" accept="application/json">
+      </div>
+    </section>
+
+    <div id="eventPreviewModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card event-preview-card">
+        <div class="modal-head">
+          <h3 id="eventPreviewTitle">Event overview</h3>
+          <button id="closeEventPreviewBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <div id="eventPreviewBody" class="event-preview-body"></div>
+        <div class="day-actions event-preview-actions">
+          <button id="eventPreviewFilesBtn" class="ghost-btn" type="button">Files</button>
+          <button id="eventPreviewProgramBtn" class="ghost-btn" type="button">Program</button>
+          <button id="eventPreviewAddTaskBtn" class="ghost-btn" type="button">Add task</button>
+          <button id="eventPreviewEditBtn" class="accent-btn" type="button">Edit</button>
+          <button id="eventPreviewDeleteBtn" class="delete-btn" type="button">Delete</button>
+        </div>
+      </div>
+    </div>
+    <div id="notificationsMenu" class="modal hidden" aria-hidden="true">
+      <div class="modal-card notifications-card">
+        <div class="modal-head">
+          <h3 id="notificationsTitle">Notifications</h3>
+          <button id="closeNotificationsBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <div class="notifications-toolbar">
+          <button id="notificationsUnreadFilterBtn" class="ghost-btn" type="button">Unread only</button>
+          <button id="notificationsMarkAllBtn" class="ghost-btn" type="button">Mark all read</button>
+          <button id="notificationsClearBtn" class="ghost-btn" type="button">Clear list</button>
+        </div>
+        <ul id="notificationsList" class="event-list"></ul>
+      </div>
+    </div>
+    <div id="chatModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card chat-card">
+        <div class="modal-head">
+          <h3 id="chatTitle">Chat</h3>
+          <div class="modal-head-actions">
+            <button id="chatFilesBtn" class="ghost-btn" type="button">Files</button>
+            <button id="closeChatBtn" class="ghost-btn" type="button">Close</button>
+          </div>
+        </div>
+        <div class="chat-layout">
+          <aside class="chat-sidebar">
+            <div class="chat-sidebar-head">
+              <strong id="chatSidebarTitle">Conversations</strong>
+            </div>
+            <div id="chatThreadList" class="chat-thread-list"></div>
+          </aside>
+          <section class="chat-main">
+            <div id="chatThreadHeader" class="chat-thread-header">-</div>
+            <div id="chatMessages" class="chat-messages"></div>
+            <button id="chatScrollBottomBtn" class="chat-scroll-bottom-btn hidden-section" type="button" title="Scroll to latest">↓</button>
+            <form id="chatForm" class="chat-form">
+              <div class="chat-form-tools">
+                <input id="chatFileInput" class="chat-file-input" type="file" multiple>
+                <button id="chatAttachBtn" class="ghost-btn" type="button">Attach files</button>
+                <span id="chatAttachSummary" class="chat-attach-summary muted">No files selected.</span>
+              </div>
+              <textarea id="chatInput" rows="2" maxlength="4000" placeholder="Type a message..."></textarea>
+              <button id="chatSendBtn" class="accent-btn" type="submit">Send</button>
+            </form>
+          </section>
+        </div>
+      </div>
+    </div>
+    <div id="bugReportModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="bugReportTitle">Report bug</h3>
+          <button id="closeBugReportBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <form id="bugReportForm" class="event-form">
+          <label id="bugReportTitleLabel" for="bugReportInputTitle">Title</label>
+          <input id="bugReportInputTitle" maxlength="191" required placeholder="Short bug title">
+          <label id="bugReportDescLabel" for="bugReportInputDesc">Description</label>
+          <textarea id="bugReportInputDesc" maxlength="4000" rows="5" required placeholder="What happened and steps to reproduce..."></textarea>
+          <div class="day-actions">
+            <button id="bugReportSubmitBtn" class="accent-btn" type="submit">Send report</button>
+          </div>
+          <p id="bugReportMsg" class="muted"></p>
+        </form>
+      </div>
+    </div>
+    <div id="dayMenu" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="selectedDateTitle">Select a day</h3>
+          <button id="closeDayMenuBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+
+        <div id="eventFormSection" class="hidden-section">
+          <form id="eventForm" class="event-form">
+            <div class="event-form-tabs" role="tablist" aria-label="Event tabs">
+              <button id="eventFormDetailsTabBtn" class="event-form-tab active" type="button" role="tab" aria-selected="true">Details</button>
+              <button id="eventFormRemindersTabBtn" class="event-form-tab" type="button" role="tab" aria-selected="false">Reminders</button>
+              <button id="eventFormFilesTabBtn" class="event-form-tab" type="button" role="tab" aria-selected="false">Files</button>
+            </div>
+
+            <div id="eventFormDetailsPanel" class="event-form-panel">
+              <label id="eventTitleLabel" for="eventTitle">Title</label>
+              <input id="eventTitle" name="title" maxlength="80" placeholder="Design review" required>
+
+              <label id="eventDescLabel" for="eventDescription">Description</label>
+              <textarea id="eventDescription" name="description" maxlength="800" rows="3" placeholder="Details..."></textarea>
+
+              <div class="event-toggle-card">
+                <label class="event-toggle-row" for="eventAllDay">
+                  <input id="eventAllDay" name="allDay" type="checkbox">
+                  <span id="eventAllDayLabel">All day</span>
+                </label>
+              </div>
+
+              <div class="event-datetime-grid">
+                <div class="event-datetime-card">
+                  <span id="eventStartLabel" class="event-datetime-card-label">Start</span>
+                  <div class="event-datetime-inputs">
+                    <label class="event-subfield">
+                      <span class="sr-only" id="eventStartDateAssist">Start date</span>
+                      <input id="eventStart" name="eventStart" type="date" required>
+                    </label>
+                    <label id="eventStartTimeField" class="event-subfield event-time-field">
+                      <span id="eventTimeLabel" class="sr-only">Start time</span>
+                      <span class="time-input-row">
+                        <input id="eventTime" name="time" type="text" placeholder="HH:MM" maxlength="5" inputmode="numeric" autocomplete="off">
+                        <button id="eventTimePickerBtn" class="ghost-btn time-picker-trigger" type="button" aria-label="Pick time">🕒</button>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+                <div class="event-datetime-card">
+                  <span id="eventEndLabel" class="event-datetime-card-label">End</span>
+                  <div class="event-datetime-inputs">
+                    <label class="event-subfield">
+                      <span class="sr-only" id="eventEndDateAssist">End date</span>
+                      <input id="eventEnd" name="eventEnd" type="date" required>
+                    </label>
+                    <label id="eventEndTimeField" class="event-subfield event-time-field">
+                      <span id="eventEndTimeLabel" class="sr-only">End time</span>
+                      <span class="time-input-row">
+                        <input id="eventTimeEnd" name="timeEnd" type="text" placeholder="HH:MM" maxlength="5" inputmode="numeric" autocomplete="off">
+                        <button id="eventTimeEndPickerBtn" class="ghost-btn time-picker-trigger" type="button" aria-label="Pick time">🕒</button>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <label id="repeatFreqLabel" for="repeatFreq">Repeat</label>
+              <select id="repeatFreq" name="repeatFreq">
+                <option id="repeatNoneOpt" value="none">No repeat</option>
+                <option id="repeatDailyOpt" value="daily">Daily</option>
+                <option id="repeatWeeklyOpt" value="weekly">Weekly</option>
+                <option id="repeatMonthlyOpt" value="monthly">Monthly</option>
+                <option id="repeatYearlyOpt" value="yearly">Yearly</option>
+              </select>
+
+              <label id="repeatEndModeLabel" for="repeatEndMode">Repeat ends</label>
+              <select id="repeatEndMode" name="repeatEndMode">
+                <option id="repeatForeverOpt" value="forever">Never</option>
+                <option id="repeatCountOpt" value="count">After X times</option>
+                <option id="repeatUntilOpt" value="until">On date</option>
+              </select>
+
+              <div id="repeatCountWrap" class="repeat-wrap">
+                <label id="repeatCountLabel" for="repeatCount">Count</label>
+                <input id="repeatCount" name="repeatCount" type="number" min="1" step="1" value="1">
+              </div>
+
+              <div id="repeatUntilWrap" class="repeat-wrap">
+                <label id="repeatUntilLabel" for="repeatUntil">Until date</label>
+                <input id="repeatUntil" name="repeatUntil" type="date">
+              </div>
+
+              <label id="eventCategoryLabel" for="eventCategory">Category</label>
+              <select id="eventCategory" name="categoryId">
+              </select>
+
+              <label id="eventPeopleLabel">People (participants)</label>
+              <div id="eventPeopleChecklist" class="people-checklist"></div>
+
+              <label id="eventAbsentLabel" for="eventAbsent">Absent people</label>
+              <select id="eventAbsent" name="absent" multiple></select>
+
+              <button id="toggleEventTasksBtn" class="ghost-btn" type="button">Event tasks</button>
+              <div id="eventTasksEditorWrap" class="task-editor hidden-section">
+                <div class="task-editor-form">
+                  <input id="eventTaskTitle" type="text" maxlength="140" placeholder="Task title">
+                  <div id="eventTaskPeopleChecklist" class="people-checklist task-people-list"></div>
+                  <button id="eventTaskAddBtn" class="ghost-btn" type="button">Add task</button>
+                </div>
+                <ul id="eventTaskList" class="task-list"></ul>
+              </div>
+            </div>
+
+            <div id="eventFormRemindersPanel" class="event-form-panel hidden-section">
+              <div class="event-toggle-card">
+                <label class="event-toggle-row" for="eventReminderEnabled">
+                  <input id="eventReminderEnabled" name="reminderEnabled" type="checkbox">
+                  <span id="eventReminderEnabledLabel">Enable reminders</span>
+                </label>
+              </div>
+
+              <div id="eventReminderSettings" class="event-reminder-settings hidden-section">
+                <label id="eventReminderOffsetLabel" for="eventReminderOffset">Remind before start</label>
+                <select id="eventReminderOffset" name="reminderOffset">
+                  <option id="eventReminderAtStartOpt" value="0">At start time</option>
+                  <option id="eventReminder5MinOpt" value="5">5 minutes before</option>
+                  <option id="eventReminder10MinOpt" value="10">10 minutes before</option>
+                  <option id="eventReminder15MinOpt" value="15">15 minutes before</option>
+                  <option id="eventReminder30MinOpt" value="30">30 minutes before</option>
+                  <option id="eventReminder1HourOpt" value="60">1 hour before</option>
+                  <option id="eventReminder1DayOpt" value="1440">1 day before</option>
+                  <option id="eventReminder1WeekOpt" value="10080">1 week before</option>
+                  <option id="eventReminder1MonthOpt" value="43200">1 month before</option>
+                </select>
+
+                <label id="eventReminderAllDayTimeLabel" for="eventReminderAllDayTime">All-day reminder time</label>
+                <span class="time-input-row">
+                  <input id="eventReminderAllDayTime" name="reminderAllDayTime" type="text" placeholder="HH:MM" maxlength="5" inputmode="numeric" autocomplete="off">
+                  <button id="eventReminderAllDayTimePickerBtn" class="ghost-btn time-picker-trigger" type="button" aria-label="Pick time">🕒</button>
+                </span>
+
+                <div id="eventReminderRepeatWrap">
+                  <label id="eventReminderRepeatLabel" for="eventReminderRepeat">For repeating events</label>
+                  <select id="eventReminderRepeat" name="reminderRepeat">
+                    <option id="eventReminderEveryOccurrenceOpt" value="each_occurrence">Every occurrence</option>
+                    <option id="eventReminderFirstOnlyOpt" value="first_only">Only first occurrence</option>
+                  </select>
+                </div>
+
+                <label id="eventReminderRecipientsLabel" for="eventReminderRecipients">Notify</label>
+                <select id="eventReminderRecipients" name="reminderRecipients">
+                  <option id="eventReminderParticipantsTasksOpt" value="participants_tasks">Participants and task assignees</option>
+                  <option id="eventReminderParticipantsOpt" value="participants">Participants only</option>
+                  <option id="eventReminderTaskAssigneesOpt" value="task_assignees">Task assignees only</option>
+                  <option id="eventReminderAllOpt" value="all">Everyone</option>
+                  <option id="eventReminderCustomOpt" value="custom">Choose now</option>
+                </select>
+
+                <div id="eventReminderCustomPeopleWrap" class="hidden-section">
+                  <label id="eventReminderCustomPeopleLabel">Recipients</label>
+                  <div id="eventReminderCustomPeopleChecklist" class="people-checklist"></div>
+                </div>
+              </div>
+            </div>
+
+            <div id="eventFormFilesPanel" class="event-form-panel hidden-section">
+              <div class="event-inline-card">
+                <div class="event-inline-card-copy">
+                  <span id="eventProgramInlineLabel" class="event-inline-label">Program (PDF)</span>
+                  <p id="eventProgramSummary" class="muted">No program selected.</p>
+                </div>
+                <button id="openEventProgramModalBtn" class="ghost-btn" type="button">Manage program</button>
+              </div>
+
+              <div class="event-files-settings">
+                <label class="event-toggle-row" for="eventFilesFolderEnabled">
+                  <input id="eventFilesFolderEnabled" name="filesFolderEnabled" type="checkbox" checked>
+                  <span id="eventFilesFolderEnabledLabel">Create files folder for this event</span>
+                </label>
+                <label class="event-toggle-row" for="eventFilesDetached">
+                  <input id="eventFilesDetached" name="filesDetached" type="checkbox">
+                  <span id="eventFilesDetachedLabel">Detach event from files</span>
+                </label>
+                <p id="eventFilesSettingsSummary" class="muted">Files folder will stay linked to the event.</p>
+                <p id="eventFilesSettingsHelp" class="muted">Program stays system-managed. User files live in Other.</p>
+              </div>
+            </div>
+
+            <button id="addEventSubmitBtn" class="accent-btn" type="submit">Add event</button>
+          </form>
+        </div>
+
+        <div id="absenceFormSection" class="absence-panel hidden-section">
+          <h4 id="absenceSectionTitle">Add Absence</h4>
+          <form id="absenceForm" class="absence-form">
+            <label id="absencePersonLabel" for="absencePerson">Person</label>
+            <select id="absencePerson" name="absencePerson"></select>
+
+            <label id="absenceStartLabel" for="absenceStart">Start date</label>
+            <input id="absenceStart" name="absenceStart" type="date" required>
+
+            <label id="absenceEndLabel" for="absenceEnd">End date</label>
+            <input id="absenceEnd" name="absenceEnd" type="date" required>
+
+            <label id="absenceNoteLabel" for="absenceNote">Note</label>
+            <input id="absenceNote" name="absenceNote" maxlength="80" placeholder="Vacation / Sick leave">
+
+            <button id="addAbsenceSubmitBtn" class="accent-btn" type="submit">Add absence</button>
+          </form>
+                </div>
+
+        <div id="taskFormSection" class="hidden-section">
+          <h4 id="taskSectionTitle">Add Task</h4>
+          <form id="taskForm" class="event-form">
+            <label id="taskTitleLabel" for="taskTitle">Task</label>
+            <input id="taskTitle" name="taskTitle" maxlength="140" placeholder="Task title" required>
+            <label id="taskPersonLabel" for="taskPersonChecklist">Person</label>
+            <div id="taskPersonChecklist" class="people-checklist task-people-list"></div>
+            <label id="taskCategoryLabel" for="taskCategory">Category</label>
+            <select id="taskCategory" name="taskCategory"></select>
+            <button id="addTaskSubmitBtn" class="accent-btn" type="submit">Add task</button>
+          </form>
+        </div>
+
+        <div id="eventListWrap" class="event-list-wrap">
+          <h4 id="eventsListTitle">Events</h4>
+          <ul id="eventList" class="event-list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <div id="peopleMenu" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="peopleModalTitle">People</h3>
+          <button id="closePeopleMenuBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <div class="people-panel">
+          <form id="personForm" class="person-form">
+            <input id="personName" name="personName" maxlength="60" placeholder="Add person name" required>
+            <select id="personColor" name="personColor" aria-label="Person color">
+              <option value="#ef4444">Red</option>
+              <option value="#f97316">Orange</option>
+              <option value="#eab308">Yellow</option>
+              <option value="#22c55e">Green</option>
+              <option value="#06b6d4">Cyan</option>
+              <option value="#3b82f6">Blue</option>
+              <option value="#8b5cf6">Violet</option>
+              <option value="#ec4899">Pink</option>
+              <option value="#14b8a6">Teal</option>
+              <option value="#84cc16">Lime</option>
+              <option value="#f59e0b">Amber</option>
+              <option value="#fb7185">Rose</option>
+              <option value="#a855f7">Purple</option>
+              <option value="#0ea5e9">Sky</option>
+              <option value="#64748b">Slate</option>
+              <option value="#10b981">Emerald</option>
+            </select>
+            <button id="personSaveBtn" class="ghost-btn" type="submit">Add person</button>
+            <button id="personCancelBtn" class="ghost-btn" type="button">Cancel</button>
+          </form>
+          <ul id="peopleList" class="people-list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <div id="categoriesMenu" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="categoriesModalTitle">Categories</h3>
+          <button id="closeCategoriesMenuBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <form id="categoryForm" class="person-form">
+          <input id="categoryName" name="categoryName" maxlength="50" placeholder="Category name" required>
+          <input id="categoryColor" name="categoryColor" type="color" value="#0ea5e9" aria-label="Category color">
+          <button id="categorySaveBtn" class="ghost-btn" type="submit">Add category</button>
+          <button id="categoryCancelBtn" class="ghost-btn" type="button">Cancel</button>
+        </form>
+        <ul id="categoriesList" class="people-list"></ul>
+      </div>
+    </div>
+
+    <div id="settingsMenu" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="settingsTitle">Menu</h3>
+          <button id="closeSettingsMenuBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <div class="event-form">
+          <label id="langToggleLabel" for="langToggle">Language</label>
+          <select id="langToggle" aria-label="Language">
+            <option value="en">English</option>
+            <option value="bg">Bulgarian</option>
+          </select>
+          <label class="theme-toggle-row" for="themeToggle">
+            <span id="themeToggleLabel">Dark mode</span>
+            <input id="themeToggle" type="checkbox">
+            <span class="theme-toggle-track" aria-hidden="true">
+              <span class="theme-toggle-thumb"></span>
+            </span>
+          </label>
+
+          <button id="menuProfileBtn" class="ghost-btn" type="button">Profile</button>
+          <button id="menuGuideBtn" class="ghost-btn" type="button">User guide</button>
+          <button id="menuMobileAppBtn" class="ghost-btn" type="button">Mobile app</button>
+          <button id="currentUserLeaveBtn" class="ghost-btn" type="button">My leave</button>
+
+          <div id="settingsUserSection" class="settings-shortcuts">
+            <h4 id="menuShortcutsTitle">Quick actions</h4>
+            <div class="settings-shortcuts-grid">
+              <button id="mediaMonitoringBtn" class="ghost-btn" type="button">Media</button>
+              <button id="reportsBtn" class="ghost-btn" type="button">Reports</button>
+              <button id="leaveBtn" class="ghost-btn" type="button">Leave</button>
+              <button id="compensationBtn" class="ghost-btn" type="button">Compensations</button>
+              <button id="filesBtn" class="ghost-btn" type="button">Files</button>
+            </div>
+          </div>
+
+          <div id="settingsAdminSection">
+            <button id="menuAdminBtn" class="ghost-btn" type="button">Open admin panel</button>
+          </div>
+          <button id="bugReportBtn" class="ghost-btn danger-outline-btn" type="button">Report bug</button>
+          <button id="menuLogoutBtn" class="accent-btn danger-btn" type="button">Logout</button>
+
+          <p id="menuMsg" class="muted"></p>
+          <p id="appVersionLabel" class="menu-version-label muted"></p>
+        </div>
+      </div>
+    </div>
+    <div id="eventProgramModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card compact-modal-card">
+        <div class="modal-head">
+          <h3 id="eventProgramModalTitle">Program for this event</h3>
+          <button id="closeEventProgramModalBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <div class="event-program-panel">
+          <p id="eventProgramHelp" class="muted">Attach one PDF file. It will open from the event preview.</p>
+          <label id="eventProgramLabel" for="eventProgramInput">Program file (PDF)</label>
+          <input id="eventProgramInput" type="file" accept=".pdf,application/pdf">
+          <div class="event-program-actions">
+            <button id="eventProgramPreviewBtn" class="ghost-btn" type="button">Preview program</button>
+            <button id="eventProgramClearBtn" class="ghost-btn" type="button">Clear program</button>
+          </div>
+          <p id="eventProgramModalSummary" class="muted">No program selected.</p>
+          <p id="eventProgramStatus" class="muted"></p>
+        </div>
+      </div>
+    </div>
+    <div id="timePickerModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card compact-modal-card">
+        <div class="modal-head">
+          <h3 id="timePickerTitle">Choose time</h3>
+          <button id="closeTimePickerBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <div class="day-actions">
+          <button id="clearTimePickerBtn" class="ghost-btn" type="button">Clear</button>
+          <button id="applyTimePickerBtn" class="accent-btn" type="button">Apply</button>
+        </div>
+        <div class="time-picker-list-wrap">
+          <label class="time-picker-list">
+            <span id="timePickerListLabel">Time</span>
+            <select id="timePickerListSelect" size="12"></select>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div id="profileModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="profileTitle">Profile</h3>
+          <button id="closeProfileBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <div class="event-form">
+          <div class="profile-summary">
+            <div class="profile-summary-row"><span id="profileNicknameLabel">Nickname</span><strong id="profileNicknameValue">-</strong></div>
+            <div class="profile-summary-row"><span id="profileRoleLabel">Role</span><strong id="profileRoleValue">-</strong></div>
+            <div class="profile-summary-row"><span id="profileStatusLabel">Status</span><strong id="profileStatusValue">-</strong></div>
+            <div class="profile-summary-row"><span id="profileFullNameLabel">Full name</span><strong id="profileFullNameValue">-</strong></div>
+            <div class="profile-summary-row"><span id="profileWorkplaceLabel">Workplace</span><strong id="profileWorkplaceValue">-</strong></div>
+            <div class="profile-summary-row"><span id="profileJobTitleLabel">Job title</span><strong id="profileJobTitleValue">-</strong></div>
+          </div>
+
+          <label id="profileNicknameInputLabel" for="profileNicknameInput">Nickname</label>
+          <input id="profileNicknameInput" type="text" maxlength="64" autocomplete="nickname" placeholder="Nickname">
+          <label id="profileFullNameInputLabel" for="profileFullNameInput">Full name</label>
+          <input id="profileFullNameInput" type="text" maxlength="191" autocomplete="name" placeholder="Full name">
+          <label id="profileWorkplaceInputLabel" for="profileWorkplaceInput">Workplace</label>
+          <input id="profileWorkplaceInput" type="text" maxlength="191" autocomplete="organization-title" placeholder="Workplace">
+          <label id="profileJobTitleInputLabel" for="profileJobTitleInput">Job title</label>
+          <input id="profileJobTitleInput" type="text" maxlength="191" autocomplete="organization-title" placeholder="Job title">
+          <button id="saveMyProfileBtn" class="ghost-btn" type="button">Save profile</button>
+          <p id="profileMsg" class="muted"></p>
+        </div>
+      </div>
+    </div>
+
+    <div id="filtersMenu" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="filtersTitle">Filters</h3>
+          <button id="closeFiltersMenuBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <div class="filter-block">
+          <h4 id="filterCategoriesTitle">Categories</h4>
+          <div id="categoryFilterList" class="filter-checklist"></div>
+        </div>
+        <div class="filter-block">
+          <h4 id="filterPeopleTitle">People</h4>
+          <div id="peopleFilterList" class="filter-checklist"></div>
+        </div>
+        <button id="clearFiltersBtn" class="ghost-btn" type="button">Clear Filters</button>
+      </div>
+    </div>
+
+    <div id="storageStartupMenu" class="modal hidden-section hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="storageTitle">Data source</h3>
+        </div>
+        <p id="storageDesc">Choose where to open/save your calendar data.</p>
+        <div class="day-actions">
+          <button id="openDataFileBtn" class="accent-btn" type="button">Open data file</button>
+          <button id="createDataFileBtn" class="ghost-btn" type="button">Create new data file</button>
+          <button id="useLocalOnlyBtn" class="ghost-btn" type="button">Use local only</button>
+        </div>
+      </div>
+        </div>
+
+    <div id="reportsMenu" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="reportsTitle">Reports</h3>
+          <button id="closeReportsBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <form id="reportsForm" class="event-form">
+          <label id="reportPersonLabel" for="reportPerson">Person</label>
+          <select id="reportPerson"></select>
+          <label id="reportStartLabel" for="reportStart">From</label>
+          <input id="reportStart" type="date" required>
+          <label id="reportEndLabel" for="reportEnd">To</label>
+          <input id="reportEnd" type="date" required>
+          <button id="runReportBtn" class="accent-btn" type="submit">Generate report</button>
+          <button id="saveReportPdfBtn" class="ghost-btn" type="button">Save PDF</button>
+        </form>
+        <ul id="reportResults" class="event-list"></ul>
+      </div>
+    </div>
+  
+    
+    <div id="compensationMenu" class="modal hidden" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="compensationTitle">Compensations</h3>
+      <button id="closeCompensationBtn" class="ghost-btn" type="button">Close</button>
+    </div>
+    <form id="compensationForm" class="event-form">
+      <label id="compPersonLabel" for="compPerson">Person</label>
+      <select id="compPerson"></select>
+      <label id="compDateLabel" for="compDate">Date</label>
+      <input id="compDate" type="date" required>
+
+      <div id="compManageWrap" class="hidden-section">
+        <label id="compKindLabel" for="compKind">Type</label>
+        <select id="compKind">
+          <option value="overtime">Overtime</option>
+          <option value="absence">Absence</option>
+        </select>
+        <label id="compDurationLabel">Duration</label>
+        <div class="comp-duration-grid">
+          <input id="compHours" type="number" step="1" min="0" max="999" value="0" aria-label="Hours">
+          <input id="compMinutesPart" type="number" step="1" min="0" max="59" value="0" aria-label="Minutes">
+        </div>
+        <label id="compReasonLabel" for="compReason">Reason</label>
+        <input id="compReason" type="text" maxlength="191" placeholder="Reason...">
+        <button id="addCompEntryBtn" class="accent-btn" type="button">Add entry</button>
+        <button id="openAdjustCompBtn" class="ghost-btn" type="button">Adjust...</button>
+      </div>
+    </form>
+    <div id="compOverviewWrap" class="hidden-section">
+      <h4 id="compOverviewTitle">Team compensations</h4>
+      <ul id="compOverviewList" class="event-list"></ul>
+    </div>
+  </div>
+</div>
+<div id="compAdjustModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="compAdjustTitle">Adjust compensation</h3>
+          <button id="closeCompAdjustBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <form id="compAdjustForm" class="event-form">
+          <label id="compAdjustDateLabel" for="compAdjustDate">Date</label>
+          <input id="compAdjustDate" type="date" required>
+          <label id="compAdjustSignLabel" for="compAdjustSign">Adjust target sign</label>
+          <select id="compAdjustSign">
+            <option id="compAdjustPositiveOpt" value="positive">Positive (+)</option>
+            <option id="compAdjustNegativeOpt" value="negative">Negative (-)</option>
+          </select>
+          <label id="compAdjustDurationLabel">Duration</label>
+          <div class="comp-duration-grid">
+            <input id="compAdjustHours" type="number" step="1" min="0" max="999" value="0" aria-label="Hours">
+            <input id="compAdjustMinutesPart" type="number" step="1" min="0" max="59" value="0" aria-label="Minutes">
+          </div>
+          <label id="compAdjustReasonLabel" for="compAdjustReason">Reason</label>
+          <input id="compAdjustReason" type="text" maxlength="191" placeholder="Reason...">
+          <button id="adjustCompEntryBtn" class="accent-btn" type="submit">Adjust</button>
+        </form>
+      </div>
+    </div>
+    <div id="compLogModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="compLogTitle">Compensation log</h3>
+          <button id="closeCompLogBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <p id="compLogSummary" class="muted"></p>
+                <ul id="compLogEntries" class="event-list"></ul>
+      </div>
+    </div>
+    <div id="stickyNoteModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="stickyNoteModalTitle">New note</h3>
+          <button id="closeStickyNoteBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <form id="stickyNoteForm" class="event-form">
+          <label id="stickyNoteTitleLabel" for="stickyNoteTitle">Title</label>
+          <input id="stickyNoteTitle" name="stickyNoteTitle" maxlength="80" placeholder="Title">
+          <label id="stickyNoteTextLabel" for="stickyNoteText">Description</label>
+          <textarea id="stickyNoteText" name="stickyNoteText" maxlength="1500" rows="4" placeholder="Details..."></textarea>
+          <label id="stickyNoteColorLabel" for="stickyNoteColor">Color</label>
+          <input id="stickyNoteColor" name="stickyNoteColor" type="hidden" value="#fde68a">
+          <div id="stickyNotePalette" class="sticky-note-palette" role="radiogroup" aria-label="Note color palette"></div>
+          <div class="day-actions">
+            <button id="saveStickyNoteBtn" class="accent-btn" type="submit">Save note</button>
+            <button id="cancelStickyNoteBtn" class="ghost-btn" type="button">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div><div id="syncToast" class="sync-toast hidden" role="status" aria-live="polite"></div>
+    <div id="stickyShareModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="stickyShareTitle">Share note</h3>
+          <button id="closeStickyShareBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <form id="stickyShareForm" class="event-form">
+          <label id="stickyShareModeLabel" for="stickyShareMode">Mode</label>
+          <select id="stickyShareMode" name="stickyShareMode">
+            <option value="copy">Share copy</option>
+            <option value="sync_readonly">Share synchronized (read-only)</option>
+            <option value="sync_edit">Share synchronized (editable)</option>
+            <option value="send">Send note</option>
+          </select>
+          <label id="stickySharePeopleLabel">Recipients</label>
+          <div class="day-actions">
+            <button id="stickyShareSelectAllBtn" class="ghost-btn" type="button">All</button>
+            <button id="stickyShareClearAllBtn" class="ghost-btn" type="button">Clear</button>
+          </div>
+          <div id="stickySharePeopleChecklist" class="people-checklist"></div>
+          <div class="day-actions">
+            <button id="stickyShareSubmitBtn" class="accent-btn" type="submit">Share</button>
+            <button id="stickyShareCancelBtn" class="ghost-btn" type="button">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div id="filesModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card files-card">
+        <div class="modal-head">
+          <h3 id="filesTitle">Files</h3>
+          <button id="closeFilesBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <div class="files-layout">
+          <aside class="files-sidebar">
+            <strong id="filesTreeTitle">Realm files</strong>
+            <ul id="filesTree" class="files-tree"></ul>
+          </aside>
+          <section class="files-main">
+            <div id="filesOperationOverlay" class="files-operation-overlay hidden-section">
+              <div id="filesOperationPanel" class="files-operation-panel hidden-section">
+                <div class="files-operation-head">
+                  <strong id="filesOperationTitle">Operation</strong>
+                  <button id="filesOperationCancelBtn" class="ghost-btn" type="button">Cancel</button>
+                </div>
+                <label id="filesOperationLabel" for="filesOperationInput">Value</label>
+                <input id="filesOperationInput" type="text" maxlength="255" placeholder="Type value">
+                <div id="filesOperationPickerWrap" class="files-operation-picker-wrap hidden-section">
+                  <div class="files-operation-summary">
+                    <div class="files-operation-summary-card">
+                      <span id="filesOperationSourceLabel" class="files-operation-summary-label">Source</span>
+                      <strong id="filesOperationSourceValue" class="files-operation-summary-value">-</strong>
+                    </div>
+                    <div class="files-operation-summary-card">
+                      <span id="filesOperationSelectionLabel" class="files-operation-summary-label">Destination</span>
+                      <strong id="filesOperationSelection" class="files-operation-summary-value">No destination selected.</strong>
+                      <span id="filesOperationSelectionPath" class="files-operation-summary-path">/</span>
+                    </div>
+                  </div>
+                  <div id="filesOperationPickerTree" class="files-operation-picker"></div>
+                </div>
+                <p id="filesOperationHint" class="muted"></p>
+                <div class="day-actions files-operation-actions">
+                  <button id="filesOperationApplyBtn" class="accent-btn" type="button">Apply</button>
+                </div>
+              </div>
+            </div>
+            <form id="filesUploadForm" class="event-form files-upload-form hidden-section">
+              <label id="filesUploadLabel" for="filesUploadInput">Choose file</label>
+              <input id="filesUploadInput" type="file" multiple>
+              <input id="filesUploadFolderInput" class="hidden-section" type="file" webkitdirectory directory multiple>
+              <p id="filesUploadDropHint" class="muted files-upload-drop-hint">Drop files here or choose them manually.</p>
+              <p id="filesUploadSummary" class="muted files-upload-summary">No files selected.</p>
+              <div class="files-upload-actions">
+                <button id="filesUploadBtn" class="accent-btn" type="button">Upload</button>
+              </div>
+            </form>
+            <div class="files-explorer">
+              <div class="files-explorer-location">
+                <div class="files-explorer-location-main">
+                  <span class="files-row-icon files-row-icon-folder files-explorer-location-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4H10l2 2h6.5A2.5 2.5 0 0 1 21 8.5v8A3.5 3.5 0 0 1 17.5 20h-11A3.5 3.5 0 0 1 3 16.5z"/></svg>
+                  </span>
+                  <div class="files-explorer-location-copy">
+                    <span id="filesCurrentFolderLabel" class="files-explorer-location-label">Current folder</span>
+                    <strong id="filesCurrentFolderName" class="files-explorer-location-name">/</strong>
+                    <span id="filesCurrentFolderPath" class="files-explorer-location-path">/</span>
+                    <div class="files-explorer-summary">
+                      <strong id="filesContextLabel">-</strong>
+                      <span id="filesCountLabel" class="muted"></span>
+                    </div>
+                    <div id="filesBreadcrumbs" class="files-breadcrumbs">/</div>
+                  </div>
+                </div>
+                <div class="files-explorer-side">
+                  <div class="files-toolbar files-toolbar-compact">
+                    <button id="filesBackBtn" class="ghost-btn" type="button">Back</button>
+                    <button id="filesUpBtn" class="ghost-btn" type="button">Up</button>
+                    <button id="filesNewFolderBtn" class="ghost-btn" type="button">New folder</button>
+                    <button id="filesUploadToggleBtn" class="ghost-btn" type="button">Show upload</button>
+                    <button id="filesDownloadArchiveBtn" class="ghost-btn" type="button">Download my archive</button>
+                  </div>
+                  <div class="files-explorer-side-meta">
+                    <div class="files-capacity-wrap files-capacity-wrap-compact">
+                      <div class="files-capacity-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <span id="filesCapacityFill" class="files-capacity-fill"></span>
+                      </div>
+                      <p id="filesCapacityLabel" class="muted">0 MB / 0 MB</p>
+                    </div>
+                    <p id="filesStatus" class="muted files-status-inline"></p>
+                    <span id="filesCurrentFolderHint" class="muted files-explorer-location-hint">Double-click to open items. Right-click for actions.</span>
+                  </div>
+                </div>
+              </div>
+              <div class="files-list-toolbar">
+                <label class="files-search-field" for="filesSearchInput">
+                  <span id="filesSearchLabel">Search</span>
+                  <input id="filesSearchInput" type="search" placeholder="Search current folder">
+                </label>
+                <label class="files-sort-field" for="filesSortSelect">
+                  <span id="filesSortLabel">Sort</span>
+                  <select id="filesSortSelect">
+                    <option id="filesSortModifiedDescOpt" value="modified_desc">Newest first</option>
+                    <option id="filesSortModifiedAscOpt" value="modified_asc">Oldest first</option>
+                    <option id="filesSortNameAscOpt" value="name_asc">Name A-Z</option>
+                    <option id="filesSortNameDescOpt" value="name_desc">Name Z-A</option>
+                    <option id="filesSortTypeAscOpt" value="type_asc">Type A-Z</option>
+                    <option id="filesSortTypeDescOpt" value="type_desc">Type Z-A</option>
+                    <option id="filesSortSizeAscOpt" value="size_asc">Smallest first</option>
+                    <option id="filesSortSizeDescOpt" value="size_desc">Largest first</option>
+                  </select>
+                </label>
+                <div id="filesViewToggle" class="files-view-toggle" role="group" aria-label="Explorer view">
+                  <button id="filesViewListBtn" class="ghost-btn files-view-btn" type="button">List</button>
+                  <button id="filesViewGridBtn" class="ghost-btn files-view-btn" type="button">Tiles</button>
+                </div>
+                <span id="filesViewSummary" class="muted files-view-summary">Showing 0 items.</span>
+              </div>
+              <div class="files-explorer-workspace">
+                <div id="filesListPanel" class="files-list-panel">
+                  <div class="files-head-row">
+                    <label class="files-head-select" for="filesHeadSelect">
+                      <input id="filesHeadSelect" type="checkbox" aria-label="Select all files">
+                      <span id="filesHeadSelectLabel">Select</span>
+                    </label>
+                    <button class="files-head-sort-btn" type="button" data-files-sort-key="name">
+                      <span id="filesHeadName">Name</span>
+                      <span class="files-head-sort-indicator" aria-hidden="true"></span>
+                    </button>
+                    <button class="files-head-sort-btn" type="button" data-files-sort-key="type">
+                      <span id="filesHeadType">Type</span>
+                      <span class="files-head-sort-indicator" aria-hidden="true"></span>
+                    </button>
+                    <button class="files-head-sort-btn" type="button" data-files-sort-key="modified">
+                      <span id="filesHeadModified">Modified</span>
+                      <span class="files-head-sort-indicator" aria-hidden="true"></span>
+                    </button>
+                    <button class="files-head-sort-btn files-head-sort-btn-end" type="button" data-files-sort-key="size">
+                      <span id="filesHeadSize">Size</span>
+                      <span class="files-head-sort-indicator" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                  <ul id="filesList" class="files-list"></ul>
+                  <div id="filesContextMenu" class="files-context-menu hidden-section" role="menu" aria-hidden="true"></div>
+                </div>
+                <aside id="filesSelectionPane" class="files-selection-pane">
+                  <div class="files-selection-main">
+                    <div class="files-selection-copy">
+                      <strong id="filesSelectionName" class="files-selection-name">No file selected.</strong>
+                      <p id="filesSelectionMeta" class="muted files-selection-meta">Select a file to preview or download.</p>
+                    </div>
+                    <div class="files-selection-facts">
+                      <span id="filesSelectionScope" class="files-selection-fact">Location: -</span>
+                      <span id="filesSelectionPath" class="files-selection-fact">Path: -</span>
+                      <span id="filesSelectionMime" class="files-selection-fact">Format: -</span>
+                    </div>
+                    <div class="day-actions files-selection-actions">
+                      <button id="filesOpenEventBtn" class="ghost-btn hidden-section" type="button">Open event</button>
+                      <button id="filesOpenFolderBtn" class="ghost-btn hidden-section" type="button">Open folder</button>
+                      <button id="filesRenameFolderBtn" class="ghost-btn hidden-section" type="button">Rename folder</button>
+                      <button id="filesMoveFolderBtn" class="ghost-btn hidden-section" type="button">Move folder</button>
+                      <button id="filesDeleteFolderBtn" class="delete-btn hidden-section" type="button">Delete folder</button>
+                      <button id="filesMoveFileBtn" class="ghost-btn hidden-section" type="button">Move</button>
+                      <button id="filesPreviewBtn" class="ghost-btn hidden-section" type="button">Preview</button>
+                      <button id="filesDownloadBtn" class="ghost-btn hidden-section" type="button">Download</button>
+                      <button id="filesDeleteBtn" class="delete-btn hidden-section" type="button">Delete</button>
+                    </div>
+                  </div>
+                  <div id="filesSelectionPreviewWrap" class="files-selection-preview-wrap">
+                    <div class="files-selection-preview-head">
+                      <strong id="filesSelectionPreviewTitle">Quick preview</strong>
+                    </div>
+                    <p id="filesSelectionPreviewStatus" class="muted files-selection-preview-status">Select a file to preview.</p>
+                    <img id="filesSelectionPreviewImage" class="files-selection-preview-image hidden-section" alt="">
+                    <iframe id="filesSelectionPreviewFrame" class="files-selection-preview-frame hidden-section" title="Quick preview"></iframe>
+                    <pre id="filesSelectionPreviewText" class="files-selection-preview-text hidden-section"></pre>
+                  </div>
+                </aside>
+              </div>
+            </div>
+            <div id="filesBatchActions" class="files-batch-actions hidden-section">
+              <span id="filesBatchSummary" class="muted">No files selected for batch actions.</span>
+              <div class="day-actions">
+                <button id="filesBatchDownloadBtn" class="ghost-btn" type="button">Download selected</button>
+                <button id="filesBatchDeleteBtn" class="delete-btn" type="button">Delete selected</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+    <div id="filePreviewModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card file-preview-card">
+        <div class="modal-head">
+          <h3 id="filePreviewTitle">File preview</h3>
+          <button id="closeFilePreviewBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <div class="file-preview-body">
+          <img id="filePreviewImage" class="file-preview-image hidden-section" alt="">
+          <iframe id="filePreviewFrame" class="file-preview-frame hidden-section" title="File preview"></iframe>
+          <pre id="filePreviewText" class="file-preview-text hidden-section"></pre>
+          <p id="filePreviewFallbackText" class="muted hidden-section">Preview is not available for this file type.</p>
+        </div>
+        <div class="day-actions">
+          <button id="filePreviewDownloadBtn" class="ghost-btn" type="button">Download</button>
+        </div>
+      </div>
+    </div>
+    <div id="leaveQuickModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="leaveQuickTitle">Leave</h3>
+          <button id="closeLeaveQuickBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <div class="leave-quick-stats">
+          <div class="leave-quick-stat"><span id="leaveQuickPaidLabel">Paid leave left</span><strong id="leaveQuickPaidValue">-</strong></div>
+          <div class="leave-quick-stat"><span id="leaveQuickStudyLabel">Study leave left</span><strong id="leaveQuickStudyValue">-</strong></div>
+          <div class="leave-quick-stat"><span id="leaveQuickUnpaidLabel">Unpaid used</span><strong id="leaveQuickUnpaidValue">-</strong></div>
+          <div class="leave-quick-stat"><span id="leaveQuickSickLabel">Sick used</span><strong id="leaveQuickSickValue">-</strong></div>
+        </div>
+        <div class="day-actions" style="margin-bottom:8px;">
+          <button id="leaveQuickRequestBtn" class="accent-btn" type="button">Request absence</button>
+        </div>
+        <div class="leave-quick-calendar-head">
+          <button id="leaveQuickPrevBtn" class="ghost-btn" type="button">Prev</button>
+          <strong id="leaveQuickMonthLabel">-</strong>
+          <button id="leaveQuickNextBtn" class="ghost-btn" type="button">Next</button>
+        </div>
+        <div id="leaveQuickCalendar" class="leave-quick-calendar"></div>
+      </div>
+    </div>
+    <div id="leaveRequestModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="leaveRequestTitle">Request absence</h3>
+          <button id="closeLeaveRequestBtn" class="ghost-btn" type="button">Close</button>
+        </div>
+        <form id="leaveRequestForm" class="event-form">
+          <label id="leaveRequestTypeLabel" for="leaveRequestType">Type</label>
+          <select id="leaveRequestType">
+            <option value="paid">Paid leave</option>
+            <option value="sick">Sick leave</option>
+            <option value="unpaid">Unpaid leave</option>
+            <option value="study">Study leave</option>
+          </select>
+          <label id="leaveRequestStartLabel" for="leaveRequestStart">Start date</label>
+          <input id="leaveRequestStart" type="date" required>
+          <label id="leaveRequestEndLabel" for="leaveRequestEnd">End date</label>
+          <input id="leaveRequestEnd" type="date" required>
+          <label id="leaveRequestSourceYearWrap" class="hidden-section">
+            <span id="leaveRequestSourceYearLabel">Source year</span>
+            <select id="leaveRequestSourceYear"></select>
+          </label>
+          <label id="leaveRequestNoteLabel" for="leaveRequestNote">Note</label>
+          <textarea id="leaveRequestNote" rows="3" maxlength="512"></textarea>
+          <div class="day-actions">
+            <button id="leaveRequestSubmitBtn" class="accent-btn" type="submit">Submit</button>
+          </div>
+          <p id="leaveRequestStatus" class="muted"></p>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="/app-runtime.js"></script>
+  <script src="js/dataProvider.js"></script>
+  <script src="js/modules/auth/jwt.js"></script>
+  <script src="js/modules/auth/fetch.js"></script>
+  <script src="js/modules/app/accessToken.js"></script>
+  <script src="js/modules/app/currentUser.js"></script>
+  <script src="js/modules/app/sessionFacade.js"></script>
+  <script src="js/modules/app/androidShell.js"></script>  <script src="js/modules/permissions/acl.js"></script>
+  <script src="js/modules/app/permissionsFacade.js"></script>
+  <script src="js/modules/people/roster.js"></script>
+  <script src="js/modules/people/checklist.js"></script>
+  <script src="js/modules/people/availability.js"></script>
+  <script src="js/modules/people/options.js"></script>
+  <script src="js/modules/tasks/assignees.js"></script>
+  <script src="js/modules/tasks/helpers.js"></script>
+  <script src="js/modules/tasks/inviteApi.js"></script>
+  <script src="js/modules/tasks/dialogs.js"></script>
+  <script src="js/modules/tasks/mutations.js"></script>
+  <script src="js/modules/tasks/linkedFlow.js"></script>
+  <script src="js/modules/tasks/standaloneUpdate.js"></script>
+  <script src="js/modules/tasks/stateMerge.js"></script>
+  <script src="js/modules/tasks/render.js"></script>
+  <script src="js/modules/events/filters.js"></script>
+  <script src="js/modules/events/query.js"></script>
+  <script src="js/modules/events/timeMeta.js"></script>
+  <script src="js/modules/events/formPreview.js"></script>
+  <script src="js/modules/events/eventProgram.js"></script>
+  <script src="js/modules/events/previewFlow.js"></script>
+  <script src="js/modules/events/listRender.js"></script>
+  <script src="js/modules/files/preview.js"></script>
+  <script src="js/modules/notifications/format.js"></script>
+  <script src="js/modules/notifications/controller.js"></script>
+  <script src="js/modules/notifications/render.js"></script>
+  <script src="js/modules/calendar/weekdays.js"></script>
+  <script src="js/modules/calendar/views.js"></script>
+  <script src="js/modules/calendar/aggregation.js"></script>
+  <script src="js/modules/calendar/dayTimeline.js"></script>
+  <script src="js/modules/calendar/dayTimelinePrefs.js"></script>
+  <script src="js/modules/calendar/occurrences.js"></script>
+  <script src="js/modules/calendar/modePermissions.js"></script>
+  <script src="js/modules/calendar/dayMenuFlow.js"></script>
+  <script src="js/modules/calendar/sideMenuHelpers.js"></script>
+  <script src="js/modules/calendar/dayCell.js"></script>
+  <script src="js/modules/calendar/monthGrid.js"></script>
+  <script src="js/modules/calendar/yearGrid.js"></script>
+  <script src="js/modules/chat/meta.js"></script>
+  <script src="js/modules/chat/controller.js"></script>
+  <script src="js/modules/chat/ui.js"></script>
+  <script src="js/modules/ui/status.js"></script>
+  <script src="js/modules/ui/dateTime.js"></script>
+  <script src="js/modules/ui/preferences.js"></script>
+  <script src="js/modules/ui/timePicker.js"></script>
+  <script src="js/modules/ui/mobileSheets.js"></script>
+  <script src="js/modules/ui/menus.js"></script>
+  <script src="js/modules/ui/upcomingList.js"></script>
+  <script src="js/modules/ui/calendarModeIndicators.js"></script>
+  <script src="js/modules/reports/panel.js"></script>
+  <script src="js/modules/reports/results.js"></script>
+  <script src="js/modules/leave/quickCalendar.js"></script>
+  <script src="js/modules/leave/documentTemplate.js"></script>
+  <script src="js/modules/leave/quickRequestFlow.js"></script>
+  <script src="js/modules/leave/overlaySync.js"></script>
+  <script src="js/modules/managers/peopleCategoriesFilters.js"></script>
+  <script src="js/modules/comp/api.js"></script>
+  <script src="js/modules/comp/flow.js"></script>
+  <script src="js/modules/admin/usersPanel.js"></script>
+  <script src="js/modules/notes/shareModel.js"></script>
+  <script src="js/modules/notes/ownership.js"></script>
+  <script src="js/modules/notes/coreState.js"></script>
+  <script src="js/modules/notes/share.js"></script>
+  <script src="js/modules/notes/shareActions.js"></script>
+  <script src="js/modules/notes/syncFlow.js"></script>
+  <script src="js/modules/notes/noteActions.js"></script>
+  <script src="js/modules/notes/palette.js"></script>
+  <script src="js/modules/notes/modalFlow.js"></script>
+  <script src="js/modules/notes/meta.js"></script>
+  <script src="js/modules/notes/render.js"></script>
+  <script src="js/modules/notes/drag.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

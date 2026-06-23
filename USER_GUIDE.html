@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ProCal User Guide</title>
+  <meta http-equiv="refresh" content="0; url=USER_GUIDE_BG.html">
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("procal_lang") || "bg";
+        var normalized = String(stored).toLowerCase();
+        var target = normalized === "en" ? "USER_GUIDE_EN.html" : "USER_GUIDE_BG.html";
+        window.location.replace(target);
+      } catch (_err) {
+        window.location.replace("USER_GUIDE_BG.html");
+      }
+    })();
+  </script>
+</head>
+<body>
+  <p>Redirecting...</p>
+</body>
+</html>

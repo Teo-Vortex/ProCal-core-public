@@ -1,0 +1,9 @@
+server/node_modules/
+server/dist/
+server/.cache/
+server/coverage/
+*.log
+.env
+runtime/
+backups/
+tmp/

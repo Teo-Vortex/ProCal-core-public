@@ -1,0 +1,2 @@
+ALTER TABLE `User`
+  ADD COLUMN `calendarTintOpacity` INT NOT NULL DEFAULT 10;

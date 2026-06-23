@@ -1,0 +1,2062 @@
+{
+  "generatedBy": "infra/scripts/generate-compliance-artifacts.cjs",
+  "scope": "ProCal Core production Node.js runtime dependencies",
+  "source": "apps/procal-core/server/package-lock.json + apps/procal-core/server/node_modules",
+  "packageCount": 253,
+  "summary": [
+    {
+      "license": "MIT",
+      "count": 191
+    },
+    {
+      "license": "Apache-2.0",
+      "count": 36
+    },
+    {
+      "license": "ISC",
+      "count": 17
+    },
+    {
+      "license": "BlueOak-1.0.0",
+      "count": 4
+    },
+    {
+      "license": "BSD-3-Clause",
+      "count": 3
+    },
+    {
+      "license": "0BSD",
+      "count": 1
+    },
+    {
+      "license": "BSD-2-Clause",
+      "count": 1
+    }
+  ],
+  "packages": [
+    {
+      "name": "@fastify/busboy",
+      "version": "3.2.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/fastify/busboy.git",
+      "licenseFile": "apps/procal-core/server/node_modules/@fastify/busboy/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/@fastify/busboy"
+    },
+    {
+      "name": "@firebase/app-check-interop-types",
+      "version": "0.3.3",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/@firebase/app-check-interop-types"
+    },
+    {
+      "name": "@firebase/app-types",
+      "version": "0.9.3",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/@firebase/app-types"
+    },
+    {
+      "name": "@firebase/auth-interop-types",
+      "version": "0.2.4",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/@firebase/auth-interop-types"
+    },
+    {
+      "name": "@firebase/component",
+      "version": "0.7.2",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/@firebase/component"
+    },
+    {
+      "name": "@firebase/database-compat",
+      "version": "2.1.2",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/@firebase/database-compat"
+    },
+    {
+      "name": "@firebase/database-types",
+      "version": "1.0.18",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/@firebase/database-types"
+    },
+    {
+      "name": "@firebase/database",
+      "version": "1.1.2",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/@firebase/database"
+    },
+    {
+      "name": "@firebase/logger",
+      "version": "0.5.0",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/@firebase/logger"
+    },
+    {
+      "name": "@firebase/util",
+      "version": "1.15.0",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/@firebase/util"
+    },
+    {
+      "name": "@isaacs/cliui",
+      "version": "8.0.2",
+      "license": "ISC",
+      "repository": "yargs/cliui",
+      "licenseFile": "apps/procal-core/server/node_modules/@isaacs/cliui/LICENSE.txt",
+      "packagePath": "apps/procal-core/server/node_modules/@isaacs/cliui"
+    },
+    {
+      "name": "@prisma/client",
+      "version": "5.22.0",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/prisma/prisma.git",
+      "licenseFile": "apps/procal-core/server/node_modules/@prisma/client/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/@prisma/client"
+    },
+    {
+      "name": "@prisma/debug",
+      "version": "5.22.0",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/prisma/prisma.git",
+      "licenseFile": "apps/procal-core/server/node_modules/@prisma/debug/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/@prisma/debug"
+    },
+    {
+      "name": "@prisma/engines-version",
+      "version": "5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/prisma/engines-wrapper.git",
+      "licenseFile": "apps/procal-core/server/node_modules/@prisma/engines-version/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/@prisma/engines-version"
+    },
+    {
+      "name": "@prisma/engines",
+      "version": "5.22.0",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/prisma/prisma.git",
+      "licenseFile": "apps/procal-core/server/node_modules/@prisma/engines/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/@prisma/engines"
+    },
+    {
+      "name": "@prisma/fetch-engine",
+      "version": "5.22.0",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/prisma/prisma.git",
+      "licenseFile": "apps/procal-core/server/node_modules/@prisma/fetch-engine/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/@prisma/fetch-engine"
+    },
+    {
+      "name": "@prisma/get-platform",
+      "version": "5.22.0",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/prisma/prisma.git",
+      "licenseFile": "apps/procal-core/server/node_modules/@prisma/get-platform/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/@prisma/get-platform"
+    },
+    {
+      "name": "@types/jsonwebtoken",
+      "version": "9.0.8",
+      "license": "MIT",
+      "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "licenseFile": "apps/procal-core/server/node_modules/@types/jsonwebtoken/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/@types/jsonwebtoken"
+    },
+    {
+      "name": "@types/ms",
+      "version": "2.1.0",
+      "license": "MIT",
+      "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "licenseFile": "apps/procal-core/server/node_modules/@types/ms/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/@types/ms"
+    },
+    {
+      "name": "@types/node",
+      "version": "22.10.5",
+      "license": "MIT",
+      "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "licenseFile": "apps/procal-core/server/node_modules/@types/node/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/@types/node"
+    },
+    {
+      "name": "abort-controller",
+      "version": "3.0.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/mysticatea/abort-controller.git",
+      "licenseFile": "apps/procal-core/server/node_modules/abort-controller/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/abort-controller"
+    },
+    {
+      "name": "accepts",
+      "version": "1.3.8",
+      "license": "MIT",
+      "repository": "jshttp/accepts",
+      "licenseFile": "apps/procal-core/server/node_modules/accepts/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/accepts"
+    },
+    {
+      "name": "agent-base",
+      "version": "7.1.4",
+      "license": "MIT",
+      "repository": "https://github.com/TooTallNate/proxy-agents.git",
+      "licenseFile": "apps/procal-core/server/node_modules/firebase-admin/node_modules/agent-base/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/firebase-admin/node_modules/agent-base"
+    },
+    {
+      "name": "ansi-regex",
+      "version": "5.0.1",
+      "license": "MIT",
+      "repository": "chalk/ansi-regex",
+      "licenseFile": "apps/procal-core/server/node_modules/string-width-cjs/node_modules/ansi-regex/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/string-width-cjs/node_modules/ansi-regex"
+    },
+    {
+      "name": "ansi-regex",
+      "version": "6.2.2",
+      "license": "MIT",
+      "repository": "chalk/ansi-regex",
+      "licenseFile": "apps/procal-core/server/node_modules/ansi-regex/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/ansi-regex"
+    },
+    {
+      "name": "ansi-styles",
+      "version": "4.3.0",
+      "license": "MIT",
+      "repository": "chalk/ansi-styles",
+      "licenseFile": "apps/procal-core/server/node_modules/wrap-ansi-cjs/node_modules/ansi-styles/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/wrap-ansi-cjs/node_modules/ansi-styles"
+    },
+    {
+      "name": "ansi-styles",
+      "version": "6.2.3",
+      "license": "MIT",
+      "repository": "chalk/ansi-styles",
+      "licenseFile": "apps/procal-core/server/node_modules/ansi-styles/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/ansi-styles"
+    },
+    {
+      "name": "append-field",
+      "version": "1.0.0",
+      "license": "MIT",
+      "repository": "http://github.com/LinusU/node-append-field.git",
+      "licenseFile": "apps/procal-core/server/node_modules/append-field/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/append-field"
+    },
+    {
+      "name": "archiver-utils",
+      "version": "5.0.2",
+      "license": "MIT",
+      "repository": "https://github.com/archiverjs/archiver-utils.git",
+      "licenseFile": "apps/procal-core/server/node_modules/archiver-utils/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/archiver-utils"
+    },
+    {
+      "name": "archiver",
+      "version": "7.0.1",
+      "license": "MIT",
+      "repository": "https://github.com/archiverjs/node-archiver.git",
+      "licenseFile": "apps/procal-core/server/node_modules/archiver/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/archiver"
+    },
+    {
+      "name": "array-flatten",
+      "version": "1.1.1",
+      "license": "MIT",
+      "repository": "git://github.com/blakeembrey/array-flatten.git",
+      "licenseFile": "apps/procal-core/server/node_modules/array-flatten/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/array-flatten"
+    },
+    {
+      "name": "async",
+      "version": "3.2.6",
+      "license": "MIT",
+      "repository": "https://github.com/caolan/async.git",
+      "licenseFile": "apps/procal-core/server/node_modules/async/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/async"
+    },
+    {
+      "name": "atomic-sleep",
+      "version": "1.0.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/davidmarkclements/atomic-sleep.git",
+      "licenseFile": "apps/procal-core/server/node_modules/atomic-sleep/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/atomic-sleep"
+    },
+    {
+      "name": "b4a",
+      "version": "1.8.0",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/holepunchto/b4a.git",
+      "licenseFile": "apps/procal-core/server/node_modules/b4a/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/b4a"
+    },
+    {
+      "name": "balanced-match",
+      "version": "1.0.2",
+      "license": "MIT",
+      "repository": "git://github.com/juliangruber/balanced-match.git",
+      "licenseFile": "apps/procal-core/server/node_modules/balanced-match/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/balanced-match"
+    },
+    {
+      "name": "bare-events",
+      "version": "2.8.2",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/holepunchto/bare-events.git",
+      "licenseFile": "apps/procal-core/server/node_modules/bare-events/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/bare-events"
+    },
+    {
+      "name": "bare-fs",
+      "version": "4.5.6",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/holepunchto/bare-fs.git",
+      "licenseFile": "apps/procal-core/server/node_modules/bare-fs/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/bare-fs"
+    },
+    {
+      "name": "bare-os",
+      "version": "3.8.0",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/holepunchto/bare-os.git",
+      "licenseFile": "apps/procal-core/server/node_modules/bare-os/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/bare-os"
+    },
+    {
+      "name": "bare-path",
+      "version": "3.0.0",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/holepunchto/bare-path.git",
+      "licenseFile": "apps/procal-core/server/node_modules/bare-path/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/bare-path"
+    },
+    {
+      "name": "bare-stream",
+      "version": "2.10.0",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/holepunchto/bare-stream.git",
+      "licenseFile": "apps/procal-core/server/node_modules/bare-stream/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/bare-stream"
+    },
+    {
+      "name": "bare-url",
+      "version": "2.4.0",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/holepunchto/bare-url.git",
+      "licenseFile": "apps/procal-core/server/node_modules/bare-url/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/bare-url"
+    },
+    {
+      "name": "base64-js",
+      "version": "1.5.1",
+      "license": "MIT",
+      "repository": "git://github.com/beatgammit/base64-js.git",
+      "licenseFile": "apps/procal-core/server/node_modules/base64-js/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/base64-js"
+    },
+    {
+      "name": "basic-auth",
+      "version": "2.0.1",
+      "license": "MIT",
+      "repository": "jshttp/basic-auth",
+      "licenseFile": "apps/procal-core/server/node_modules/basic-auth/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/basic-auth"
+    },
+    {
+      "name": "bcrypt",
+      "version": "6.0.0",
+      "license": "MIT",
+      "repository": "https://github.com/kelektiv/node.bcrypt.js.git",
+      "licenseFile": "apps/procal-core/server/node_modules/bcrypt/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/bcrypt"
+    },
+    {
+      "name": "bignumber.js",
+      "version": "9.3.1",
+      "license": "MIT",
+      "repository": "https://github.com/MikeMcl/bignumber.js.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/bignumber.js"
+    },
+    {
+      "name": "body-parser",
+      "version": "1.20.5",
+      "license": "MIT",
+      "repository": "expressjs/body-parser",
+      "licenseFile": "apps/procal-core/server/node_modules/body-parser/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/body-parser"
+    },
+    {
+      "name": "brace-expansion",
+      "version": "2.0.3",
+      "license": "MIT",
+      "repository": "git://github.com/juliangruber/brace-expansion.git",
+      "licenseFile": "apps/procal-core/server/node_modules/brace-expansion/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/brace-expansion"
+    },
+    {
+      "name": "buffer-crc32",
+      "version": "1.0.0",
+      "license": "MIT",
+      "repository": "git://github.com/brianloveswords/buffer-crc32.git",
+      "licenseFile": "apps/procal-core/server/node_modules/buffer-crc32/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/buffer-crc32"
+    },
+    {
+      "name": "buffer-equal-constant-time",
+      "version": "1.0.1",
+      "license": "BSD-3-Clause",
+      "repository": "git@github.com:goinstant/buffer-equal-constant-time.git",
+      "licenseFile": "apps/procal-core/server/node_modules/buffer-equal-constant-time/LICENSE.txt",
+      "packagePath": "apps/procal-core/server/node_modules/buffer-equal-constant-time"
+    },
+    {
+      "name": "buffer-from",
+      "version": "1.1.2",
+      "license": "MIT",
+      "repository": "LinusU/buffer-from",
+      "licenseFile": "apps/procal-core/server/node_modules/buffer-from/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/buffer-from"
+    },
+    {
+      "name": "buffer",
+      "version": "6.0.3",
+      "license": "MIT",
+      "repository": "git://github.com/feross/buffer.git",
+      "licenseFile": "apps/procal-core/server/node_modules/buffer/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/buffer"
+    },
+    {
+      "name": "busboy",
+      "version": "1.6.0",
+      "license": "MIT",
+      "repository": "http://github.com/mscdex/busboy.git",
+      "licenseFile": "apps/procal-core/server/node_modules/busboy/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/busboy"
+    },
+    {
+      "name": "bytes",
+      "version": "3.1.2",
+      "license": "MIT",
+      "repository": "visionmedia/bytes.js",
+      "licenseFile": "apps/procal-core/server/node_modules/bytes/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/bytes"
+    },
+    {
+      "name": "call-bind-apply-helpers",
+      "version": "1.0.2",
+      "license": "MIT",
+      "repository": "git+https://github.com/ljharb/call-bind-apply-helpers.git",
+      "licenseFile": "apps/procal-core/server/node_modules/call-bind-apply-helpers/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/call-bind-apply-helpers"
+    },
+    {
+      "name": "call-bound",
+      "version": "1.0.4",
+      "license": "MIT",
+      "repository": "git+https://github.com/ljharb/call-bound.git",
+      "licenseFile": "apps/procal-core/server/node_modules/call-bound/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/call-bound"
+    },
+    {
+      "name": "color-convert",
+      "version": "2.0.1",
+      "license": "MIT",
+      "repository": "Qix-/color-convert",
+      "licenseFile": "apps/procal-core/server/node_modules/color-convert/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/color-convert"
+    },
+    {
+      "name": "color-name",
+      "version": "1.1.4",
+      "license": "MIT",
+      "repository": "git@github.com:colorjs/color-name.git",
+      "licenseFile": "apps/procal-core/server/node_modules/color-name/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/color-name"
+    },
+    {
+      "name": "compress-commons",
+      "version": "6.0.2",
+      "license": "MIT",
+      "repository": "https://github.com/archiverjs/node-compress-commons.git",
+      "licenseFile": "apps/procal-core/server/node_modules/compress-commons/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/compress-commons"
+    },
+    {
+      "name": "concat-stream",
+      "version": "2.0.0",
+      "license": "MIT",
+      "repository": "http://github.com/maxogden/concat-stream.git",
+      "licenseFile": "apps/procal-core/server/node_modules/concat-stream/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/concat-stream"
+    },
+    {
+      "name": "content-disposition",
+      "version": "0.5.4",
+      "license": "MIT",
+      "repository": "jshttp/content-disposition",
+      "licenseFile": "apps/procal-core/server/node_modules/content-disposition/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/content-disposition"
+    },
+    {
+      "name": "content-type",
+      "version": "1.0.5",
+      "license": "MIT",
+      "repository": "jshttp/content-type",
+      "licenseFile": "apps/procal-core/server/node_modules/content-type/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/content-type"
+    },
+    {
+      "name": "cookie-parser",
+      "version": "1.4.7",
+      "license": "MIT",
+      "repository": "expressjs/cookie-parser",
+      "licenseFile": "apps/procal-core/server/node_modules/cookie-parser/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/cookie-parser"
+    },
+    {
+      "name": "cookie-signature",
+      "version": "1.0.6",
+      "license": "MIT",
+      "repository": "https://github.com/visionmedia/node-cookie-signature.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/cookie-signature"
+    },
+    {
+      "name": "cookie",
+      "version": "0.7.2",
+      "license": "MIT",
+      "repository": "jshttp/cookie",
+      "licenseFile": "apps/procal-core/server/node_modules/cookie/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/cookie"
+    },
+    {
+      "name": "core-util-is",
+      "version": "1.0.3",
+      "license": "MIT",
+      "repository": "git://github.com/isaacs/core-util-is",
+      "licenseFile": "apps/procal-core/server/node_modules/core-util-is/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/core-util-is"
+    },
+    {
+      "name": "cors",
+      "version": "2.8.5",
+      "license": "MIT",
+      "repository": "expressjs/cors",
+      "licenseFile": "apps/procal-core/server/node_modules/cors/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/cors"
+    },
+    {
+      "name": "crc-32",
+      "version": "1.2.2",
+      "license": "Apache-2.0",
+      "repository": "git://github.com/SheetJS/js-crc32.git",
+      "licenseFile": "apps/procal-core/server/node_modules/crc-32/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/crc-32"
+    },
+    {
+      "name": "crc32-stream",
+      "version": "6.0.0",
+      "license": "MIT",
+      "repository": "https://github.com/archiverjs/node-crc32-stream.git",
+      "licenseFile": "apps/procal-core/server/node_modules/crc32-stream/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/crc32-stream"
+    },
+    {
+      "name": "cross-spawn",
+      "version": "7.0.6",
+      "license": "MIT",
+      "repository": "git@github.com:moxystudio/node-cross-spawn.git",
+      "licenseFile": "apps/procal-core/server/node_modules/cross-spawn/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/cross-spawn"
+    },
+    {
+      "name": "data-uri-to-buffer",
+      "version": "4.0.1",
+      "license": "MIT",
+      "repository": "git://github.com/TooTallNate/node-data-uri-to-buffer.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/data-uri-to-buffer"
+    },
+    {
+      "name": "debug",
+      "version": "2.6.9",
+      "license": "MIT",
+      "repository": "git://github.com/visionmedia/debug.git",
+      "licenseFile": "apps/procal-core/server/node_modules/debug/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/debug"
+    },
+    {
+      "name": "debug",
+      "version": "4.4.3",
+      "license": "MIT",
+      "repository": "git://github.com/debug-js/debug.git",
+      "licenseFile": "apps/procal-core/server/node_modules/firebase-admin/node_modules/debug/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/firebase-admin/node_modules/debug"
+    },
+    {
+      "name": "depd",
+      "version": "2.0.0",
+      "license": "MIT",
+      "repository": "dougwilson/nodejs-depd",
+      "licenseFile": "apps/procal-core/server/node_modules/depd/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/depd"
+    },
+    {
+      "name": "destroy",
+      "version": "1.2.0",
+      "license": "MIT",
+      "repository": "stream-utils/destroy",
+      "licenseFile": "apps/procal-core/server/node_modules/destroy/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/destroy"
+    },
+    {
+      "name": "dotenv",
+      "version": "16.4.7",
+      "license": "BSD-2-Clause",
+      "repository": "git://github.com/motdotla/dotenv.git",
+      "licenseFile": "apps/procal-core/server/node_modules/dotenv/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/dotenv"
+    },
+    {
+      "name": "dunder-proto",
+      "version": "1.0.1",
+      "license": "MIT",
+      "repository": "git+https://github.com/es-shims/dunder-proto.git",
+      "licenseFile": "apps/procal-core/server/node_modules/dunder-proto/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/dunder-proto"
+    },
+    {
+      "name": "eastasianwidth",
+      "version": "0.2.0",
+      "license": "MIT",
+      "repository": "git://github.com/komagata/eastasianwidth.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/eastasianwidth"
+    },
+    {
+      "name": "ecdsa-sig-formatter",
+      "version": "1.0.11",
+      "license": "Apache-2.0",
+      "repository": "git+ssh://git@github.com/Brightspace/node-ecdsa-sig-formatter.git",
+      "licenseFile": "apps/procal-core/server/node_modules/ecdsa-sig-formatter/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/ecdsa-sig-formatter"
+    },
+    {
+      "name": "ee-first",
+      "version": "1.1.1",
+      "license": "MIT",
+      "repository": "jonathanong/ee-first",
+      "licenseFile": "apps/procal-core/server/node_modules/ee-first/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/ee-first"
+    },
+    {
+      "name": "emoji-regex",
+      "version": "8.0.0",
+      "license": "MIT",
+      "repository": "https://github.com/mathiasbynens/emoji-regex.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/string-width-cjs/node_modules/emoji-regex"
+    },
+    {
+      "name": "emoji-regex",
+      "version": "9.2.2",
+      "license": "MIT",
+      "repository": "https://github.com/mathiasbynens/emoji-regex.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/emoji-regex"
+    },
+    {
+      "name": "encodeurl",
+      "version": "1.0.2",
+      "license": "MIT",
+      "repository": "pillarjs/encodeurl",
+      "licenseFile": "apps/procal-core/server/node_modules/send/node_modules/encodeurl/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/send/node_modules/encodeurl"
+    },
+    {
+      "name": "encodeurl",
+      "version": "2.0.0",
+      "license": "MIT",
+      "repository": "pillarjs/encodeurl",
+      "licenseFile": "apps/procal-core/server/node_modules/encodeurl/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/encodeurl"
+    },
+    {
+      "name": "es-define-property",
+      "version": "1.0.1",
+      "license": "MIT",
+      "repository": "git+https://github.com/ljharb/es-define-property.git",
+      "licenseFile": "apps/procal-core/server/node_modules/es-define-property/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/es-define-property"
+    },
+    {
+      "name": "es-errors",
+      "version": "1.3.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/ljharb/es-errors.git",
+      "licenseFile": "apps/procal-core/server/node_modules/es-errors/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/es-errors"
+    },
+    {
+      "name": "es-object-atoms",
+      "version": "1.1.1",
+      "license": "MIT",
+      "repository": "git+https://github.com/ljharb/es-object-atoms.git",
+      "licenseFile": "apps/procal-core/server/node_modules/es-object-atoms/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/es-object-atoms"
+    },
+    {
+      "name": "escape-html",
+      "version": "1.0.3",
+      "license": "MIT",
+      "repository": "component/escape-html",
+      "licenseFile": "apps/procal-core/server/node_modules/escape-html/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/escape-html"
+    },
+    {
+      "name": "etag",
+      "version": "1.8.1",
+      "license": "MIT",
+      "repository": "jshttp/etag",
+      "licenseFile": "apps/procal-core/server/node_modules/etag/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/etag"
+    },
+    {
+      "name": "event-target-shim",
+      "version": "5.0.1",
+      "license": "MIT",
+      "repository": "https://github.com/mysticatea/event-target-shim.git",
+      "licenseFile": "apps/procal-core/server/node_modules/event-target-shim/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/event-target-shim"
+    },
+    {
+      "name": "events-universal",
+      "version": "1.0.1",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/holepunchto/events-universal.git",
+      "licenseFile": "apps/procal-core/server/node_modules/events-universal/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/events-universal"
+    },
+    {
+      "name": "events",
+      "version": "3.3.0",
+      "license": "MIT",
+      "repository": "git://github.com/Gozala/events.git",
+      "licenseFile": "apps/procal-core/server/node_modules/events/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/events"
+    },
+    {
+      "name": "express-rate-limit",
+      "version": "7.5.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/express-rate-limit/express-rate-limit.git",
+      "licenseFile": "apps/procal-core/server/node_modules/express-rate-limit/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/express-rate-limit"
+    },
+    {
+      "name": "express",
+      "version": "4.22.2",
+      "license": "MIT",
+      "repository": "expressjs/express",
+      "licenseFile": "apps/procal-core/server/node_modules/express/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/express"
+    },
+    {
+      "name": "extend",
+      "version": "3.0.2",
+      "license": "MIT",
+      "repository": "https://github.com/justmoon/node-extend.git",
+      "licenseFile": "apps/procal-core/server/node_modules/extend/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/extend"
+    },
+    {
+      "name": "farmhash-modern",
+      "version": "1.1.0",
+      "license": "MIT",
+      "repository": "git@github.com:ForbesLindesay/npm-package-template.git",
+      "licenseFile": "apps/procal-core/server/node_modules/farmhash-modern/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/farmhash-modern"
+    },
+    {
+      "name": "fast-deep-equal",
+      "version": "3.1.3",
+      "license": "MIT",
+      "repository": "git+https://github.com/epoberezkin/fast-deep-equal.git",
+      "licenseFile": "apps/procal-core/server/node_modules/fast-deep-equal/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/fast-deep-equal"
+    },
+    {
+      "name": "fast-fifo",
+      "version": "1.3.2",
+      "license": "MIT",
+      "repository": "https://github.com/mafintosh/fast-fifo.git",
+      "licenseFile": "apps/procal-core/server/node_modules/fast-fifo/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/fast-fifo"
+    },
+    {
+      "name": "fast-redact",
+      "version": "3.5.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/davidmarkclements/fast-redact.git",
+      "licenseFile": "apps/procal-core/server/node_modules/fast-redact/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/fast-redact"
+    },
+    {
+      "name": "faye-websocket",
+      "version": "0.11.4",
+      "license": "Apache-2.0",
+      "repository": "git://github.com/faye/faye-websocket-node.git",
+      "licenseFile": "apps/procal-core/server/node_modules/faye-websocket/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/faye-websocket"
+    },
+    {
+      "name": "fetch-blob",
+      "version": "3.2.0",
+      "license": "MIT",
+      "repository": "https://github.com/node-fetch/fetch-blob.git",
+      "licenseFile": "apps/procal-core/server/node_modules/fetch-blob/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/fetch-blob"
+    },
+    {
+      "name": "finalhandler",
+      "version": "1.3.1",
+      "license": "MIT",
+      "repository": "pillarjs/finalhandler",
+      "licenseFile": "apps/procal-core/server/node_modules/finalhandler/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/finalhandler"
+    },
+    {
+      "name": "firebase-admin",
+      "version": "13.10.0",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/firebase/firebase-admin-node",
+      "licenseFile": "apps/procal-core/server/node_modules/firebase-admin/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/firebase-admin"
+    },
+    {
+      "name": "foreground-child",
+      "version": "3.3.1",
+      "license": "ISC",
+      "repository": "git+https://github.com/tapjs/foreground-child.git",
+      "licenseFile": "apps/procal-core/server/node_modules/foreground-child/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/foreground-child"
+    },
+    {
+      "name": "formdata-polyfill",
+      "version": "4.0.10",
+      "license": "MIT",
+      "repository": "git+https://jimmywarting@github.com/jimmywarting/FormData.git",
+      "licenseFile": "apps/procal-core/server/node_modules/formdata-polyfill/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/formdata-polyfill"
+    },
+    {
+      "name": "forwarded",
+      "version": "0.2.0",
+      "license": "MIT",
+      "repository": "jshttp/forwarded",
+      "licenseFile": "apps/procal-core/server/node_modules/forwarded/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/forwarded"
+    },
+    {
+      "name": "fresh",
+      "version": "0.5.2",
+      "license": "MIT",
+      "repository": "jshttp/fresh",
+      "licenseFile": "apps/procal-core/server/node_modules/fresh/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/fresh"
+    },
+    {
+      "name": "function-bind",
+      "version": "1.1.2",
+      "license": "MIT",
+      "repository": "https://github.com/Raynos/function-bind.git",
+      "licenseFile": "apps/procal-core/server/node_modules/function-bind/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/function-bind"
+    },
+    {
+      "name": "gaxios",
+      "version": "7.1.5",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/googleapis/google-cloud-node-core.git",
+      "licenseFile": "apps/procal-core/server/node_modules/firebase-admin/node_modules/gaxios/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/firebase-admin/node_modules/gaxios"
+    },
+    {
+      "name": "gcp-metadata",
+      "version": "8.1.2",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/googleapis/google-cloud-node-core.git",
+      "licenseFile": "apps/procal-core/server/node_modules/firebase-admin/node_modules/gcp-metadata/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/firebase-admin/node_modules/gcp-metadata"
+    },
+    {
+      "name": "get-caller-file",
+      "version": "2.0.5",
+      "license": "ISC",
+      "repository": "git+https://github.com/stefanpenner/get-caller-file.git",
+      "licenseFile": "apps/procal-core/server/node_modules/get-caller-file/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/get-caller-file"
+    },
+    {
+      "name": "get-intrinsic",
+      "version": "1.3.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/ljharb/get-intrinsic.git",
+      "licenseFile": "apps/procal-core/server/node_modules/get-intrinsic/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/get-intrinsic"
+    },
+    {
+      "name": "get-proto",
+      "version": "1.0.1",
+      "license": "MIT",
+      "repository": "git+https://github.com/ljharb/get-proto.git",
+      "licenseFile": "apps/procal-core/server/node_modules/get-proto/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/get-proto"
+    },
+    {
+      "name": "glob",
+      "version": "10.5.0",
+      "license": "ISC",
+      "repository": "git://github.com/isaacs/node-glob.git",
+      "licenseFile": "apps/procal-core/server/node_modules/glob/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/glob"
+    },
+    {
+      "name": "google-auth-library",
+      "version": "10.7.0",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/googleapis/google-cloud-node-core.git",
+      "licenseFile": "apps/procal-core/server/node_modules/firebase-admin/node_modules/google-auth-library/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/firebase-admin/node_modules/google-auth-library"
+    },
+    {
+      "name": "google-logging-utils",
+      "version": "1.1.3",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/googleapis/google-cloud-node-core.git",
+      "licenseFile": "apps/procal-core/server/node_modules/firebase-admin/node_modules/google-logging-utils/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/firebase-admin/node_modules/google-logging-utils"
+    },
+    {
+      "name": "gopd",
+      "version": "1.2.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/ljharb/gopd.git",
+      "licenseFile": "apps/procal-core/server/node_modules/gopd/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/gopd"
+    },
+    {
+      "name": "graceful-fs",
+      "version": "4.2.11",
+      "license": "ISC",
+      "repository": "https://github.com/isaacs/node-graceful-fs",
+      "licenseFile": "apps/procal-core/server/node_modules/graceful-fs/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/graceful-fs"
+    },
+    {
+      "name": "has-symbols",
+      "version": "1.1.0",
+      "license": "MIT",
+      "repository": "git://github.com/inspect-js/has-symbols.git",
+      "licenseFile": "apps/procal-core/server/node_modules/has-symbols/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/has-symbols"
+    },
+    {
+      "name": "hasown",
+      "version": "2.0.2",
+      "license": "MIT",
+      "repository": "git+https://github.com/inspect-js/hasOwn.git",
+      "licenseFile": "apps/procal-core/server/node_modules/hasown/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/hasown"
+    },
+    {
+      "name": "helmet",
+      "version": "8.1.0",
+      "license": "MIT",
+      "repository": "git://github.com/helmetjs/helmet.git",
+      "licenseFile": "apps/procal-core/server/node_modules/helmet/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/helmet"
+    },
+    {
+      "name": "http-errors",
+      "version": "2.0.0",
+      "license": "MIT",
+      "repository": "jshttp/http-errors",
+      "licenseFile": "apps/procal-core/server/node_modules/http-errors/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/http-errors"
+    },
+    {
+      "name": "http-errors",
+      "version": "2.0.1",
+      "license": "MIT",
+      "repository": "jshttp/http-errors",
+      "licenseFile": "apps/procal-core/server/node_modules/body-parser/node_modules/http-errors/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/body-parser/node_modules/http-errors"
+    },
+    {
+      "name": "http-parser-js",
+      "version": "0.5.10",
+      "license": "MIT",
+      "repository": "git://github.com/creationix/http-parser-js.git",
+      "licenseFile": "apps/procal-core/server/node_modules/http-parser-js/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/http-parser-js"
+    },
+    {
+      "name": "https-proxy-agent",
+      "version": "7.0.6",
+      "license": "MIT",
+      "repository": "https://github.com/TooTallNate/proxy-agents.git",
+      "licenseFile": "apps/procal-core/server/node_modules/firebase-admin/node_modules/https-proxy-agent/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/firebase-admin/node_modules/https-proxy-agent"
+    },
+    {
+      "name": "iconv-lite",
+      "version": "0.4.24",
+      "license": "MIT",
+      "repository": "git://github.com/ashtuchkin/iconv-lite.git",
+      "licenseFile": "apps/procal-core/server/node_modules/iconv-lite/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/iconv-lite"
+    },
+    {
+      "name": "ieee754",
+      "version": "1.2.1",
+      "license": "BSD-3-Clause",
+      "repository": "git://github.com/feross/ieee754.git",
+      "licenseFile": "apps/procal-core/server/node_modules/ieee754/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/ieee754"
+    },
+    {
+      "name": "inherits",
+      "version": "2.0.4",
+      "license": "ISC",
+      "repository": "git://github.com/isaacs/inherits",
+      "licenseFile": "apps/procal-core/server/node_modules/inherits/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/inherits"
+    },
+    {
+      "name": "ipaddr.js",
+      "version": "1.9.1",
+      "license": "MIT",
+      "repository": "git://github.com/whitequark/ipaddr.js",
+      "licenseFile": "apps/procal-core/server/node_modules/ipaddr.js/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/ipaddr.js"
+    },
+    {
+      "name": "is-fullwidth-code-point",
+      "version": "3.0.0",
+      "license": "MIT",
+      "repository": "sindresorhus/is-fullwidth-code-point",
+      "licenseFile": "apps/procal-core/server/node_modules/is-fullwidth-code-point/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/is-fullwidth-code-point"
+    },
+    {
+      "name": "is-stream",
+      "version": "2.0.1",
+      "license": "MIT",
+      "repository": "sindresorhus/is-stream",
+      "licenseFile": "apps/procal-core/server/node_modules/is-stream/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/is-stream"
+    },
+    {
+      "name": "isarray",
+      "version": "1.0.0",
+      "license": "MIT",
+      "repository": "git://github.com/juliangruber/isarray.git",
+      "licenseFile": "",
+      "packagePath": "apps/procal-core/server/node_modules/isarray"
+    },
+    {
+      "name": "isexe",
+      "version": "2.0.0",
+      "license": "ISC",
+      "repository": "git+https://github.com/isaacs/isexe.git",
+      "licenseFile": "apps/procal-core/server/node_modules/isexe/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/isexe"
+    },
+    {
+      "name": "jackspeak",
+      "version": "3.4.3",
+      "license": "BlueOak-1.0.0",
+      "repository": "git+https://github.com/isaacs/jackspeak.git",
+      "licenseFile": "apps/procal-core/server/node_modules/jackspeak/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/jackspeak"
+    },
+    {
+      "name": "jose",
+      "version": "4.15.9",
+      "license": "MIT",
+      "repository": "panva/jose",
+      "licenseFile": "apps/procal-core/server/node_modules/jose/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/jose"
+    },
+    {
+      "name": "json-bigint",
+      "version": "1.0.0",
+      "license": "MIT",
+      "repository": "git@github.com:sidorares/json-bigint.git",
+      "licenseFile": "apps/procal-core/server/node_modules/json-bigint/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/json-bigint"
+    },
+    {
+      "name": "jsonwebtoken",
+      "version": "9.0.2",
+      "license": "MIT",
+      "repository": "https://github.com/auth0/node-jsonwebtoken",
+      "licenseFile": "apps/procal-core/server/node_modules/jsonwebtoken/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/jsonwebtoken"
+    },
+    {
+      "name": "jwa",
+      "version": "1.4.2",
+      "license": "MIT",
+      "repository": "git://github.com/brianloveswords/node-jwa.git",
+      "licenseFile": "apps/procal-core/server/node_modules/jsonwebtoken/node_modules/jwa/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/jsonwebtoken/node_modules/jwa"
+    },
+    {
+      "name": "jwa",
+      "version": "2.0.1",
+      "license": "MIT",
+      "repository": "git://github.com/brianloveswords/node-jwa.git",
+      "licenseFile": "apps/procal-core/server/node_modules/jwa/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/jwa"
+    },
+    {
+      "name": "jwks-rsa",
+      "version": "3.2.2",
+      "license": "MIT",
+      "repository": "git+https://github.com/auth0/node-jwks-rsa.git",
+      "licenseFile": "apps/procal-core/server/node_modules/jwks-rsa/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/jwks-rsa"
+    },
+    {
+      "name": "jws",
+      "version": "3.2.3",
+      "license": "MIT",
+      "repository": "git://github.com/brianloveswords/node-jws.git",
+      "licenseFile": "apps/procal-core/server/node_modules/jsonwebtoken/node_modules/jws/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/jsonwebtoken/node_modules/jws"
+    },
+    {
+      "name": "jws",
+      "version": "4.0.1",
+      "license": "MIT",
+      "repository": "git://github.com/brianloveswords/node-jws.git",
+      "licenseFile": "apps/procal-core/server/node_modules/jws/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/jws"
+    },
+    {
+      "name": "lazystream",
+      "version": "1.0.1",
+      "license": "MIT",
+      "repository": "https://github.com/jpommerening/node-lazystream.git",
+      "licenseFile": "apps/procal-core/server/node_modules/lazystream/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lazystream"
+    },
+    {
+      "name": "limiter",
+      "version": "1.1.5",
+      "license": "MIT",
+      "repository": "git://github.com/jhurliman/node-rate-limiter",
+      "licenseFile": "apps/procal-core/server/node_modules/limiter/LICENSE.txt",
+      "packagePath": "apps/procal-core/server/node_modules/limiter"
+    },
+    {
+      "name": "lodash.clonedeep",
+      "version": "4.5.0",
+      "license": "MIT",
+      "repository": "lodash/lodash",
+      "licenseFile": "apps/procal-core/server/node_modules/lodash.clonedeep/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lodash.clonedeep"
+    },
+    {
+      "name": "lodash.includes",
+      "version": "4.3.0",
+      "license": "MIT",
+      "repository": "lodash/lodash",
+      "licenseFile": "apps/procal-core/server/node_modules/lodash.includes/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lodash.includes"
+    },
+    {
+      "name": "lodash.isboolean",
+      "version": "3.0.3",
+      "license": "MIT",
+      "repository": "lodash/lodash",
+      "licenseFile": "apps/procal-core/server/node_modules/lodash.isboolean/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lodash.isboolean"
+    },
+    {
+      "name": "lodash.isinteger",
+      "version": "4.0.4",
+      "license": "MIT",
+      "repository": "lodash/lodash",
+      "licenseFile": "apps/procal-core/server/node_modules/lodash.isinteger/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lodash.isinteger"
+    },
+    {
+      "name": "lodash.isnumber",
+      "version": "3.0.3",
+      "license": "MIT",
+      "repository": "lodash/lodash",
+      "licenseFile": "apps/procal-core/server/node_modules/lodash.isnumber/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lodash.isnumber"
+    },
+    {
+      "name": "lodash.isplainobject",
+      "version": "4.0.6",
+      "license": "MIT",
+      "repository": "lodash/lodash",
+      "licenseFile": "apps/procal-core/server/node_modules/lodash.isplainobject/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lodash.isplainobject"
+    },
+    {
+      "name": "lodash.isstring",
+      "version": "4.0.1",
+      "license": "MIT",
+      "repository": "lodash/lodash",
+      "licenseFile": "apps/procal-core/server/node_modules/lodash.isstring/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lodash.isstring"
+    },
+    {
+      "name": "lodash.once",
+      "version": "4.1.1",
+      "license": "MIT",
+      "repository": "lodash/lodash",
+      "licenseFile": "apps/procal-core/server/node_modules/lodash.once/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lodash.once"
+    },
+    {
+      "name": "lodash",
+      "version": "4.18.1",
+      "license": "MIT",
+      "repository": "lodash/lodash",
+      "licenseFile": "apps/procal-core/server/node_modules/lodash/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lodash"
+    },
+    {
+      "name": "lru-cache",
+      "version": "10.4.3",
+      "license": "ISC",
+      "repository": "git://github.com/isaacs/node-lru-cache.git",
+      "licenseFile": "apps/procal-core/server/node_modules/path-scurry/node_modules/lru-cache/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/path-scurry/node_modules/lru-cache"
+    },
+    {
+      "name": "lru-cache",
+      "version": "6.0.0",
+      "license": "ISC",
+      "repository": "git://github.com/isaacs/node-lru-cache.git",
+      "licenseFile": "apps/procal-core/server/node_modules/lru-cache/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lru-cache"
+    },
+    {
+      "name": "lru-memoizer",
+      "version": "2.3.0",
+      "license": "MIT",
+      "repository": "git://github.com/jfromaniello/lru-memoizer.git",
+      "licenseFile": "apps/procal-core/server/node_modules/lru-memoizer/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lru-memoizer"
+    },
+    {
+      "name": "math-intrinsics",
+      "version": "1.1.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/es-shims/math-intrinsics.git",
+      "licenseFile": "apps/procal-core/server/node_modules/math-intrinsics/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/math-intrinsics"
+    },
+    {
+      "name": "media-typer",
+      "version": "0.3.0",
+      "license": "MIT",
+      "repository": "jshttp/media-typer",
+      "licenseFile": "apps/procal-core/server/node_modules/media-typer/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/media-typer"
+    },
+    {
+      "name": "merge-descriptors",
+      "version": "1.0.3",
+      "license": "MIT",
+      "repository": "sindresorhus/merge-descriptors",
+      "licenseFile": "apps/procal-core/server/node_modules/merge-descriptors/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/merge-descriptors"
+    },
+    {
+      "name": "methods",
+      "version": "1.1.2",
+      "license": "MIT",
+      "repository": "jshttp/methods",
+      "licenseFile": "apps/procal-core/server/node_modules/methods/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/methods"
+    },
+    {
+      "name": "mime-db",
+      "version": "1.52.0",
+      "license": "MIT",
+      "repository": "jshttp/mime-db",
+      "licenseFile": "apps/procal-core/server/node_modules/mime-db/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/mime-db"
+    },
+    {
+      "name": "mime-types",
+      "version": "2.1.35",
+      "license": "MIT",
+      "repository": "jshttp/mime-types",
+      "licenseFile": "apps/procal-core/server/node_modules/mime-types/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/mime-types"
+    },
+    {
+      "name": "mime",
+      "version": "1.6.0",
+      "license": "MIT",
+      "repository": "https://github.com/broofa/node-mime",
+      "licenseFile": "apps/procal-core/server/node_modules/send/node_modules/mime/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/send/node_modules/mime"
+    },
+    {
+      "name": "minimatch",
+      "version": "5.1.9",
+      "license": "ISC",
+      "repository": "git://github.com/isaacs/minimatch.git",
+      "licenseFile": "apps/procal-core/server/node_modules/readdir-glob/node_modules/minimatch/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/readdir-glob/node_modules/minimatch"
+    },
+    {
+      "name": "minimatch",
+      "version": "9.0.9",
+      "license": "ISC",
+      "repository": "git://github.com/isaacs/minimatch.git",
+      "licenseFile": "apps/procal-core/server/node_modules/minimatch/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/minimatch"
+    },
+    {
+      "name": "minipass",
+      "version": "7.1.3",
+      "license": "BlueOak-1.0.0",
+      "repository": "https://github.com/isaacs/minipass",
+      "licenseFile": "apps/procal-core/server/node_modules/minipass/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/minipass"
+    },
+    {
+      "name": "morgan",
+      "version": "1.10.1",
+      "license": "MIT",
+      "repository": "expressjs/morgan",
+      "licenseFile": "apps/procal-core/server/node_modules/morgan/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/morgan"
+    },
+    {
+      "name": "ms",
+      "version": "2.0.0",
+      "license": "MIT",
+      "repository": "zeit/ms",
+      "licenseFile": "apps/procal-core/server/node_modules/ms/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/ms"
+    },
+    {
+      "name": "ms",
+      "version": "2.1.3",
+      "license": "MIT",
+      "repository": "vercel/ms",
+      "licenseFile": "apps/procal-core/server/node_modules/firebase-admin/node_modules/ms/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/firebase-admin/node_modules/ms"
+    },
+    {
+      "name": "multer",
+      "version": "2.2.0",
+      "license": "MIT",
+      "repository": "expressjs/multer",
+      "licenseFile": "apps/procal-core/server/node_modules/multer/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/multer"
+    },
+    {
+      "name": "negotiator",
+      "version": "0.6.3",
+      "license": "MIT",
+      "repository": "jshttp/negotiator",
+      "licenseFile": "apps/procal-core/server/node_modules/negotiator/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/negotiator"
+    },
+    {
+      "name": "node-addon-api",
+      "version": "8.7.0",
+      "license": "MIT",
+      "repository": "git://github.com/nodejs/node-addon-api.git",
+      "licenseFile": "apps/procal-core/server/node_modules/node-addon-api/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/node-addon-api"
+    },
+    {
+      "name": "node-domexception",
+      "version": "1.0.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/jimmywarting/node-domexception.git",
+      "licenseFile": "apps/procal-core/server/node_modules/node-domexception/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/node-domexception"
+    },
+    {
+      "name": "node-fetch",
+      "version": "3.3.2",
+      "license": "MIT",
+      "repository": "https://github.com/node-fetch/node-fetch.git",
+      "licenseFile": "apps/procal-core/server/node_modules/firebase-admin/node_modules/node-fetch/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/firebase-admin/node_modules/node-fetch"
+    },
+    {
+      "name": "node-gyp-build",
+      "version": "4.8.4",
+      "license": "MIT",
+      "repository": "https://github.com/prebuild/node-gyp-build.git",
+      "licenseFile": "apps/procal-core/server/node_modules/node-gyp-build/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/node-gyp-build"
+    },
+    {
+      "name": "normalize-path",
+      "version": "3.0.0",
+      "license": "MIT",
+      "repository": "jonschlinkert/normalize-path",
+      "licenseFile": "apps/procal-core/server/node_modules/normalize-path/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/normalize-path"
+    },
+    {
+      "name": "object-assign",
+      "version": "4.1.1",
+      "license": "MIT",
+      "repository": "sindresorhus/object-assign",
+      "licenseFile": "apps/procal-core/server/node_modules/object-assign/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/object-assign"
+    },
+    {
+      "name": "object-inspect",
+      "version": "1.13.4",
+      "license": "MIT",
+      "repository": "git://github.com/inspect-js/object-inspect.git",
+      "licenseFile": "apps/procal-core/server/node_modules/object-inspect/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/object-inspect"
+    },
+    {
+      "name": "on-exit-leak-free",
+      "version": "2.1.2",
+      "license": "MIT",
+      "repository": "git+https://github.com/mcollina/on-exit-or-gc.git",
+      "licenseFile": "apps/procal-core/server/node_modules/on-exit-leak-free/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/on-exit-leak-free"
+    },
+    {
+      "name": "on-finished",
+      "version": "2.3.0",
+      "license": "MIT",
+      "repository": "jshttp/on-finished",
+      "licenseFile": "apps/procal-core/server/node_modules/morgan/node_modules/on-finished/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/morgan/node_modules/on-finished"
+    },
+    {
+      "name": "on-finished",
+      "version": "2.4.1",
+      "license": "MIT",
+      "repository": "jshttp/on-finished",
+      "licenseFile": "apps/procal-core/server/node_modules/on-finished/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/on-finished"
+    },
+    {
+      "name": "on-headers",
+      "version": "1.1.0",
+      "license": "MIT",
+      "repository": "jshttp/on-headers",
+      "licenseFile": "apps/procal-core/server/node_modules/on-headers/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/on-headers"
+    },
+    {
+      "name": "package-json-from-dist",
+      "version": "1.0.1",
+      "license": "BlueOak-1.0.0",
+      "repository": "git+https://github.com/isaacs/package-json-from-dist.git",
+      "licenseFile": "apps/procal-core/server/node_modules/package-json-from-dist/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/package-json-from-dist"
+    },
+    {
+      "name": "parseurl",
+      "version": "1.3.3",
+      "license": "MIT",
+      "repository": "pillarjs/parseurl",
+      "licenseFile": "apps/procal-core/server/node_modules/parseurl/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/parseurl"
+    },
+    {
+      "name": "path-key",
+      "version": "3.1.1",
+      "license": "MIT",
+      "repository": "sindresorhus/path-key",
+      "licenseFile": "apps/procal-core/server/node_modules/path-key/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/path-key"
+    },
+    {
+      "name": "path-scurry",
+      "version": "1.11.1",
+      "license": "BlueOak-1.0.0",
+      "repository": "git+https://github.com/isaacs/path-scurry",
+      "licenseFile": "apps/procal-core/server/node_modules/path-scurry/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/path-scurry"
+    },
+    {
+      "name": "path-to-regexp",
+      "version": "0.1.13",
+      "license": "MIT",
+      "repository": "https://github.com/pillarjs/path-to-regexp.git",
+      "licenseFile": "apps/procal-core/server/node_modules/path-to-regexp/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/path-to-regexp"
+    },
+    {
+      "name": "pino-abstract-transport",
+      "version": "2.0.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/pinojs/pino-abstract-transport.git",
+      "licenseFile": "apps/procal-core/server/node_modules/pino-abstract-transport/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/pino-abstract-transport"
+    },
+    {
+      "name": "pino-http",
+      "version": "10.4.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/pinojs/pino-http.git",
+      "licenseFile": "apps/procal-core/server/node_modules/pino-http/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/pino-http"
+    },
+    {
+      "name": "pino-std-serializers",
+      "version": "7.1.0",
+      "license": "MIT",
+      "repository": "git+ssh://git@github.com/pinojs/pino-std-serializers.git",
+      "licenseFile": "apps/procal-core/server/node_modules/pino-std-serializers/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/pino-std-serializers"
+    },
+    {
+      "name": "pino",
+      "version": "9.6.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/pinojs/pino.git",
+      "licenseFile": "apps/procal-core/server/node_modules/pino/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/pino"
+    },
+    {
+      "name": "prisma",
+      "version": "5.22.0",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/prisma/prisma.git",
+      "licenseFile": "apps/procal-core/server/node_modules/prisma/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/prisma"
+    },
+    {
+      "name": "process-nextick-args",
+      "version": "2.0.1",
+      "license": "MIT",
+      "repository": "https://github.com/calvinmetcalf/process-nextick-args.git",
+      "licenseFile": "apps/procal-core/server/node_modules/process-nextick-args/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/process-nextick-args"
+    },
+    {
+      "name": "process-warning",
+      "version": "4.0.1",
+      "license": "MIT",
+      "repository": "git+https://github.com/fastify/process-warning.git",
+      "licenseFile": "apps/procal-core/server/node_modules/process-warning/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/process-warning"
+    },
+    {
+      "name": "process",
+      "version": "0.11.10",
+      "license": "MIT",
+      "repository": "git://github.com/shtylman/node-process.git",
+      "licenseFile": "apps/procal-core/server/node_modules/process/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/process"
+    },
+    {
+      "name": "proxy-addr",
+      "version": "2.0.7",
+      "license": "MIT",
+      "repository": "jshttp/proxy-addr",
+      "licenseFile": "apps/procal-core/server/node_modules/proxy-addr/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/proxy-addr"
+    },
+    {
+      "name": "qs",
+      "version": "6.15.2",
+      "license": "BSD-3-Clause",
+      "repository": "https://github.com/ljharb/qs.git",
+      "licenseFile": "apps/procal-core/server/node_modules/qs/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/qs"
+    },
+    {
+      "name": "quick-format-unescaped",
+      "version": "4.0.4",
+      "license": "MIT",
+      "repository": "git+https://github.com/davidmarkclements/quick-format.git",
+      "licenseFile": "apps/procal-core/server/node_modules/quick-format-unescaped/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/quick-format-unescaped"
+    },
+    {
+      "name": "range-parser",
+      "version": "1.2.1",
+      "license": "MIT",
+      "repository": "jshttp/range-parser",
+      "licenseFile": "apps/procal-core/server/node_modules/range-parser/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/range-parser"
+    },
+    {
+      "name": "raw-body",
+      "version": "2.5.3",
+      "license": "MIT",
+      "repository": "stream-utils/raw-body",
+      "licenseFile": "apps/procal-core/server/node_modules/raw-body/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/raw-body"
+    },
+    {
+      "name": "readable-stream",
+      "version": "2.3.8",
+      "license": "MIT",
+      "repository": "git://github.com/nodejs/readable-stream",
+      "licenseFile": "apps/procal-core/server/node_modules/lazystream/node_modules/readable-stream/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lazystream/node_modules/readable-stream"
+    },
+    {
+      "name": "readable-stream",
+      "version": "3.6.2",
+      "license": "MIT",
+      "repository": "git://github.com/nodejs/readable-stream",
+      "licenseFile": "apps/procal-core/server/node_modules/concat-stream/node_modules/readable-stream/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/concat-stream/node_modules/readable-stream"
+    },
+    {
+      "name": "readable-stream",
+      "version": "4.7.0",
+      "license": "MIT",
+      "repository": "git://github.com/nodejs/readable-stream",
+      "licenseFile": "apps/procal-core/server/node_modules/readable-stream/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/readable-stream"
+    },
+    {
+      "name": "readdir-glob",
+      "version": "1.1.3",
+      "license": "Apache-2.0",
+      "repository": "git://github.com/Yqnn/node-readdir-glob.git",
+      "licenseFile": "apps/procal-core/server/node_modules/readdir-glob/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/readdir-glob"
+    },
+    {
+      "name": "real-require",
+      "version": "0.2.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/pinojs/real-require.git",
+      "licenseFile": "apps/procal-core/server/node_modules/real-require/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/real-require"
+    },
+    {
+      "name": "safe-buffer",
+      "version": "5.1.2",
+      "license": "MIT",
+      "repository": "git://github.com/feross/safe-buffer.git",
+      "licenseFile": "apps/procal-core/server/node_modules/basic-auth/node_modules/safe-buffer/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/basic-auth/node_modules/safe-buffer"
+    },
+    {
+      "name": "safe-buffer",
+      "version": "5.2.1",
+      "license": "MIT",
+      "repository": "git://github.com/feross/safe-buffer.git",
+      "licenseFile": "apps/procal-core/server/node_modules/safe-buffer/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/safe-buffer"
+    },
+    {
+      "name": "safe-stable-stringify",
+      "version": "2.5.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/BridgeAR/safe-stable-stringify.git",
+      "licenseFile": "apps/procal-core/server/node_modules/safe-stable-stringify/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/safe-stable-stringify"
+    },
+    {
+      "name": "safer-buffer",
+      "version": "2.1.2",
+      "license": "MIT",
+      "repository": "git+https://github.com/ChALkeR/safer-buffer.git",
+      "licenseFile": "apps/procal-core/server/node_modules/safer-buffer/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/safer-buffer"
+    },
+    {
+      "name": "semver",
+      "version": "7.7.4",
+      "license": "ISC",
+      "repository": "git+https://github.com/npm/node-semver.git",
+      "licenseFile": "apps/procal-core/server/node_modules/semver/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/semver"
+    },
+    {
+      "name": "send",
+      "version": "0.19.0",
+      "license": "MIT",
+      "repository": "pillarjs/send",
+      "licenseFile": "apps/procal-core/server/node_modules/send/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/send"
+    },
+    {
+      "name": "serve-static",
+      "version": "1.16.2",
+      "license": "MIT",
+      "repository": "expressjs/serve-static",
+      "licenseFile": "apps/procal-core/server/node_modules/serve-static/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/serve-static"
+    },
+    {
+      "name": "setprototypeof",
+      "version": "1.2.0",
+      "license": "ISC",
+      "repository": "https://github.com/wesleytodd/setprototypeof.git",
+      "licenseFile": "apps/procal-core/server/node_modules/setprototypeof/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/setprototypeof"
+    },
+    {
+      "name": "shebang-command",
+      "version": "2.0.0",
+      "license": "MIT",
+      "repository": "kevva/shebang-command",
+      "licenseFile": "apps/procal-core/server/node_modules/shebang-command/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/shebang-command"
+    },
+    {
+      "name": "shebang-regex",
+      "version": "3.0.0",
+      "license": "MIT",
+      "repository": "sindresorhus/shebang-regex",
+      "licenseFile": "apps/procal-core/server/node_modules/shebang-regex/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/shebang-regex"
+    },
+    {
+      "name": "side-channel-list",
+      "version": "1.0.1",
+      "license": "MIT",
+      "repository": "git+https://github.com/ljharb/side-channel-list.git",
+      "licenseFile": "apps/procal-core/server/node_modules/side-channel-list/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/side-channel-list"
+    },
+    {
+      "name": "side-channel-map",
+      "version": "1.0.1",
+      "license": "MIT",
+      "repository": "git+https://github.com/ljharb/side-channel-map.git",
+      "licenseFile": "apps/procal-core/server/node_modules/side-channel-map/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/side-channel-map"
+    },
+    {
+      "name": "side-channel-weakmap",
+      "version": "1.0.2",
+      "license": "MIT",
+      "repository": "git+https://github.com/ljharb/side-channel-weakmap.git",
+      "licenseFile": "apps/procal-core/server/node_modules/side-channel-weakmap/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/side-channel-weakmap"
+    },
+    {
+      "name": "side-channel",
+      "version": "1.1.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/ljharb/side-channel.git",
+      "licenseFile": "apps/procal-core/server/node_modules/side-channel/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/side-channel"
+    },
+    {
+      "name": "signal-exit",
+      "version": "4.1.0",
+      "license": "ISC",
+      "repository": "https://github.com/tapjs/signal-exit.git",
+      "licenseFile": "apps/procal-core/server/node_modules/signal-exit/LICENSE.txt",
+      "packagePath": "apps/procal-core/server/node_modules/signal-exit"
+    },
+    {
+      "name": "sonic-boom",
+      "version": "4.2.1",
+      "license": "MIT",
+      "repository": "git+https://github.com/pinojs/sonic-boom.git",
+      "licenseFile": "apps/procal-core/server/node_modules/sonic-boom/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/sonic-boom"
+    },
+    {
+      "name": "split2",
+      "version": "4.2.0",
+      "license": "ISC",
+      "repository": "https://github.com/mcollina/split2.git",
+      "licenseFile": "apps/procal-core/server/node_modules/split2/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/split2"
+    },
+    {
+      "name": "statuses",
+      "version": "2.0.1",
+      "license": "MIT",
+      "repository": "jshttp/statuses",
+      "licenseFile": "apps/procal-core/server/node_modules/statuses/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/statuses"
+    },
+    {
+      "name": "statuses",
+      "version": "2.0.2",
+      "license": "MIT",
+      "repository": "jshttp/statuses",
+      "licenseFile": "apps/procal-core/server/node_modules/body-parser/node_modules/statuses/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/body-parser/node_modules/statuses"
+    },
+    {
+      "name": "streamsearch",
+      "version": "1.1.0",
+      "license": "MIT",
+      "repository": "http://github.com/mscdex/streamsearch.git",
+      "licenseFile": "apps/procal-core/server/node_modules/streamsearch/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/streamsearch"
+    },
+    {
+      "name": "streamx",
+      "version": "2.25.0",
+      "license": "MIT",
+      "repository": "https://github.com/mafintosh/streamx.git",
+      "licenseFile": "apps/procal-core/server/node_modules/streamx/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/streamx"
+    },
+    {
+      "name": "string_decoder",
+      "version": "1.1.1",
+      "license": "MIT",
+      "repository": "git://github.com/nodejs/string_decoder.git",
+      "licenseFile": "apps/procal-core/server/node_modules/lazystream/node_modules/string_decoder/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lazystream/node_modules/string_decoder"
+    },
+    {
+      "name": "string_decoder",
+      "version": "1.3.0",
+      "license": "MIT",
+      "repository": "git://github.com/nodejs/string_decoder.git",
+      "licenseFile": "apps/procal-core/server/node_modules/string_decoder/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/string_decoder"
+    },
+    {
+      "name": "string-width",
+      "version": "4.2.3",
+      "license": "MIT",
+      "repository": "sindresorhus/string-width",
+      "licenseFile": "apps/procal-core/server/node_modules/string-width-cjs/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/string-width-cjs"
+    },
+    {
+      "name": "string-width",
+      "version": "5.1.2",
+      "license": "MIT",
+      "repository": "sindresorhus/string-width",
+      "licenseFile": "apps/procal-core/server/node_modules/string-width/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/string-width"
+    },
+    {
+      "name": "strip-ansi",
+      "version": "6.0.1",
+      "license": "MIT",
+      "repository": "chalk/strip-ansi",
+      "licenseFile": "apps/procal-core/server/node_modules/string-width-cjs/node_modules/strip-ansi/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/string-width-cjs/node_modules/strip-ansi"
+    },
+    {
+      "name": "strip-ansi",
+      "version": "7.2.0",
+      "license": "MIT",
+      "repository": "chalk/strip-ansi",
+      "licenseFile": "apps/procal-core/server/node_modules/strip-ansi/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/strip-ansi"
+    },
+    {
+      "name": "tar-stream",
+      "version": "3.1.8",
+      "license": "MIT",
+      "repository": "git+https://github.com/mafintosh/tar-stream.git",
+      "licenseFile": "apps/procal-core/server/node_modules/tar-stream/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/tar-stream"
+    },
+    {
+      "name": "teex",
+      "version": "1.0.1",
+      "license": "MIT",
+      "repository": "https://github.com/mafintosh/teex.git",
+      "licenseFile": "apps/procal-core/server/node_modules/teex/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/teex"
+    },
+    {
+      "name": "text-decoder",
+      "version": "1.2.7",
+      "license": "Apache-2.0",
+      "repository": "git+https://github.com/holepunchto/text-decoder.git",
+      "licenseFile": "apps/procal-core/server/node_modules/text-decoder/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/text-decoder"
+    },
+    {
+      "name": "thread-stream",
+      "version": "3.1.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/mcollina/thread-stream.git",
+      "licenseFile": "apps/procal-core/server/node_modules/thread-stream/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/thread-stream"
+    },
+    {
+      "name": "toidentifier",
+      "version": "1.0.1",
+      "license": "MIT",
+      "repository": "component/toidentifier",
+      "licenseFile": "apps/procal-core/server/node_modules/toidentifier/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/toidentifier"
+    },
+    {
+      "name": "tslib",
+      "version": "2.8.1",
+      "license": "0BSD",
+      "repository": "https://github.com/Microsoft/tslib.git",
+      "licenseFile": "apps/procal-core/server/node_modules/tslib/LICENSE.txt",
+      "packagePath": "apps/procal-core/server/node_modules/tslib"
+    },
+    {
+      "name": "type-is",
+      "version": "1.6.18",
+      "license": "MIT",
+      "repository": "jshttp/type-is",
+      "licenseFile": "apps/procal-core/server/node_modules/type-is/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/type-is"
+    },
+    {
+      "name": "typedarray",
+      "version": "0.0.6",
+      "license": "MIT",
+      "repository": "git://github.com/substack/typedarray.git",
+      "licenseFile": "apps/procal-core/server/node_modules/typedarray/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/typedarray"
+    },
+    {
+      "name": "undici-types",
+      "version": "6.20.0",
+      "license": "MIT",
+      "repository": "git+https://github.com/nodejs/undici.git",
+      "licenseFile": "apps/procal-core/server/node_modules/undici-types/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/undici-types"
+    },
+    {
+      "name": "unpipe",
+      "version": "1.0.0",
+      "license": "MIT",
+      "repository": "stream-utils/unpipe",
+      "licenseFile": "apps/procal-core/server/node_modules/unpipe/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/unpipe"
+    },
+    {
+      "name": "util-deprecate",
+      "version": "1.0.2",
+      "license": "MIT",
+      "repository": "git://github.com/TooTallNate/util-deprecate.git",
+      "licenseFile": "apps/procal-core/server/node_modules/util-deprecate/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/util-deprecate"
+    },
+    {
+      "name": "utils-merge",
+      "version": "1.0.1",
+      "license": "MIT",
+      "repository": "git://github.com/jaredhanson/utils-merge.git",
+      "licenseFile": "apps/procal-core/server/node_modules/utils-merge/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/utils-merge"
+    },
+    {
+      "name": "vary",
+      "version": "1.1.2",
+      "license": "MIT",
+      "repository": "jshttp/vary",
+      "licenseFile": "apps/procal-core/server/node_modules/vary/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/vary"
+    },
+    {
+      "name": "web-streams-polyfill",
+      "version": "3.3.3",
+      "license": "MIT",
+      "repository": "git+https://github.com/MattiasBuelens/web-streams-polyfill.git",
+      "licenseFile": "apps/procal-core/server/node_modules/web-streams-polyfill/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/web-streams-polyfill"
+    },
+    {
+      "name": "websocket-driver",
+      "version": "0.7.4",
+      "license": "Apache-2.0",
+      "repository": "git://github.com/faye/websocket-driver-node.git",
+      "licenseFile": "apps/procal-core/server/node_modules/websocket-driver/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/websocket-driver"
+    },
+    {
+      "name": "websocket-extensions",
+      "version": "0.1.4",
+      "license": "Apache-2.0",
+      "repository": "git://github.com/faye/websocket-extensions-node.git",
+      "licenseFile": "apps/procal-core/server/node_modules/websocket-extensions/LICENSE.md",
+      "packagePath": "apps/procal-core/server/node_modules/websocket-extensions"
+    },
+    {
+      "name": "which",
+      "version": "2.0.2",
+      "license": "ISC",
+      "repository": "git://github.com/isaacs/node-which.git",
+      "licenseFile": "apps/procal-core/server/node_modules/which/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/which"
+    },
+    {
+      "name": "wrap-ansi",
+      "version": "7.0.0",
+      "license": "MIT",
+      "repository": "chalk/wrap-ansi",
+      "licenseFile": "apps/procal-core/server/node_modules/wrap-ansi-cjs/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/wrap-ansi-cjs"
+    },
+    {
+      "name": "wrap-ansi",
+      "version": "8.1.0",
+      "license": "MIT",
+      "repository": "chalk/wrap-ansi",
+      "licenseFile": "apps/procal-core/server/node_modules/wrap-ansi/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/wrap-ansi"
+    },
+    {
+      "name": "yallist",
+      "version": "4.0.0",
+      "license": "ISC",
+      "repository": "git+https://github.com/isaacs/yallist.git",
+      "licenseFile": "apps/procal-core/server/node_modules/yallist/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/yallist"
+    },
+    {
+      "name": "zip-stream",
+      "version": "6.0.1",
+      "license": "MIT",
+      "repository": "https://github.com/archiverjs/node-zip-stream.git",
+      "licenseFile": "apps/procal-core/server/node_modules/zip-stream/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/zip-stream"
+    },
+    {
+      "name": "zod",
+      "version": "3.24.1",
+      "license": "MIT",
+      "repository": "git+https://github.com/colinhacks/zod.git",
+      "licenseFile": "apps/procal-core/server/node_modules/zod/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/zod"
+    }
+  ]
+}

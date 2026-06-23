@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ProCal - User Guide (v0.9.9)</title>
+  <style>
+    :root {
+      --bg: #eef3ef;
+      --panel: #ffffff;
+      --ink: #182026;
+      --muted: #5b6672;
+      --line: #d7e0d9;
+      --accent: #0f766e;
+      --soft: #f6faf7;
+      --warn-bg: #fff6eb;
+      --warn-line: #f3cf98;
+      --danger-bg: #fff5f5;
+      --danger-line: #f0c8c8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at 10% 0%, #f6fbf9 0%, var(--bg) 45%, #e9efea 100%);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 1180px; margin: 18px auto 40px; padding: 0 14px; }
+    .hero {
+      background: linear-gradient(130deg, #0f766e, #0ea5a3);
+      color: #fff;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 12px 30px rgba(15,118,110,.2);
+    }
+    .hero h1 { margin: 0 0 6px; font-size: 28px; }
+    .hero p { margin: 0; opacity: .95; }
+    .meta { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      background: rgba(255,255,255,.16);
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+    .layout { display: grid; grid-template-columns: 300px 1fr; gap: 16px; margin-top: 16px; }
+    .toc, section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+    .toc { position: sticky; top: 14px; height: fit-content; padding: 14px; }
+    .toc h2 { margin: 0 0 8px; font-size: 16px; }
+    .toc a {
+      display: block;
+      color: var(--accent);
+      text-decoration: none;
+      padding: 6px 8px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .toc a:hover { background: #eef7f4; }
+    .content { display: grid; gap: 14px; }
+    section { padding: 16px; }
+    h2 { margin: 0 0 10px; font-size: 18px; }
+    h3 { margin: 14px 0 8px; font-size: 15px; }
+    p { margin: 8px 0; }
+    ul, ol { margin: 6px 0 0 18px; }
+    li { margin: 4px 0; }
+    code {
+      background: #edf4f1;
+      border: 1px solid #dce9e3;
+      padding: 1px 6px;
+      border-radius: 6px;
+    }
+    .hint {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--soft);
+      border: 1px solid #d9e7df;
+      font-size: 14px;
+    }
+    .warn {
+      background: var(--warn-bg);
+      border-color: var(--warn-line);
+    }
+    .danger {
+      background: var(--danger-bg);
+      border-color: var(--danger-line);
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .toc { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>ProCal - User Guide</h1>
+      <p>Updated guide for the hosted ProCal flow with central sign-in through ProCal Public.</p>
+      <div class="meta">
+        <span class="chip">Version: 0.9.9</span>
+        <span class="chip">Language: EN</span>
+        <span class="chip">Coverage: daily usage + local admin panel</span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <nav class="toc" aria-label="Table of contents">
+        <h2>Contents</h2>
+        <a href="USER_GUIDE_EN.html#access">1. Access and sign-in</a>
+        <a href="USER_GUIDE_EN.html#workspace">2. Workspace overview</a>
+        <a href="USER_GUIDE_EN.html#menu">3. Menu</a>
+        <a href="USER_GUIDE_EN.html#calendar">4. Calendar</a>
+        <a href="USER_GUIDE_EN.html#events">5. Events and tasks</a>
+        <a href="USER_GUIDE_EN.html#notes">6. Notes</a>
+        <a href="USER_GUIDE_EN.html#files">7. Files</a>
+        <a href="USER_GUIDE_EN.html#chat">8. Chat and notifications</a>
+        <a href="USER_GUIDE_EN.html#leave">9. Leave and absences</a>
+        <a href="USER_GUIDE_EN.html#profile">10. Profile and password</a>
+        <a href="USER_GUIDE_EN.html#admin">11. Admin panel</a>
+        <a href="USER_GUIDE_EN.html#support">12. Bugs, backups, and support</a>
+      </nav>
+
+      <main class="content">
+        <section id="access">
+          <h2>1. Access and sign-in</h2>
+          <ol>
+            <li>Hosted realms do not use local account registration. Sign-in is handled by <b>ProCal Public</b>.</li>
+            <li>After signing in to Public, the account can:
+              <ul>
+                <li>create a realm</li>
+                <li>send a join request to an existing realm</li>
+                <li>choose a realm if it has access to more than one</li>
+              </ul>
+            </li>
+            <li>After selecting a realm, ProCal performs an automatic handoff into that workspace.</li>
+            <li>If a join request is still pending, the user will not enter the realm directly yet.</li>
+          </ol>
+          <div class="hint warn">When using ProCal over the internet, always use the canonical realm URL generated by ProCal Public. Do not edit the path manually.</div>
+        </section>
+
+        <section id="workspace">
+          <h2>2. Workspace overview</h2>
+          <ul>
+            <li>The top bar contains the <b>ProCal</b> logo, connection status, notifications, chat, and the <b>Menu</b> button.</li>
+            <li>The left panel shows:
+              <ul>
+                <li>clock</li>
+                <li>date and weekday</li>
+                <li>current user</li>
+                <li>personal compensation balance</li>
+              </ul>
+            </li>
+            <li>The main workspace has two primary modes: <b>Calendar</b> and <b>Notes</b>.</li>
+            <li>The calendar itself has two data views:
+              <ul>
+                <li><b>Personal</b> - personal records plus shared records visible to you</li>
+                <li><b>Shared</b> - the team calendar</li>
+              </ul>
+            </li>
+          </ul>
+        </section>
+
+        <section id="menu">
+          <h2>3. Menu</h2>
+          <ul>
+            <li><b>Profile</b> - opens the current user's profile details.</li>
+            <li><b>User guide</b> - opens this guide in a new tab.</li>
+            <li><b>Open admin panel</b> - visible only when the role allows it.</li>
+            <li><b>Logout</b> - signs out of the realm.</li>
+          </ul>
+          <p>Additional modules such as <b>Media</b>, <b>Reports</b>, <b>Leave</b>, and others are shown depending on role and permissions.</p>
+        </section>
+
+        <section id="calendar">
+          <h2>4. Calendar</h2>
+          <ul>
+            <li>The workspace supports month and year views.</li>
+            <li><b>Prev</b>, <b>Next</b>, and <b>Today</b> control the visible period.</li>
+            <li><b>Filters</b> opens the filtering panel.</li>
+            <li>Task dots indicate status:
+              <ul>
+                <li>orange - open</li>
+                <li>green - completed</li>
+                <li>red - overdue</li>
+              </ul>
+            </li>
+            <li>Clicking a day opens the day panel and quick-add actions.</li>
+          </ul>
+        </section>
+
+        <section id="events">
+          <h2>5. Events and tasks</h2>
+          <h3>Events</h3>
+          <ul>
+            <li>Events can be single-day or multi-day.</li>
+            <li>The event preview includes buttons for:
+              <ul>
+                <li><b>Files</b></li>
+                <li><b>Program</b></li>
+                <li><b>Add task</b></li>
+                <li><b>Edit</b></li>
+                <li><b>Delete</b></li>
+              </ul>
+            </li>
+            <li>An event can have a dedicated <b>Program</b> file, usually a PDF.</li>
+            <li>The program opens in a new tab instead of forcing a download.</li>
+          </ul>
+          <h3>Tasks</h3>
+          <ul>
+            <li>Tasks can be personal or shared depending on the current calendar mode.</li>
+            <li>Events can also carry linked event tasks.</li>
+            <li>In personal mode, a user can add a personal task linked to a shared event without changing the shared event itself.</li>
+          </ul>
+        </section>
+
+        <section id="notes">
+          <h2>6. Notes</h2>
+          <ul>
+            <li>The main panel can switch to <b>Notes</b>.</li>
+            <li>Notes support ownership, sending, and sharing.</li>
+            <li>The UI distinguishes between:
+              <ul>
+                <li><b>Owned</b></li>
+                <li><b>Shared with me</b></li>
+              </ul>
+            </li>
+            <li>Notes remain available across all plans.</li>
+          </ul>
+        </section>
+
+        <section id="files">
+          <h2>7. Files</h2>
+          <ul>
+            <li>The file module is realm-specific. Users only see files belonging to their own realm.</li>
+            <li>It uses a tree layout with system areas such as:
+              <ul>
+                <li><b>Events</b></li>
+                <li><b>Chat</b></li>
+                <li><b>Shared</b></li>
+              </ul>
+            </li>
+            <li>Event folders are created automatically when files are attached to an event.</li>
+            <li>Inside <b>Chat</b>, each user sees the system folder for files received through chat.</li>
+            <li>The module shows current realm storage usage.</li>
+            <li>It supports:
+              <ul>
+                <li>upload</li>
+                <li>preview</li>
+                <li>download</li>
+                <li>creating/renaming/moving/deleting folders where permissions allow it</li>
+              </ul>
+            </li>
+          </ul>
+        </section>
+
+        <section id="chat">
+          <h2>8. Chat and notifications</h2>
+          <h3>Chat</h3>
+          <ul>
+            <li>Opened from the top bar icon.</li>
+            <li>Supports conversations and file attachments.</li>
+            <li>Uses a dedicated unread badge.</li>
+          </ul>
+          <h3>Notifications</h3>
+          <ul>
+            <li>Opened from the bell icon.</li>
+            <li>Shows system and user-facing notifications based on realm configuration.</li>
+          </ul>
+        </section>
+
+        <section id="leave">
+          <h2>9. Leave and absences</h2>
+          <ul>
+            <li>The menu opens the personal leave popup for the current user.</li>
+            <li>That panel shows leave balances, used days, and the personal absence calendar.</li>
+            <li>The user can submit leave/absence requests depending on permissions.</li>
+            <li>Approved absences appear in the main calendar.</li>
+          </ul>
+        </section>
+
+        <section id="profile">
+          <h2>10. Profile and password</h2>
+          <ul>
+            <li>The profile dialog stores:
+              <ul>
+                <li>nickname</li>
+                <li>full name</li>
+                <li>workplace</li>
+                <li>job title</li>
+              </ul>
+            </li>
+            <li>For hosted realms, local password change is removed.</li>
+            <li>Password management is handled through the <b>Manage password in ProCal Public</b> button.</li>
+            <li>On first entry, a realm may require missing profile fields to be completed.</li>
+          </ul>
+        </section>
+
+        <section id="admin">
+          <h2>11. Admin panel</h2>
+          <p>The local admin panel manages the current realm only. It does not replace ProCal Control.</p>
+          <ul>
+            <li><b>Personnel</b> - users, roles, and overrides.</li>            <li><b>Roles</b>, <b>Categories</b>, <b>Holidays</b>, <b>Leave Form</b>.</li>
+            <li><b>Notifications</b> and <b>Audit</b>.</li>
+            <li><b>Files</b> - storage monitoring and chat file retention.</li>
+            <li><b>Backups</b> - encrypted full/working exports and temporary upload validate/restore; no server-side realm backup catalog.</li>
+          </ul>
+        </section>
+
+        <section id="support">
+          <h2>12. Bugs, backups, and support</h2>
+          <ul>
+            <li><b>Report bug</b> sends the report centrally to <b>ProCal Control</b>.</li>
+            <li>The local admin panel no longer contains a separate bugs tab.</li>
+            <li>Export an encrypted <b>full backup</b> and save its key PDF before major realm changes.</li>
+            <li>If the UI behaves strangely after an update, test with <code>Ctrl + F5</code> first.</li>
+          </ul>
+          <div class="hint danger">Restore is destructive for current data. Use your encrypted backup file and matching key; the uploaded restore copy is deleted after the operation.</div>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

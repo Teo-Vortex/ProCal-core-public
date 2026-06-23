@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ProCal Media Monitoring</title>
+  <script>
+    try {
+      if (localStorage.getItem("procal_theme") === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    } catch (_) {}
+  </script>
+  <style>
+    :root { --line:#dbe3ec; --ink:#1f2937; --muted:#6b7280; --bg:#f3f5f8; --card:#fff; --accent:#0f766e; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); }
+    .wrap { padding:12px; max-width:1600px; margin:0 auto; }
+    .head { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+    .head h1 { margin:0; }
+    .muted { color:var(--muted); font-size:13px; }
+    .card { margin-top:12px; border:1px solid var(--line); border-radius:12px; background:var(--card); padding:10px; }
+    .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .btn { border:1px solid var(--line); background:#fff; border-radius:8px; padding:7px 10px; cursor:pointer; }
+    .btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .btn.danger { color:#991b1b; border-color:#fca5a5; background:#fff5f5; }
+    .grid { display:grid; gap:12px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .kpi { display:grid; gap:8px; grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .kpi-item { border:1px solid var(--line); border-radius:10px; padding:8px; background:#f8fafc; }
+    .kpi-label { color:var(--muted); font-size:12px; }
+    .kpi-value { font-size:20px; font-weight:700; margin-top:4px; }
+    label { display:grid; gap:4px; min-width:160px; color:var(--muted); font-size:13px; }
+    input, select { border:1px solid var(--line); border-radius:8px; padding:7px 8px; font:inherit; width:100%; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th, td { border-bottom:1px solid #eef2f7; padding:6px; text-align:left; vertical-align:top; }
+    .table-wrap { overflow:auto; max-height:38vh; border:1px solid var(--line); border-radius:10px; }
+    .heatmap-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; }
+    .day { border:1px solid var(--line); border-radius:8px; min-height:58px; padding:6px; background:#fff; }
+    .day.off { opacity:.35; }
+    .day-num { font-size:11px; color:var(--muted); }
+    .day-count { margin-top:4px; font-weight:700; }
+    .hm-0 { background:#ffffff; }
+    .hm-1 { background:#e6ffef; }
+    .hm-2 { background:#c7f9d9; }
+    .hm-3 { background:#86efac; }
+    .hm-4 { background:#4ade80; color:#14532d; }
+    .hidden { display:none !important; }
+    :root[data-theme="dark"] { --line:rgba(184,208,216,.24); --ink:#e6edf0; --muted:#a6bac3; --bg:#071017; --card:#102531; --accent:#36d6bf; color-scheme:dark; }
+    :root[data-theme="dark"] body { background:radial-gradient(900px 520px at 8% 0%,rgba(54,214,191,.12),transparent 62%),linear-gradient(180deg,#071017,#0a1720); color:var(--ink); }
+    :root[data-theme="dark"] .card,:root[data-theme="dark"] .kpi-item,:root[data-theme="dark"] .table-wrap,:root[data-theme="dark"] .day { background:var(--card); border-color:var(--line); color:var(--ink); box-shadow:0 18px 44px rgba(0,0,0,.22); }
+    :root[data-theme="dark"] .btn { background:#102531; border-color:var(--line); color:var(--ink); }
+    :root[data-theme="dark"] .btn:hover { background:#1d3d4d; border-color:rgba(54,214,191,.45); }
+    :root[data-theme="dark"] .btn.primary { background:linear-gradient(180deg,#48e0ca,#18a99a); border-color:rgba(54,214,191,.72); color:#06251f; }
+    :root[data-theme="dark"] .btn.danger { background:rgba(251,113,133,.14); border-color:rgba(251,113,133,.36); color:#fecdd3; }
+    :root[data-theme="dark"] input,:root[data-theme="dark"] select { background:#08141d; border-color:var(--line); color:var(--ink); }
+    :root[data-theme="dark"] th,:root[data-theme="dark"] td { border-color:rgba(184,208,216,.14); }
+    :root[data-theme="dark"] thead,:root[data-theme="dark"] tbody tr:hover { background:rgba(24,52,66,.72); }
+    :root[data-theme="dark"] .hm-0 { background:#102531; }
+    :root[data-theme="dark"] .hm-1 { background:rgba(54,214,191,.13); }
+    :root[data-theme="dark"] .hm-2 { background:rgba(54,214,191,.22); }
+    :root[data-theme="dark"] .hm-3 { background:rgba(74,222,128,.32); }
+    :root[data-theme="dark"] .hm-4 { background:rgba(74,222,128,.48); color:#052e1b; }
+    @media (max-width: 1200px) {
+      .grid { grid-template-columns:1fr; }
+      .kpi { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <h1 id="title">Media Monitoring</h1>
+        <div id="subtitle" class="muted">Track owned publications and internet mentions</div>
+      </div>
+      <div class="row">
+        <a id="backLink" class="btn" href="/">Back</a>
+      </div>
+    </div>
+    <div id="status" class="muted" style="min-height:18px;margin-top:8px;"></div>
+
+    <section class="card">
+      <div class="kpi">
+        <div class="kpi-item"><div id="kpiOwnedLabel" class="kpi-label">Our publications</div><div id="kpiOwned" class="kpi-value">0</div></div>
+        <div class="kpi-item"><div id="kpiMentionsLabel" class="kpi-label">Found mentions</div><div id="kpiMentions" class="kpi-value">0</div></div>
+        <div class="kpi-item"><div id="kpiLinkedLabel" class="kpi-label">Triggered mentions</div><div id="kpiLinked" class="kpi-value">0</div></div>
+        <div class="kpi-item"><div id="kpiUnlinkedLabel" class="kpi-label">Unlinked mentions</div><div id="kpiUnlinked" class="kpi-value">0</div></div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button id="prevMonthBtn" class="btn" type="button">Prev</button>
+        <strong id="monthLabel">-</strong>
+        <button id="nextMonthBtn" class="btn" type="button">Next</button>
+        <button id="exportCsvBtn" class="btn" type="button">Export CSV</button>
+        <button id="exportJsonBtn" class="btn" type="button">Export JSON</button>
+      </div>
+      <div class="heatmap-grid" id="heatmapGrid" style="margin-top:10px;"></div>
+    </section>
+
+    <section class="grid">
+      <section class="card">
+        <h3 id="ownedFormTitle" style="margin:0 0 10px;">Add our publication</h3>
+        <form id="ownedForm" class="row">
+          <label><span id="ownedTitleLabel">Title</span><input id="ownedTitle" maxlength="300" required></label>
+          <label><span id="ownedUrlLabel">URL</span><input id="ownedUrl" type="url" maxlength="1000" required></label>
+          <label><span id="ownedDateLabel">Published at</span><input id="ownedDate" type="date" required></label>
+          <button id="ownedSubmitBtn" class="btn primary" type="submit">Add</button>
+        </form>
+        <h3 id="ownedTableTitle" style="margin:14px 0 8px;">Our publications</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th id="ownedThDate">Date</th><th id="ownedThTitle">Title</th><th id="ownedThUrl">URL</th><th id="ownedThMentions">Mentions</th><th id="ownedThBy">By</th><th id="ownedThActions">Actions</th></tr></thead>
+            <tbody id="ownedBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3 id="mentionFormTitle" style="margin:0 0 10px;">Add found internet mention</h3>
+        <form id="mentionForm" class="row">
+          <label><span id="mentionTitleLabel">Title</span><input id="mentionTitle" maxlength="300" required></label>
+          <label><span id="mentionUrlLabel">URL</span><input id="mentionUrl" type="url" maxlength="1000" required></label>
+          <label><span id="mentionDateLabel">Published at</span><input id="mentionDate" type="date" required></label>
+          <label><span id="mentionLinkedLabel">Linked to our publication</span><select id="mentionLinkedOwnedId"><option value="">- none -</option></select></label>
+          <button id="mentionSubmitBtn" class="btn primary" type="submit">Add</button>
+        </form>
+        <h3 id="mentionTableTitle" style="margin:14px 0 8px;">Found mentions</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th id="mentionThDate">Date</th><th id="mentionThTitle">Title</th><th id="mentionThUrl">URL</th><th id="mentionThLinked">Linked</th><th id="mentionThBy">By</th><th id="mentionThActions">Actions</th></tr></thead>
+            <tbody id="mentionBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </div>
+  <script src="js/media-monitoring.js"></script>
+</body>
+</html>

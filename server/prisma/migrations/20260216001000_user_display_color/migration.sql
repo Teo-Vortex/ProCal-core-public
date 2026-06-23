@@ -1,0 +1,1 @@
+ALTER TABLE `User` ADD COLUMN `displayColor` VARCHAR(32) NULL AFTER `viewMode`;
