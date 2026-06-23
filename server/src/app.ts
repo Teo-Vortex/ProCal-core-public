@@ -73,6 +73,43 @@ function resolveAllowedCorsOrigins(): Set<string> {
   return new Set(values);
 }
 
+function normalizeCorsOrigin(value: unknown): string {
+  return String(value || "").trim().replace(/\/+$/, "");
+}
+
+function splitHeaderValues(value: string | string[] | undefined): string[] {
+  const values = Array.isArray(value) ? value : [value];
+  return values
+    .flatMap((item) => String(item || "").split(","))
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function getRequestOriginCandidates(req: Request): Set<string> {
+  const hosts = splitHeaderValues(req.headers["x-forwarded-host"] || req.headers.host);
+  const forwardedProtos = splitHeaderValues(req.headers["x-forwarded-proto"])
+    .map((item) => item.toLowerCase())
+    .filter((item) => item === "http" || item === "https");
+  const protos = forwardedProtos.length
+    ? forwardedProtos
+    : [req.protocol || (req.secure ? "https" : "http")];
+  const origins = new Set<string>();
+  for (const host of hosts) {
+    for (const proto of protos) {
+      origins.add(normalizeCorsOrigin(`${proto}://${host}`));
+    }
+  }
+  return origins;
+}
+
+function isCorsOriginAllowed(req: Request, allowedCorsOrigins: Set<string>): boolean {
+  const normalizedOrigin = normalizeCorsOrigin(req.headers.origin);
+  if (!normalizedOrigin) return true;
+  if (allowedCorsOrigins.has(normalizedOrigin)) return true;
+  if (getRequestOriginCandidates(req).has(normalizedOrigin)) return true;
+  return process.env.NODE_ENV !== "production" && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(normalizedOrigin);
+}
+
 function normalizeUiReleaseChannel(value: unknown): UiReleaseChannel {
   const raw = String(value || "").trim().toLowerCase();
   if (raw === "dev" || raw === "development") {
@@ -333,24 +370,11 @@ export function createApp() {
   app.use(pinoHttp({ logger }));
   app.use(helmet({ contentSecurityPolicy: false }));
   const allowedCorsOrigins = resolveAllowedCorsOrigins();
-  app.use(cors({
-    credentials: true,
-    origin(origin, callback) {
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
-      const normalizedOrigin = String(origin).trim().replace(/\/+$/, "");
-      if (allowedCorsOrigins.has(normalizedOrigin)) {
-        callback(null, true);
-        return;
-      }
-      if (process.env.NODE_ENV !== "production" && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(normalizedOrigin)) {
-        callback(null, true);
-        return;
-      }
-      callback(new Error("Origin is not allowed by CORS"));
-    }
+  app.use(cors((req, callback) => {
+    callback(null, {
+      credentials: true,
+      origin: isCorsOriginAllowed(req as Request, allowedCorsOrigins)
+    });
   }));
   app.use(cookieParser());
   app.use((req, res, next) => {
