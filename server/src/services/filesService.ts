@@ -137,8 +137,24 @@ export type ExplorerListResult = {
 
 const FILES_INDEX_FILE = path.join(getFilesRootDir(), "index.json");
 const EVENT_FOLDERS_FILE = path.join(getFilesRootDir(), "event-folders.json");
-const DEFAULT_MAX_BYTES = Math.max(256 * 1024, Number(process.env.FILES_MAX_BYTES || 15 * 1024 * 1024));
-const DEFAULT_STORAGE_LIMIT_BYTES = Math.max(DEFAULT_MAX_BYTES, Number(process.env.FILES_STORAGE_LIMIT_BYTES || 1024 * 1024 * 1024));
+const MIN_FILE_LIMIT_BYTES = 256 * 1024;
+const UNLIMITED_BYTE_LIMIT_VALUES = new Set(["0", "-1", "unlimited", "none", "off"]);
+
+function readByteLimitEnv(name: string): number | null {
+  const raw = String(process.env[name] || "").trim().toLowerCase();
+  if (!raw) return null;
+  if (UNLIMITED_BYTE_LIMIT_VALUES.has(raw)) return 0;
+  const value = Number(raw);
+  if (!Number.isFinite(value)) return null;
+  if (value <= 0) return 0;
+  return Math.max(MIN_FILE_LIMIT_BYTES, Math.trunc(value));
+}
+
+const DEFAULT_MAX_BYTES = readByteLimitEnv("FILES_MAX_BYTES") ?? 15 * 1024 * 1024;
+const configuredStorageLimitBytes = readByteLimitEnv("FILES_STORAGE_LIMIT_BYTES");
+const DEFAULT_STORAGE_LIMIT_BYTES = configuredStorageLimitBytes === 0
+  ? 0
+  : Math.max(DEFAULT_MAX_BYTES, configuredStorageLimitBytes ?? 1024 * 1024 * 1024);
 
 function formatBytesForLimitMessage(bytes: number): string {
   const value = Math.max(0, Number(bytes || 0));
@@ -153,6 +169,7 @@ function assertStorageCapacity(requiredBytes: number): void {
   const nextBytes = Math.max(0, Number(requiredBytes || 0));
   if (!nextBytes) return;
   const usage = getFilesStorageUsage();
+  if (usage.limitBytes <= 0) return;
   const projectedBytes = usage.usedBytes + nextBytes;
   if (projectedBytes > usage.limitBytes) {
     throw new Error(
@@ -284,7 +301,7 @@ function decodeBase64Payload(contentBase64: string): Buffer {
   const payload = match ? match[2] : raw;
   const buffer = Buffer.from(payload, "base64");
   if (!buffer.length) throw new Error("Invalid file payload.");
-  if (buffer.length > DEFAULT_MAX_BYTES) {
+  if (DEFAULT_MAX_BYTES > 0 && buffer.length > DEFAULT_MAX_BYTES) {
     throw new Error(`File is too large. Max size is ${Math.floor(DEFAULT_MAX_BYTES / (1024 * 1024))} MB.`);
   }
   return buffer;
@@ -293,7 +310,7 @@ function decodeBase64Payload(contentBase64: string): Buffer {
 function resolveUploadContent(content?: Buffer | null, contentBase64?: string | null): Buffer {
   if (Buffer.isBuffer(content)) {
     if (!content.length) throw new Error("Missing file content.");
-    if (content.length > DEFAULT_MAX_BYTES) {
+    if (DEFAULT_MAX_BYTES > 0 && content.length > DEFAULT_MAX_BYTES) {
       throw new Error(`File is too large. Max size is ${Math.floor(DEFAULT_MAX_BYTES / (1024 * 1024))} MB.`);
     }
     return content;
@@ -1609,7 +1626,7 @@ export function getFilesStorageUsage(): {
   ensureFilesPathLayout();
   const filesRoot = getFilesRootDir();
   const usedBytes = readDirectorySize(filesRoot);
-  const limitBytes = Math.max(DEFAULT_MAX_BYTES, Number(process.env.FILES_STORAGE_LIMIT_BYTES || DEFAULT_STORAGE_LIMIT_BYTES));
+  const limitBytes = DEFAULT_STORAGE_LIMIT_BYTES;
   const percent = limitBytes > 0 ? Math.min(100, Math.round((usedBytes / limitBytes) * 100)) : 0;
   return {
     usedBytes,

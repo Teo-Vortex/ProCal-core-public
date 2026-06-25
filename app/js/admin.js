@@ -2027,10 +2027,11 @@ async function loadFilesAdmin() {
   try {
     const usage = await api("/api/files/storage", { headers: { authorization: `Bearer ${getToken()}` } });
     const used = formatBytes(Number(usage && usage.usedBytes || 0));
-    const limit = formatBytes(Number(usage && usage.limitBytes || 0));
+    const limitBytes = Number(usage && usage.limitBytes || 0);
+    const limit = limitBytes > 0 ? formatBytes(limitBytes) : "unlimited";
     const percent = Math.max(0, Number(usage && usage.percent || 0) || 0);
     if (adminFilesStorageLabelEl) {
-      adminFilesStorageLabelEl.textContent = `${used} / ${limit} (${percent}%)`;
+      adminFilesStorageLabelEl.textContent = limitBytes > 0 ? `${used} / ${limit} (${percent}%)` : `${used} / ${limit}`;
     }
     if (!retentionSettingsLoadedOnce) {
       await loadRetentionSettings();

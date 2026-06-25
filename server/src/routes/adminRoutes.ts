@@ -135,8 +135,11 @@ async function hardDeleteUserCompletely(userId: string): Promise<void> {
     await tx.compensationBalance.deleteMany({ where: { userId } });
     await tx.leaveRecord.deleteMany({ where: { userId } });
     await tx.leaveRecord.updateMany({ where: { createdById: userId }, data: { createdById: null } });
+    await tx.leaveRecord.updateMany({ where: { substituteUserId: userId }, data: { substituteUserId: null } });
     await tx.leaveAllowance.deleteMany({ where: { userId } });
     await tx.leaveAllowance.updateMany({ where: { createdById: userId }, data: { createdById: null } });
+    await tx.eventReminderDelivery.deleteMany({ where: { userId } });
+    await tx.pushDevice.deleteMany({ where: { userId } });
     await tx.notification.deleteMany({ where: { userId } });
     await tx.notificationPreference.deleteMany({ where: { userId } });
     await tx.bugReport.deleteMany({ where: { userId } });

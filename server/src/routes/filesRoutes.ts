@@ -37,15 +37,27 @@ import { writeAudit } from "../services/auditService";
 
 export const filesRouter = Router();
 const explorerRootSchema = z.enum(["chat", "events", "shared"]);
-const uploadMaxBytes = Math.max(256 * 1024, Number(process.env.FILES_MAX_BYTES || 15 * 1024 * 1024));
+const MIN_UPLOAD_LIMIT_BYTES = 256 * 1024;
+const UNLIMITED_UPLOAD_LIMIT_VALUES = new Set(["0", "-1", "unlimited", "none", "off"]);
+
+function readUploadMaxBytes(): number {
+  const raw = String(process.env.FILES_MAX_BYTES || "").trim().toLowerCase();
+  if (!raw) return 15 * 1024 * 1024;
+  if (UNLIMITED_UPLOAD_LIMIT_VALUES.has(raw)) return 0;
+  const value = Number(raw);
+  if (!Number.isFinite(value)) return 15 * 1024 * 1024;
+  if (value <= 0) return 0;
+  return Math.max(MIN_UPLOAD_LIMIT_BYTES, Math.trunc(value));
+}
+
+const uploadMaxBytes = readUploadMaxBytes();
 const uploadParser = multer({
   storage: multer.memoryStorage(),
-  limits: {
-    fileSize: uploadMaxBytes
-  }
+  limits: uploadMaxBytes > 0 ? { fileSize: uploadMaxBytes } : undefined
 });
 
 function getUploadLimitLabel() {
+  if (uploadMaxBytes <= 0) return "unlimited";
   return `${Math.max(1, Math.floor(uploadMaxBytes / (1024 * 1024)))} MB`;
 }
 
