@@ -20,6 +20,12 @@ async function refreshAccessToken() {
   return next;
 }
 
+async function ensureAdminAccessToken() {
+  const existing = getToken();
+  if (existing) return existing;
+  return refreshAccessToken();
+}
+
 const authHeaders = () => ({ authorization: `Bearer ${getToken()}`, "content-type": "application/json" });
 
 const forbiddenEl = document.getElementById("forbidden");
@@ -325,7 +331,8 @@ function scheduleAdminRealtimeReconnect() {
 }
 
 async function initRealtimeAutoReload() {
-  if (!getToken()) return;
+  const token = await ensureAdminAccessToken();
+  if (!token) return;
   if (adminRealtimeAbortController) {
     adminRealtimeAbortController.abort();
     adminRealtimeAbortController = null;
@@ -338,7 +345,7 @@ async function initRealtimeAutoReload() {
       method: 'GET',
       credentials: 'include',
       headers: {
-        authorization: `Bearer ${getToken()}`,
+        authorization: `Bearer ${token}`,
         accept: 'text/event-stream'
       },
       signal: adminRealtimeAbortController.signal
@@ -486,12 +493,13 @@ function fillRoleSelect(selectEl, selected) {
 }
 
 async function checkAccess() {
-  if (!getToken()) {
+  const token = await ensureAdminAccessToken();
+  if (!token) {
     location.href = resolveRuntimePath("/login");
     return false;
   }
   try {
-    const me = await api("/api/me", { headers: { authorization: `Bearer ${getToken()}` } });
+    const me = await api("/api/me", { headers: { authorization: `Bearer ${token}` } });
     currentFeatureFlags = me && me.featureFlags && typeof me.featureFlags === "object" ? { ...me.featureFlags } : {};
     if (meEl) meEl.textContent = `${me.nickname || me.username} (${me.role})`;
     if (redeemRealmPromoBtn) {
@@ -1797,14 +1805,13 @@ async function readSelectedBackupUpload(action) {
 
 async function postUploadedBackup(endpoint, upload) {
   const headers = {
-    authorization: `Bearer ${getToken()}`,
     "content-type": "text/plain;charset=utf-8",
     "x-procal-backup-file-name": encodeURIComponent(upload.file.name || `backup-${Date.now()}.procalbak`)
   };
   if (upload.encryptionKey) {
     headers["x-procal-backup-key-base64"] = encodeBase64Utf8(upload.encryptionKey);
   }
-  const res = await fetch(endpoint, {
+  const res = await fetchWithAdminAuthRetry(endpoint, {
     method: "POST",
     credentials: "include",
     headers,
