@@ -11,7 +11,7 @@
     const roster = Array.isArray(opts.roster) ? opts.roster : [];
     if (canCompOverviewAccess) return roster;
     if (!currentUserId) return [];
-    const own = roster.find((p) => String((p && p.id) || "") === currentUserId);
+    const own = roster.find((p) => String((p && p.id) || "") === currentUserId || String((p && p.userId) || "") === currentUserId);
     if (own) return [own];
     return [{ id: currentUserId, name: currentUserName || currentUserId, color: currentUserDisplayColor }];
   }
@@ -34,7 +34,7 @@
     const roster = Array.isArray(opts.roster) ? opts.roster : [];
     if (canReadAllReports) return roster;
     if (!currentUserId) return [];
-    const own = roster.find((p) => String((p && p.id) || "") === currentUserId);
+    const own = roster.find((p) => String((p && p.id) || "") === currentUserId || String((p && p.userId) || "") === currentUserId);
     if (own) return [own];
     return [{ id: currentUserId, name: currentUserName || currentUserId, color: currentUserDisplayColor }];
   }
@@ -69,7 +69,8 @@
     } else if (canReadAllReports) {
       selectEl.value = String((allowed[0] && allowed[0].id) || "");
     } else {
-      selectEl.value = String(currentUserId || (allowed[0] && allowed[0].id) || "");
+      const own = allowed.find((p) => String((p && p.id) || "") === currentUserId || String((p && p.userId) || "") === currentUserId);
+      selectEl.value = String((own && own.id) || currentUserId || (allowed[0] && allowed[0].id) || "");
     }
   }
 

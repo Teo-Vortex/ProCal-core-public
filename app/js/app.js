@@ -531,6 +531,7 @@ let fileSaveTimer = null;
 let draftEventTasks = [];
 let eventFormActiveTab = "details";
 let remoteStateLoading = false;
+let remoteStateBootstrapped = false;
 let realtimeSyncTimer = null;
 let realtimeUnsubscribe = null;
 let realtimeConnectionStatus = "disconnected";
@@ -4077,41 +4078,45 @@ personCancelBtn.addEventListener("click", () => {
   resetPersonEditor();
 });
 
-exportBtn.addEventListener("click", () => {
-  const payload = buildStatePayload(true);
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `procal-visual-backup-${toDateKey(new Date())}.json`;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
-});
+if (exportBtn) {
+  exportBtn.addEventListener("click", () => {
+    const payload = buildStatePayload(true);
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `procal-visual-backup-${toDateKey(new Date())}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  });
+}
 
-importInput.addEventListener("change", async () => {
-  const file = importInput.files && importInput.files[0];
-  if (!file) return;
+if (importInput) {
+  importInput.addEventListener("change", async () => {
+    const file = importInput.files && importInput.files[0];
+    if (!file) return;
 
-  try {
-    const text = await file.text();
-    const parsed = JSON.parse(text);
-    if (!parsed || typeof parsed !== "object") throw new Error("Invalid backup format");
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      if (!parsed || typeof parsed !== "object") throw new Error("Invalid backup format");
 
-    const cleaned = sanitizeState(
-      parsed.events || parsed.people || parsed.absences || parsed.categories || parsed.tasks
-        ? parsed
-        : { events: parsed, people: [], absences: [], categories: DEFAULT_CATEGORIES }
-    );
-    applyCleanState(cleaned, parsed && parsed.modifiedAt);
-    persistState();
-  } catch (error) {
-    alert(t("importFailed"));
-  } finally {
-    importInput.value = "";
-  }
-});
+      const cleaned = sanitizeState(
+        parsed.events || parsed.people || parsed.absences || parsed.categories || parsed.tasks
+          ? parsed
+          : { events: parsed, people: [], absences: [], categories: DEFAULT_CATEGORIES }
+      );
+      applyCleanState(cleaned, parsed && parsed.modifiedAt);
+      persistState();
+    } catch (error) {
+      alert(t("importFailed"));
+    } finally {
+      importInput.value = "";
+    }
+  });
+}
 
 function renderWeekdays() {
   const calendarWeekdays = window.ProCalModules && window.ProCalModules.calendarWeekdays;
@@ -5087,6 +5092,11 @@ function closeMobileDayPanel() {
     dayPanelShell,
     isMobileViewport
   });
+}
+
+function closeMobileOverlayPanels() {
+  closeMobileDayPanel();
+  closeMobileUpcomingPanel();
 }
 
 function handleMobileSheetOutsidePointerDown(event) {
@@ -9396,6 +9406,7 @@ function renderMainPanelUI() {
 
 function setMainPanel(panel, persist = true) {
   currentMainPanel = panel === "notes" || panel === "events" ? panel : "calendar";
+  closeMobileOverlayPanels();
   renderMainPanelUI();
   if (currentMainPanel === "events") renderEventsRegistry();
   if (currentMainPanel === "notes") scheduleStickyNotesPullFromShared(0);
@@ -12177,7 +12188,7 @@ function taskHasAssignee(task, personId) {
 function getTaskAssigneeNames(task) {
   const taskAssignees = window.ProCalModules && window.ProCalModules.taskAssignees;
   if (!taskAssignees || typeof taskAssignees.getTaskAssigneeNames !== "function") return [];
-  return taskAssignees.getTaskAssigneeNames(task, people, filterPeopleIds);
+  return taskAssignees.getTaskAssigneeNames(task, getOperationalPeople(), filterPeopleIds);
 }
 
 function getSelectedPersonIds(sourceEl) {
@@ -12576,6 +12587,8 @@ function renderReportResults() {
     taskHasAssignee,
     addDaysToKey,
     tasksByDate,
+    people: getOperationalPeople(),
+    getCurrentUserIdentityIds,
     locale: getLocale()
   });
 }
@@ -12591,7 +12604,8 @@ function saveReportAsPdf() {
     reportEnd,
     canReadAllReports,
     currentUserId,
-    people,
+    people: getOperationalPeople(),
+    getCurrentUserIdentityIds,
     t,
     escapeHtml
   });
@@ -12677,8 +12691,15 @@ function filterKnownIds(list, knownPeople) {
 }
 
 function filterPeopleIds(list) {
-  const known = new Set(getOperationalPeople().map((person) => person.id));
-  return dedupeStrings(list).filter((id) => known.has(id));
+  const aliases = new Map();
+  getOperationalPeople().forEach((person) => {
+    const id = String((person && person.id) || "").trim();
+    const userId = String((person && person.userId) || "").trim();
+    if (!id) return;
+    aliases.set(id, id);
+    if (userId) aliases.set(userId, id);
+  });
+  return dedupeStrings((Array.isArray(list) ? list : []).map((value) => aliases.get(String(value || "").trim()) || "").filter(Boolean));
 }
 
 function dedupeStrings(list) {
@@ -12923,6 +12944,7 @@ function switchCalendarMode(mode) {
   if (nextMode === currentCalendarMode) return;
 
   currentCalendarMode = nextMode;
+  remoteStateBootstrapped = false;
   localStorage.setItem(CALENDAR_MODE_KEY, currentCalendarMode);
   if (window.dataProvider && typeof window.dataProvider.setCalendarMode === "function") {
     window.dataProvider.setCalendarMode(currentCalendarMode);
@@ -12995,9 +13017,11 @@ function persistState() {
     // ignore quota errors in offline mode
   }
   if (window.dataProvider && typeof window.dataProvider.saveState === "function") {
-    window.dataProvider.saveState(payload, lastModifiedAt).catch(() => {
-      // keep local fallback if remote save fails
-    });
+    if (remoteStateBootstrapped) {
+      window.dataProvider.saveState(payload, lastModifiedAt).catch(() => {
+        // keep local fallback if remote save fails
+      });
+    }
   }
   updateLastModifiedLabel();
   scheduleFileSave();
@@ -13236,7 +13260,6 @@ function mergePeopleDirectoryItems(items) {
   let changed = false;
   const activeItems = items.filter((raw) => String((raw && raw.status) || "").toLowerCase() === "active");
   const directoryNameToUserIds = new Map();
-  const directoryByUserId = new Map();
   const activeDirectoryNames = new Set();
 
   activeItems.forEach((raw) => {
@@ -13246,7 +13269,6 @@ function mergePeopleDirectoryItems(items) {
     if (!uid || !nm) return;
     if (!directoryNameToUserIds.has(nm)) directoryNameToUserIds.set(nm, new Set());
     directoryNameToUserIds.get(nm).add(uid);
-    directoryByUserId.set(uid, raw);
     activeDirectoryNames.add(nm);
   });
 
@@ -13257,7 +13279,6 @@ function mergePeopleDirectoryItems(items) {
     const name = String(raw.name || "").trim();
     if (!name) return;
     const color = normalizePersonColor(String(raw.color || "#64748b"));
-    const username = String(raw.username || "").trim();
 
     const idx = people.findIndex((person) => {
       const pid = String((person && person.id) || "").trim();
@@ -13285,15 +13306,14 @@ function mergePeopleDirectoryItems(items) {
       if (prevId && prevId !== userId) {
         if (remapPersonReferences(prevId, userId)) changed = true;
       }
-      const next = username
-        ? { ...prev, id: userId, userId, name, color, username }
-        : { ...prev, id: userId, userId, name, color };
+      const next = { ...prev, id: userId, userId, name, color };
+      if (Object.prototype.hasOwnProperty.call(next, "username")) delete next.username;
       if (
         String(prev.id || "") !== String(next.id || "") ||
         String(prev.userId || "") !== String(next.userId || "") ||
         String(prev.name || "") !== String(next.name || "") ||
         String(prev.color || "") !== String(next.color || "") ||
-        String(prev.username || "") !== String(next.username || "")
+        Object.prototype.hasOwnProperty.call(prev, "username")
       ) {
         people[targetIdx] = next;
         changed = true;
@@ -13301,11 +13321,11 @@ function mergePeopleDirectoryItems(items) {
       return;
     }
 
-    people.push(username ? { id: userId, userId, name, color, username } : { id: userId, userId, name, color });
+    people.push({ id: userId, userId, name, color });
     changed = true;
   });
 
-  roster.forEach((person) => {
+  people.forEach((person) => {
     if (!person || typeof person !== "object") return;
     const pid = String(person.id || "").trim();
     const puid = String(person.userId || "").trim();
@@ -13319,10 +13339,7 @@ function mergePeopleDirectoryItems(items) {
     if (remapPersonReferences(pid, targetUserId)) changed = true;
     person.id = targetUserId;
     person.userId = targetUserId;
-    const directoryEntry = directoryByUserId.get(targetUserId);
-    if (directoryEntry && String(directoryEntry.username || "").trim()) {
-      person.username = String(directoryEntry.username).trim();
-    }
+    if (Object.prototype.hasOwnProperty.call(person, "username")) delete person.username;
     changed = true;
   });
 
@@ -13373,6 +13390,10 @@ function mergePeopleDirectoryItems(items) {
 
 async function syncPeopleFromDirectory() {
   if (peopleDirectorySyncInFlight) return;
+  if (!remoteStateBootstrapped && window.dataProvider && typeof window.dataProvider.loadState === "function") {
+    queuePeopleDirectorySync();
+    return;
+  }
   peopleDirectorySyncInFlight = true;
   try {
     const token = await ensureAccessToken();
@@ -13598,6 +13619,7 @@ function bootstrapRemoteState() {
       // keep local state if remote is unavailable
     })
     .finally(() => {
+      remoteStateBootstrapped = true;
       remoteStateLoading = false;
     });
 }
@@ -13623,7 +13645,13 @@ function getEnvelopeVersionSignature(envelope) {
 function sanitizeState(value) {
   const safeCategories = sanitizeCategories(value && value.categories);
   const safePeople = sanitizePeople(value && value.people);
-  const knownPeople = new Set(safePeople.map((p) => p.id));
+  const knownPeople = new Set();
+  safePeople.forEach((person) => {
+    const id = String((person && person.id) || "").trim();
+    const userId = String((person && person.userId) || "").trim();
+    if (id) knownPeople.add(id);
+    if (userId) knownPeople.add(userId);
+  });
   const safeEvents = sanitizeEvents(value && value.events, knownPeople, safeCategories);
   const safeAbsences = sanitizeAbsences(value && value.absences, knownPeople);
   const safeTasks = sanitizeStandaloneTasks(value && value.tasks, knownPeople, safeCategories);
@@ -13981,14 +14009,18 @@ function sanitizeEvents(value, knownPeople, safeCategories) {
   return out;
 }
 
-function sanitizeTaskList(list, knownPeople) {
+function sanitizeTaskList(list, knownPeopleOrOptions) {
   const mod = window.ProCalModules && window.ProCalModules.taskStateMerge;
   if (!mod || typeof mod.sanitizeTaskList !== "function") return [];
+  const options = knownPeopleOrOptions && typeof knownPeopleOrOptions === "object" && !(knownPeopleOrOptions instanceof Set)
+    ? knownPeopleOrOptions
+    : { knownPeople: knownPeopleOrOptions };
+  const knownPeople = options.knownPeople instanceof Set ? options.knownPeople : new Set();
   return mod.sanitizeTaskList(list, {
     knownPeople,
-    filterKnownIds,
-    createTaskId,
-    isDateKey
+    filterKnownIds: typeof options.filterKnownIds === "function" ? options.filterKnownIds : filterKnownIds,
+    createTaskId: typeof options.createTaskId === "function" ? options.createTaskId : createTaskId,
+    isDateKey: typeof options.isDateKey === "function" ? options.isDateKey : isDateKey
   });
 }
 

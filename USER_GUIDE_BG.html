@@ -100,7 +100,7 @@
   <div class="wrap">
     <header class="hero">
       <h1>ProCal - Ръководство за работа</h1>
-      <p>Актуално ръководство за hosted версията на ProCal с централен вход през ProCal Public.</p>
+      <p>Актуално ръководство за hosted и self-hosted realm-и в ProCal, включително ежедневна работа и локална администрация.</p>
       <div class="meta">
         <span class="chip">Версия: 0.9.9</span>
         <span class="chip">Език: BG</span>
@@ -294,15 +294,15 @@
                 <li>job title</li>
               </ul>
             </li>
-            <li>При hosted realm-и локалната смяна на парола е премахната.</li>
-            <li>Паролата се управлява през бутона <b>Manage password in ProCal Public</b>.</li>
+            <li>При hosted realm-и локалната смяна на парола е премахната и паролата се управлява през бутона <b>Manage password in ProCal Public</b>.</li>
+            <li>При self-hosted realm-и акаунтите се управляват от локалния Admin панел.</li>
             <li>При първо влизане realm-ът може да изиска попълване на липсващите профилни данни.</li>
           </ul>
         </section>
 
         <section id="admin">
           <h2>11. Админ панел</h2>
-          <p>Локалният админ панел е за управление на конкретния realm. Не замества ProCal Control.</p>
+          <p>Локалният админ панел управлява конкретния realm. При hosted инсталации той допълва ProCal Control; при self-hosted инсталации е основният локален админ интерфейс.</p>
           <ul>
             <li><b>Personnel</b> - потребители, роли и overrides.</li>            <li><b>Roles</b>, <b>Categories</b>, <b>Holidays</b>, <b>Leave Form</b>.</li>
             <li><b>Notifications</b> и <b>Audit</b>.</li>
@@ -315,7 +315,7 @@
           <p class="hint">Realm backup exports are encrypted downloads kept by the realm admin. Validate/restore uploads the selected file temporarily and deletes the server copy after the operation.</p>
           <h2>12. Бъгове, бекъпи и поддръжка</h2>
           <ul>
-            <li><b>Report bug</b> изпраща сигнала централизирано към <b>ProCal Control</b>.</li>
+            <li><b>Report bug</b> изпраща сигнала централизирано, когато има активна ProCal Control интеграция.</li>
             <li>Локалният admin panel вече няма отделен bugs таб.</li>
             <li>Преди големи промени по realm-а прави <b>full backup</b>.</li>
             <li>При странно поведение след update първо тествай с <code>Ctrl + F5</code>.</li>

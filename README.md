@@ -4,6 +4,12 @@ ProCal Core is the self-hosted edition of ProCal: a LAN/offline-ready calendar, 
 
 This repository contains only the self-hosted Core application. It does not include the hosted SaaS platform, Control plane, Public portal, billing, or managed hosting automation.
 
+## Release Source
+
+Official public releases are exported only from the stable ProCal Platform source (`main`/`stable` branch or a release tag). Each generated public package includes `SOURCE_BUILD.md` with the source commit, branch/tag, export time, and release version.
+
+Use Docker tags such as `latest` or `stable` only when `SOURCE_BUILD.md` says the export came from stable source and a clean worktree.
+
 ## License
 
 ProCal Core is released under the GNU Affero General Public License v3.0 only (`AGPL-3.0-only`).

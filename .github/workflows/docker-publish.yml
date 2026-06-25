@@ -35,6 +35,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Verify stable source export
+        shell: bash
+        run: |
+          test -f SOURCE_BUILD.md
+          grep -q '| Stable source | yes ' SOURCE_BUILD.md
+          grep -q '| Worktree dirty during export | no |' SOURCE_BUILD.md
+
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5

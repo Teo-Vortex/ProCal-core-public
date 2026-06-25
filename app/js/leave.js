@@ -175,10 +175,12 @@
       pendingRequests: "Pending requests",
       noPendingRequests: "No pending requests",
       delete: "Delete",
+      invalidData: "Invalid leave record.",
       approve: "Approve",
       approveLeave: "Approve leave",
       cancel: "Cancel",
       substitute: "Substitute",
+      noSubstitute: "No substitute",
       chooseSubstitute: "Choose who will substitute the absent user for this period.",
       substituteRequired: "Choose a substitute before approving.",
       pending: "Pending",
@@ -252,10 +254,12 @@
       pendingRequests: "\u0427\u0430\u043A\u0430\u0449\u0438 \u0437\u0430\u044F\u0432\u043A\u0438",
       noPendingRequests: "\u041D\u044F\u043C\u0430 \u0447\u0430\u043A\u0430\u0449\u0438 \u0437\u0430\u044F\u0432\u043A\u0438",
       delete: "\u0418\u0437\u0442\u0440\u0438\u0439",
+      invalidData: "\u041D\u0435\u0432\u0430\u043B\u0438\u0434\u0435\u043D \u0437\u0430\u043F\u0438\u0441 \u0437\u0430 \u043E\u0442\u0441\u044A\u0441\u0442\u0432\u0438\u0435.",
       approve: "\u041F\u043E\u0442\u0432\u044A\u0440\u0434\u0438",
       approveLeave: "\u041F\u043E\u0442\u0432\u044A\u0440\u0434\u0438 \u043E\u0442\u0441\u044A\u0441\u0442\u0432\u0438\u0435",
       cancel: "\u041E\u0442\u043A\u0430\u0437",
       substitute: "\u0417\u0430\u043C\u0435\u0441\u0442\u043D\u0438\u043A",
+      noSubstitute: "\u0411\u0435\u0437 \u0437\u0430\u043C\u0435\u0441\u0442\u043D\u0438\u043A",
       chooseSubstitute: "\u0418\u0437\u0431\u0435\u0440\u0438 \u043A\u043E\u0439 \u0449\u0435 \u0437\u0430\u043C\u0435\u0441\u0442\u0432\u0430 \u043E\u0442\u0441\u044A\u0441\u0442\u0432\u0430\u0449\u0438\u044F \u0437\u0430 \u0442\u043E\u0437\u0438 \u043F\u0435\u0440\u0438\u043E\u0434.",
       substituteRequired: "\u0418\u0437\u0431\u0435\u0440\u0438 \u0437\u0430\u043C\u0435\u0441\u0442\u043D\u0438\u043A \u043F\u0440\u0435\u0434\u0438 \u043F\u043E\u0442\u0432\u044A\u0440\u0436\u0434\u0430\u0432\u0430\u043D\u0435.",
       pending: "\u041D\u0435\u043F\u043E\u0442\u0432\u044A\u0440\u0434\u0435\u043D\u043E",
@@ -416,7 +420,7 @@
     el.approveSubstituteUserId.innerHTML = "";
     const empty = document.createElement("option");
     empty.value = "";
-    empty.textContent = `- ${t("substitute")} -`;
+    empty.textContent = `- ${t("noSubstitute")} -`;
     el.approveSubstituteUserId.appendChild(empty);
     state.users
       .filter((u) => u.id !== record.userId)
@@ -945,7 +949,7 @@
   async function approveRecord(id, substituteUserId) {
     const res = await api(`/api/leave/records/${encodeURIComponent(id)}/approve`, {
       method: "POST",
-      body: JSON.stringify({ substituteUserId })
+      body: JSON.stringify({ substituteUserId: substituteUserId || null })
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error((body && body.error) || "Failed to approve record");
@@ -955,8 +959,8 @@
   async function confirmApproveWithSubstitute() {
     const recordId = String(state.approvingRecordId || "").trim();
     const substituteUserId = String((el.approveSubstituteUserId && el.approveSubstituteUserId.value) || "").trim();
-    if (!recordId || !substituteUserId) {
-      setStatus(t("substituteRequired"), true);
+    if (!recordId) {
+      setStatus(t("invalidData"), true);
       return;
     }
     await approveRecord(recordId, substituteUserId);

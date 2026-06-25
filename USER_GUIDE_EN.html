@@ -100,7 +100,7 @@
   <div class="wrap">
     <header class="hero">
       <h1>ProCal - User Guide</h1>
-      <p>Updated guide for the hosted ProCal flow with central sign-in through ProCal Public.</p>
+      <p>Updated guide for hosted and self-hosted ProCal realms, including daily usage and local admin tasks.</p>
       <div class="meta">
         <span class="chip">Version: 0.9.9</span>
         <span class="chip">Language: EN</span>
@@ -294,15 +294,15 @@
                 <li>job title</li>
               </ul>
             </li>
-            <li>For hosted realms, local password change is removed.</li>
-            <li>Password management is handled through the <b>Manage password in ProCal Public</b> button.</li>
+            <li>For hosted realms, local password change is removed and password management is handled through the <b>Manage password in ProCal Public</b> button.</li>
+            <li>For self-hosted realms, account management stays inside the local Admin panel.</li>
             <li>On first entry, a realm may require missing profile fields to be completed.</li>
           </ul>
         </section>
 
         <section id="admin">
           <h2>11. Admin panel</h2>
-          <p>The local admin panel manages the current realm only. It does not replace ProCal Control.</p>
+          <p>The local admin panel manages the current realm. In hosted deployments it complements ProCal Control; in self-hosted deployments it is the primary local admin surface.</p>
           <ul>
             <li><b>Personnel</b> - users, roles, and overrides.</li>            <li><b>Roles</b>, <b>Categories</b>, <b>Holidays</b>, <b>Leave Form</b>.</li>
             <li><b>Notifications</b> and <b>Audit</b>.</li>
@@ -314,7 +314,7 @@
         <section id="support">
           <h2>12. Bugs, backups, and support</h2>
           <ul>
-            <li><b>Report bug</b> sends the report centrally to <b>ProCal Control</b>.</li>
+            <li><b>Report bug</b> sends the report centrally when ProCal Control integration is available.</li>
             <li>The local admin panel no longer contains a separate bugs tab.</li>
             <li>Export an encrypted <b>full backup</b> and save its key PDF before major realm changes.</li>
             <li>If the UI behaves strangely after an update, test with <code>Ctrl + F5</code> first.</li>

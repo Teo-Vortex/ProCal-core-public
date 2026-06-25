@@ -20,6 +20,33 @@
     }, delayMs);
   }
 
+  function parseUpdatedAt(note) {
+    const stamp = Date.parse(String((note && note.updatedAt) || ""));
+    return Number.isFinite(stamp) ? stamp : 0;
+  }
+
+  function mergeStickyNotes(currentNotes, remoteNotes) {
+    const merged = new Map();
+    const add = (note, source) => {
+      if (!note || typeof note !== "object") return;
+      const id = String(note.id || "");
+      if (!id) return;
+      const existing = merged.get(id);
+      if (!existing) {
+        merged.set(id, note);
+        return;
+      }
+      const existingUpdatedAt = parseUpdatedAt(existing);
+      const incomingUpdatedAt = parseUpdatedAt(note);
+      if (incomingUpdatedAt > existingUpdatedAt || (incomingUpdatedAt === existingUpdatedAt && source === "remote")) {
+        merged.set(id, note);
+      }
+    };
+    (Array.isArray(currentNotes) ? currentNotes : []).forEach((note) => add(note, "current"));
+    (Array.isArray(remoteNotes) ? remoteNotes : []).forEach((note) => add(note, "remote"));
+    return Array.from(merged.values());
+  }
+
   async function syncFromShared(options) {
     const o = options || {};
     const dataProvider = o.dataProvider || root.dataProvider;
@@ -32,10 +59,11 @@
         : ((list) => (Array.isArray(list) ? list : []));
       const remoteNotes = sanitizeStickyNotes(remoteState.stickyNotes);
       const currentNotes = Array.isArray(o.stickyNotes) ? o.stickyNotes : [];
-      if (JSON.stringify(currentNotes) === JSON.stringify(remoteNotes)) return false;
-      if (typeof o.setStickyNotes === "function") o.setStickyNotes(remoteNotes);
+      const nextNotes = sanitizeStickyNotes(mergeStickyNotes(currentNotes, remoteNotes));
+      if (JSON.stringify(currentNotes) === JSON.stringify(nextNotes)) return false;
+      if (typeof o.setStickyNotes === "function") o.setStickyNotes(nextNotes);
       if (typeof o.pruneStickyNoteOffsets === "function") {
-        o.pruneStickyNoteOffsets(remoteNotes.map((n) => String((n && n.id) || "")));
+        o.pruneStickyNoteOffsets(nextNotes.map((n) => String((n && n.id) || "")));
       }
       if (typeof o.persistLocalStateSnapshot === "function") o.persistLocalStateSnapshot();
       if (typeof o.renderNotesPanel === "function") o.renderNotesPanel();

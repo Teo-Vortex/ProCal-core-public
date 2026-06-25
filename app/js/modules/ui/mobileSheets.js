@@ -72,11 +72,15 @@
     activeMobileSheetDrag = null;
   }
 
+  function isMobileSheetState(panelEl, isMobileViewport) {
+    return isMobileViewport() || Boolean(panelEl && panelEl.classList.contains("mobile-sheet"));
+  }
+
   function closeMobileUpcomingPanel(options) {
     const opts = options || {};
     const upcomingPanel = opts.upcomingPanel;
     const isMobileViewport = typeof opts.isMobileViewport === "function" ? opts.isMobileViewport : (() => false);
-    if (!upcomingPanel || !isMobileViewport()) return;
+    if (!upcomingPanel || !isMobileSheetState(upcomingPanel, isMobileViewport)) return;
     upcomingPanel.classList.add("hidden-section");
     upcomingPanel.setAttribute("aria-hidden", "true");
     clearMobileSheetHeight(upcomingPanel);
@@ -86,7 +90,7 @@
     const opts = options || {};
     const dayPanelShell = opts.dayPanelShell;
     const isMobileViewport = typeof opts.isMobileViewport === "function" ? opts.isMobileViewport : (() => false);
-    if (!dayPanelShell || !isMobileViewport()) return;
+    if (!dayPanelShell || !isMobileSheetState(dayPanelShell, isMobileViewport)) return;
     dayPanelShell.classList.remove("mobile-sheet-open");
     dayPanelShell.setAttribute("aria-hidden", "true");
     clearMobileSheetHeight(dayPanelShell);

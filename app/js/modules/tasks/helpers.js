@@ -34,7 +34,10 @@
     const ids = filterPeopleIds(Array.isArray(o.personIds) ? o.personIds : []);
     const me = String(o.currentUserId || "");
     if (!isPersonalCalendarMode({ currentCalendarMode: o.currentCalendarMode }) || !me) return ids;
-    return ids.includes(me) ? ids : [me, ...ids];
+    const ownIds = filterPeopleIds([me]);
+    const ownId = String((ownIds && ownIds[0]) || "");
+    if (!ownId) return ids;
+    return ids.includes(ownId) ? ids : [ownId, ...ids];
   }
 
   function getTaskCollabMembers(task, options) {

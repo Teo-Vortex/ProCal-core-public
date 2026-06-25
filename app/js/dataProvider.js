@@ -334,7 +334,14 @@
 
   async function loadState() {
     try {
-      const res = await api(`/api/legacy/state?${getModeQuery()}`, { method: "GET" });
+      const res = await api(`/api/legacy/state?${getModeQuery()}`, {
+        method: "GET",
+        cache: "no-store",
+        headers: {
+          "cache-control": "no-cache",
+          pragma: "no-cache"
+        }
+      });
       if (!res.ok) return null;
       const body = await res.json();
       cachedVersion = Number(body.version || 0);
@@ -374,7 +381,14 @@
 
   async function loadSharedState() {
     try {
-      const res = await api(`/api/legacy/state?mode=shared`, { method: "GET" });
+      const res = await api(`/api/legacy/state?mode=shared`, {
+        method: "GET",
+        cache: "no-store",
+        headers: {
+          "cache-control": "no-cache",
+          pragma: "no-cache"
+        }
+      });
       if (!res.ok) return null;
       const body = await res.json();
       return {

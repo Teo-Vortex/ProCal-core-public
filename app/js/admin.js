@@ -645,7 +645,7 @@ async function loadRoles() {
     knownPermissions = Array.isArray(body.knownPermissions) ? body.knownPermissions.slice() : [];
     rolesCache = Array.isArray(body.items) ? body.items.slice() : [];
     buildRolesMatrix();
-    fillRoleSelect(newRoleEl, newRoleEl.value || "user");
+    if (newRoleEl) fillRoleSelect(newRoleEl, newRoleEl.value || "user");
   } catch (e) {
     msg(String(e.message || e), true);
   }
@@ -1215,7 +1215,7 @@ function createBackupKeyPdfBlob(details) {
     "Important:",
     "Validate and restore will require exactly this same key.",
     "Each new backup can have a different key.",
-    "If this key is lost, the platform operator cannot recover this backup."
+    "If this key is lost, the server operator cannot recover this backup."
   ];
   const contentLines = ["BT", "/F1 16 Tf", "72 742 Td"];
   lines.forEach((line, index) => {

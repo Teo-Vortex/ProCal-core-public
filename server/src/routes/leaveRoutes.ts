@@ -19,6 +19,11 @@ const ALLOWANCE_POOL_YEAR = MIN_TRACK_YEAR;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const ymdSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const optionalSubstituteUserIdSchema = z.preprocess((value) => {
+  if (value === undefined || value === null) return null;
+  const text = String(value).trim();
+  return text || null;
+}, z.string().min(1).nullable());
 
 const allowanceSchema = z.object({
   userId: z.string().min(1),
@@ -34,12 +39,12 @@ const recordSchema = z.object({
   endDate: ymdSchema,
   note: z.string().trim().max(512).optional(),
   sourceYear: z.coerce.number().int().min(MIN_TRACK_YEAR).max(2200).optional(),
-  substituteUserId: z.string().trim().min(1).optional(),
+  substituteUserId: optionalSubstituteUserIdSchema.optional(),
   status: z.enum(["pending", "approved", "rejected"]).optional()
 });
 
 const approveRecordSchema = z.object({
-  substituteUserId: z.string().trim().min(1)
+  substituteUserId: optionalSubstituteUserIdSchema.optional()
 });
 
 function parseYmdAtNoonUtc(value: string): Date {
@@ -139,7 +144,7 @@ type SubstituteResolution = {
     id: string;
     username: string;
     nickname: string | null;
-  };
+  } | null;
 } | {
   ok: false;
   status: number;
@@ -147,14 +152,14 @@ type SubstituteResolution = {
 };
 
 async function resolveSubstituteUser(
-  substituteUserId: string | undefined,
+  substituteUserId: string | null | undefined,
   targetUserId: string,
   start: Date,
   end: Date
 ): Promise<SubstituteResolution> {
   const id = String(substituteUserId || "").trim();
   if (!id) {
-    return { ok: false, status: 400, body: { error: "Substitute is required before approval" } };
+    return { ok: true, user: null };
   }
   if (id === targetUserId) {
     return { ok: false, status: 400, body: { error: "Substitute cannot be the absent user" } };
@@ -768,7 +773,7 @@ leaveRouter.post("/api/leave/records", requirePermission("leave.read_self"), asy
       res.status(substituteResult.status).json(substituteResult.body);
       return;
     }
-    substituteUserId = substituteResult.user.id;
+    substituteUserId = substituteResult.user ? substituteResult.user.id : null;
   }
   if (parsed.data.leaveType === "paid" || parsed.data.leaveType === "study") {
     const balances = await buildBalances(parsed.data.userId);
@@ -919,7 +924,7 @@ leaveRouter.post("/api/leave/records/:id/approve", requirePermission("leave.mana
   }
   const parsed = approveRecordSchema.safeParse(req.body || {});
   if (!parsed.success) {
-    res.status(400).json({ error: "Substitute is required before approval" });
+    res.status(400).json({ error: "Invalid approval payload" });
     return;
   }
   const substituteResult = await resolveSubstituteUser(parsed.data.substituteUserId, row.userId, row.startDate, row.endDate);
@@ -966,7 +971,7 @@ leaveRouter.post("/api/leave/records/:id/approve", requirePermission("leave.mana
   }
   const updated = await prisma.leaveRecord.update({
     where: { id: row.id },
-    data: { status: "approved", days: rowWorkingDays, substituteUserId: substituteResult.user.id }
+    data: { status: "approved", days: rowWorkingDays, substituteUserId: substituteResult.user ? substituteResult.user.id : null }
   });
   await writeAudit(req.auth!.userId, "leave.record.approve", "leaveRecord", updated.id, {
     userId: updated.userId,
@@ -994,23 +999,25 @@ leaveRouter.post("/api/leave/records/:id/approve", requirePermission("leave.mana
       actorUserId: req.auth!.userId
     }
   });
-  await createNotification({
-    userId: substituteResult.user.id,
-    type: "leave.substitution.assigned",
-    title: "Leave substitution assigned",
-    body: `You are substituting a teammate: ${toYmdUtc(updated.startDate)} - ${toYmdUtc(updated.endDate)}`,
-    entityType: "leaveRecord",
-    entityId: updated.id,
-    metaJson: {
-      leaveType: updated.leaveType,
-      startDate: toYmdUtc(updated.startDate),
-      endDate: toYmdUtc(updated.endDate),
-      days: round2(Number(updated.days || 0)),
-      absentUserId: updated.userId,
-      substituteUserId: updated.substituteUserId || null,
-      actorUserId: req.auth!.userId
-    }
-  });
+  if (substituteResult.user) {
+    await createNotification({
+      userId: substituteResult.user.id,
+      type: "leave.substitution.assigned",
+      title: "Leave substitution assigned",
+      body: `You are substituting a teammate: ${toYmdUtc(updated.startDate)} - ${toYmdUtc(updated.endDate)}`,
+      entityType: "leaveRecord",
+      entityId: updated.id,
+      metaJson: {
+        leaveType: updated.leaveType,
+        startDate: toYmdUtc(updated.startDate),
+        endDate: toYmdUtc(updated.endDate),
+        days: round2(Number(updated.days || 0)),
+        absentUserId: updated.userId,
+        substituteUserId: updated.substituteUserId || null,
+        actorUserId: req.auth!.userId
+      }
+    });
+  }
   res.json({
     id: updated.id,
     status: updated.status,
