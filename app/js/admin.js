@@ -149,6 +149,7 @@ let rolesCache = [];
 let usersCache = [];
 let selectedUser = null;
 let selectedUserPerms = null;
+let hostedIdentityEnabled = false;
 let currentFeatureFlags = {};
 let auditRows = [];
 let auditNextCursor = null;
@@ -445,6 +446,487 @@ function overrideMsg(text, danger) {
   overrideMsgEl.textContent = text || "";
   overrideMsgEl.style.color = danger ? "#b91c1c" : "#6b7280";
   setGlobalStatus(text, danger);
+}
+
+function escapeHtml(value) {
+  return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function isSystemAdminRole(role) {
+  return role === "system_admin";
+}
+
+function roleOptions(selected) {
+  return (rolesCache || []).map((r) => {
+    const o = document.createElement("option");
+    o.value = r.role;
+    o.textContent = `${r.displayName || r.role} (${r.role})`;
+    if (selected && selected === r.role) o.selected = true;
+    return o;
+  });
+}
+
+function fillRoleSelect(selectEl, selected) {
+  if (!selectEl) return;
+  const selectedRole = String(selected || "").trim();
+  selectEl.innerHTML = "";
+  roleOptions(selectedRole).forEach((o) => selectEl.appendChild(o));
+  if (selectedRole && !Array.from(selectEl.options).some((option) => option.value === selectedRole)) {
+    const fallback = document.createElement("option");
+    fallback.value = selectedRole;
+    fallback.textContent = selectedRole;
+    fallback.selected = true;
+    selectEl.appendChild(fallback);
+  }
+}
+
+async function checkAccess() {
+  if (!getToken()) {
+    location.href = resolveRuntimePath("/login");
+    return false;
+  }
+  try {
+    const me = await api("/api/me", { headers: { authorization: `Bearer ${getToken()}` } });
+    currentFeatureFlags = me && me.featureFlags && typeof me.featureFlags === "object" ? { ...me.featureFlags } : {};
+    if (meEl) meEl.textContent = `${me.nickname || me.username} (${me.role})`;
+    if (redeemRealmPromoBtn) {
+      redeemRealmPromoBtn.disabled = !hostedIdentityEnabled;
+      redeemRealmPromoBtn.title = hostedIdentityEnabled ? "" : "Available only for hosted workspaces.";
+    }
+    if (me.role !== "system_admin" && me.role !== "admin") {
+      forbiddenEl.classList.remove("hidden");
+      return false;
+    }
+    if (!isFeatureEnabled("admin_panel")) {
+      forbiddenEl.classList.remove("hidden");
+      return false;
+    }
+    contentEl.classList.remove("hidden");
+    return true;
+  } catch {
+    location.href = resolveRuntimePath("/login");
+    return false;
+  }
+}
+
+function isFeatureEnabled(key) {
+  if (!key || !currentFeatureFlags || typeof currentFeatureFlags !== "object") {
+    return true;
+  }
+  if (!Object.prototype.hasOwnProperty.call(currentFeatureFlags, key)) {
+    return true;
+  }
+  return Boolean(currentFeatureFlags[key]);
+}
+
+function applyFeatureAccessToAdminTabs() {
+  const buttons = Array.from(document.querySelectorAll(".tab-btn"));
+
+  buttons.forEach((btn) => {
+    const tab = String(btn.dataset.tab || "");
+    const featureKey = ADMIN_TAB_FEATURES[tab] || "";
+    const allowed = featureKey ? isFeatureEnabled(featureKey) : true;
+    btn.style.display = allowed ? "" : "none";
+    btn.disabled = !allowed;
+    const pane = document.getElementById(`tab-${tab}`);
+    if (pane) {
+      pane.classList.toggle("active", allowed && pane.classList.contains("active"));
+      pane.style.display = allowed ? "" : "none";
+    }
+  });
+
+  const activeBtn = buttons.find((btn) => btn.classList.contains("active") && btn.style.display !== "none");
+  if (activeBtn) {
+    return;
+  }
+
+  const nextBtn = buttons.find((btn) => btn.style.display !== "none");
+  if (!nextBtn) {
+    return;
+  }
+
+  buttons.forEach((btn) => btn.classList.remove("active"));
+  document.querySelectorAll(".tab-pane").forEach((pane) => pane.classList.remove("active"));
+  nextBtn.classList.add("active");
+  const nextPane = document.getElementById(`tab-${String(nextBtn.dataset.tab || "")}`);
+  if (nextPane) {
+    nextPane.classList.add("active");
+  }
+}
+
+function groupPermissions(items) {
+  const groups = new Map();
+  (items || []).forEach((perm) => {
+    const p = String(perm || "");
+    const key = p === "*" ? "system" : (p.includes(".") ? p.split(".")[0] : "other");
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(p);
+  });
+  return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
+}
+
+function setSelectedUser(user) {
+  selectedUser = user;
+  overrideMsg("");
+  if (overrideUserLabelEl) {
+    overrideUserLabelEl.textContent = user
+      ? "Editing overrides for: " + (user.nickname || user.username) + " (" + user.role + ")"
+      : "Select user from Users table.";
+  }
+  if (user) openOverrideModal(); else closeOverrideModal();
+  void loadUserPermissions();
+}
+
+function getOverrideRowState(perm) {
+  const allowEl = document.querySelector(`input[data-ovr-perm="${perm}"][data-ovr-effect="allow"]`);
+  const denyEl = document.querySelector(`input[data-ovr-perm="${perm}"][data-ovr-effect="deny"]`);
+  return {
+    allowEl,
+    denyEl,
+    allow: !!(allowEl && allowEl.checked),
+    deny: !!(denyEl && denyEl.checked)
+  };
+}
+
+function updateOverrideEffectiveBadge(perm, roleSet) {
+  const effEl = document.querySelector(`[data-ovr-effective="${perm}"]`);
+  if (!effEl) return;
+
+  const state = getOverrideRowState(perm);
+  const base = roleSet.has(perm);
+  let effective = base;
+  if (state.allow) effective = true;
+  if (state.deny) effective = false;
+
+  effEl.textContent = effective ? "разрешено" : "забранено";
+  effEl.className = "pill";
+  effEl.style.background = effective ? "#dcfce7" : "#fee2e2";
+  effEl.style.color = effective ? "#166534" : "#991b1b";
+}
+
+function buildOverrideUi(payload) {
+  if (!userOverrideWrapEl) return;
+  userOverrideWrapEl.innerHTML = "";
+  if (!payload) return;
+
+  const roleSet = new Set(payload.rolePermissions || []);
+  const map = new Map();
+  (payload.overrides || []).forEach((o) => map.set(o.permission, o.effect));
+
+  const wrap = document.createElement("div");
+  wrap.className = "table-wrap";
+
+  const table = document.createElement("table");
+  const thead = document.createElement("thead");
+  const hr = document.createElement("tr");
+  ["Право", "По роля", "Allow", "Deny", "Краен резултат"].forEach((h) => {
+    const th = document.createElement("th");
+    th.textContent = h;
+    hr.appendChild(th);
+  });
+  thead.appendChild(hr);
+
+  const tbody = document.createElement("tbody");
+  (payload.knownPermissions || []).forEach((perm) => {
+    const tr = document.createElement("tr");
+
+    const permTd = document.createElement("td");
+    permTd.appendChild(buildPermissionCell(perm));
+
+    const roleTd = document.createElement("td");
+    const roleBadge = document.createElement("span");
+    roleBadge.className = "pill";
+    const roleAllowed = roleSet.has(perm);
+    roleBadge.textContent = roleAllowed ? "разрешено" : "забранено";
+    roleBadge.style.background = roleAllowed ? "#dcfce7" : "#fee2e2";
+    roleBadge.style.color = roleAllowed ? "#166534" : "#991b1b";
+    roleTd.appendChild(roleBadge);
+
+    const allowTd = document.createElement("td");
+    const allowCb = document.createElement("input");
+    allowCb.type = "checkbox";
+    allowCb.dataset.ovrPerm = perm;
+    allowCb.dataset.ovrEffect = "allow";
+    allowCb.checked = map.get(perm) === "allow";
+    allowTd.appendChild(allowCb);
+
+    const denyTd = document.createElement("td");
+    const denyCb = document.createElement("input");
+    denyCb.type = "checkbox";
+    denyCb.dataset.ovrPerm = perm;
+    denyCb.dataset.ovrEffect = "deny";
+    denyCb.checked = map.get(perm) === "deny";
+    denyTd.appendChild(denyCb);
+
+    const effTd = document.createElement("td");
+    const effBadge = document.createElement("span");
+    effBadge.dataset.ovrEffective = perm;
+    effBadge.className = "pill";
+    effTd.appendChild(effBadge);
+
+    allowCb.addEventListener("change", () => {
+      if (allowCb.checked) denyCb.checked = false;
+      updateOverrideEffectiveBadge(perm, roleSet);
+    });
+
+    denyCb.addEventListener("change", () => {
+      if (denyCb.checked) allowCb.checked = false;
+      updateOverrideEffectiveBadge(perm, roleSet);
+    });
+
+    tr.append(permTd, roleTd, allowTd, denyTd, effTd);
+    tbody.appendChild(tr);
+
+    setTimeout(() => updateOverrideEffectiveBadge(perm, roleSet), 0);
+  });
+
+  table.append(thead, tbody);
+  wrap.appendChild(table);
+  userOverrideWrapEl.appendChild(wrap);
+}
+
+async function loadUserPermissions() {
+  if (!selectedUser) {
+    selectedUserPerms = null;
+    buildOverrideUi(null);
+    return;
+  }
+  try {
+    selectedUserPerms = await api(`/api/admin/users/${selectedUser.id}/permissions`, { headers: { authorization: `Bearer ${getToken()}` } });
+    buildOverrideUi(selectedUserPerms);
+  } catch (e) {
+    overrideMsg(String(e.message || e), true);
+  }
+}
+
+async function saveSelectedUserOverrides() {
+  if (!selectedUser || !selectedUserPerms) return;
+  const allow = [];
+  const deny = [];
+  const clear = [];
+
+  (selectedUserPerms.knownPermissions || []).forEach((perm) => {
+    const state = getOverrideRowState(perm);
+    if (state.allow) allow.push(perm);
+    else if (state.deny) deny.push(perm);
+    else clear.push(perm);
+  });
+
+  try {
+    await api(`/api/admin/users/${selectedUser.id}/permissions`, {
+      method: "PATCH",
+      headers: authHeaders(),
+      body: JSON.stringify({ allow, deny, clear })
+    });
+    overrideMsg("Overrides saved.");
+    await loadUserPermissions();
+  } catch (e) {
+    overrideMsg(String(e.message || e), true);
+  }
+}
+async function resetSelectedUserOverrides() {
+  if (!selectedUser) return;
+  if (!confirm(`Reset all overrides for ${selectedUser.username} and restore role defaults?`)) return;
+  try {
+    await api(`/api/admin/users/${selectedUser.id}/permissions/reset`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${getToken()}` }
+    });
+    overrideMsg("Overrides reset to role defaults.");
+    await loadUserPermissions();
+  } catch (e) {
+    overrideMsg(String(e.message || e), true);
+  }
+}
+
+function userRow(u) {
+  const tr = document.createElement("tr");
+  const formerMember = Boolean(u && u.isFormerMember);
+
+  const nameTd = document.createElement("td");
+  const nameInput = document.createElement("input");
+  nameInput.value = u.username || "";
+  nameInput.disabled = formerMember;
+  nameTd.appendChild(nameInput);
+
+  const nicknameTd = document.createElement("td");
+  const nicknameInput = document.createElement("input");
+  nicknameInput.value = u.nickname || u.username || "";
+  nicknameInput.disabled = formerMember;
+  nicknameTd.appendChild(nicknameInput);
+
+  const fullNameTd = document.createElement("td");
+  const fullNameInput = document.createElement("input");
+  fullNameInput.value = u.fullName || "";
+  fullNameInput.placeholder = "full name";
+  fullNameInput.disabled = formerMember;
+  fullNameTd.appendChild(fullNameInput);
+
+  const workplaceTd = document.createElement("td");
+  const workplaceInput = document.createElement("input");
+  workplaceInput.value = u.workplace || "";
+  workplaceInput.placeholder = "workplace";
+  workplaceInput.disabled = formerMember;
+  workplaceTd.appendChild(workplaceInput);
+
+  const jobTitleTd = document.createElement("td");
+  const jobTitleInput = document.createElement("input");
+  jobTitleInput.value = u.jobTitle || "";
+  jobTitleInput.placeholder = "job title";
+  jobTitleInput.disabled = formerMember;
+  jobTitleTd.appendChild(jobTitleInput);
+
+  const roleTd = document.createElement("td");
+  const roleSel = document.createElement("select");
+  fillRoleSelect(roleSel, u.role);
+  roleSel.disabled = formerMember;
+  roleTd.appendChild(roleSel);
+
+  const statusTd = document.createElement("td");
+  const statusSel = document.createElement("select");
+  ["pending", "active", "suspended"].forEach((s) => {
+    const o = document.createElement("option");
+    o.value = s;
+    o.textContent = s;
+    if (u.status === s) o.selected = true;
+    statusSel.appendChild(o);
+  });
+  statusSel.disabled = formerMember;
+  statusTd.appendChild(statusSel);
+
+  const viewTd = document.createElement("td");
+  const viewSel = document.createElement("select");
+  ["tasks", "simple"].forEach((v) => {
+    const o = document.createElement("option");
+    o.value = v;
+    o.textContent = v;
+    if (u.viewMode === v) o.selected = true;
+    viewSel.appendChild(o);
+  });
+  viewSel.disabled = formerMember;
+  viewTd.appendChild(viewSel);
+
+  const colorTd = document.createElement("td");
+  const colorInput = document.createElement("input");
+  colorInput.type = "color";
+  colorInput.value = /^#[0-9a-fA-F]{6}$/.test(String(u.displayColor || "")) ? u.displayColor : "#64748b";
+  colorInput.disabled = formerMember;
+  colorTd.appendChild(colorInput);
+
+  const tintTd = document.createElement("td");
+  const tintInput = document.createElement("input");
+  tintInput.type = "number";
+  tintInput.min = "0";
+  tintInput.max = "100";
+  tintInput.step = "1";
+  tintInput.style.width = "84px";
+  tintInput.value = Number.isFinite(Number(u.calendarTintOpacity)) ? String(Math.max(0, Math.min(100, Number(u.calendarTintOpacity)))) : "10";
+  tintInput.disabled = formerMember;
+  tintTd.appendChild(tintInput);
+
+  const actionsTd = document.createElement("td");
+  actionsTd.className = "actions-col";
+
+  const saveBtn = document.createElement("button");
+  saveBtn.className = "btn";
+  saveBtn.textContent = formerMember ? "History kept" : "Save";
+  saveBtn.disabled = formerMember;
+  saveBtn.onclick = async () => {
+    try {
+      await api(`/api/admin/users/${u.id}`, {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          username: nameInput.value.trim(),
+          nickname: nicknameInput.value.trim() || nameInput.value.trim(),
+          fullName: fullNameInput.value.trim() || null,
+          workplace: workplaceInput.value.trim() || null,
+          jobTitle: jobTitleInput.value.trim() || null,
+          role: roleSel.value || u.role || "user",
+          status: statusSel.value || u.status || "active",
+          viewMode: viewSel.value || u.viewMode || "simple",
+          displayColor: colorInput.value,
+          calendarTintOpacity: Math.max(0, Math.min(100, Number(tintInput.value || 0)))
+        })
+      });
+      msg(`Saved ${nameInput.value}`);
+      await loadUsers();
+    } catch (e) {
+      msg(String(e.message || e), true);
+    }
+  };
+
+  const overrideBtn = document.createElement("button");
+  overrideBtn.className = "btn";
+  overrideBtn.textContent = "Overrides";
+  overrideBtn.disabled = formerMember;
+  overrideBtn.onclick = () => setSelectedUser(u);
+
+  const approveBtn = document.createElement("button");
+  approveBtn.className = "btn";
+  approveBtn.textContent = "Approve";
+  approveBtn.disabled = formerMember || u.status !== "pending";
+  approveBtn.onclick = async () => {
+    try {
+      await api(`/api/admin/users/${u.id}/approve`, { method: "POST", headers: { authorization: `Bearer ${getToken()}` } });
+      msg(`Approved ${u.username}`);
+      await loadUsers();
+    } catch (e) {
+      msg(String(e.message || e), true);
+    }
+  };
+
+  const hardDeleteBtn = document.createElement("button");
+  hardDeleteBtn.className = "btn danger";
+  hardDeleteBtn.textContent = formerMember
+    ? "History preserved"
+    : (hostedIdentityEnabled ? "Hard delete" : "Hard delete");
+  hardDeleteBtn.disabled = formerMember;
+  if (formerMember) {
+    hardDeleteBtn.title = "Former members are kept as local history holders so past work is not lost.";
+  }
+  hardDeleteBtn.onclick = async () => {
+    const confirmPhrase = `DELETE ${u.username}`;
+    const confirmText = prompt(
+      `Type ${confirmPhrase} to permanently remove this user and ALL related data:`
+    );
+    if (confirmText !== confirmPhrase) return;
+    try {
+      await api(`/api/admin/users/${u.id}/hard`, {
+        method: "DELETE",
+        headers: { authorization: `Bearer ${getToken()}` }
+      });
+      msg(`Hard deleted ${u.username}`);
+      if (selectedUser && selectedUser.id === u.id) setSelectedUser(null);
+      await loadUsers();
+    } catch (e) {
+      msg(String(e.message || e), true);
+    }
+  };
+
+  [saveBtn, overrideBtn, approveBtn, hardDeleteBtn]
+    .filter(Boolean)
+    .forEach((button) => actionsTd.appendChild(button));
+  tr.append(nameTd, nicknameTd, fullNameTd, workplaceTd, jobTitleTd, roleTd, statusTd, viewTd, colorTd, tintTd, actionsTd);
+  return tr;
+}
+
+async function loadUsers() {
+  try {
+    const users = await api("/api/admin/users", { headers: { authorization: `Bearer ${getToken()}` } });
+    usersCache = Array.isArray(users) ? users.slice() : [];
+    usersBodyEl.innerHTML = "";
+    (usersCache || []).forEach((u) => usersBodyEl.appendChild(userRow(u)));
+    renderLeaveTemplateTargetUsers();
+    msg(`Loaded users: ${(usersCache || []).length}`);
+  } catch (e) {
+    msg(String(e.message || e), true);
+  }
 }
 
 function isRoleEditable(role) {
