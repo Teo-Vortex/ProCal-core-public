@@ -455,6 +455,109 @@ function overrideMsg(text, danger) {
   setGlobalStatus(text, danger);
 }
 
+function realmPromoMsg(text, danger) {
+  if (!realmPromoMsgEl) return;
+  realmPromoMsgEl.textContent = text || "";
+  realmPromoMsgEl.style.color = danger ? "#b91c1c" : "#6b7280";
+  if (text) setGlobalStatus(text, danger);
+}
+
+async function copyText(value) {
+  const text = String(value || "").trim();
+  if (!text) return false;
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+  const helper = document.createElement("textarea");
+  helper.value = text;
+  helper.setAttribute("readonly", "readonly");
+  helper.style.position = "absolute";
+  helper.style.left = "-9999px";
+  document.body.appendChild(helper);
+  helper.select();
+  document.execCommand("copy");
+  document.body.removeChild(helper);
+  return true;
+}
+
+function withAdminAuthHeader(init, token) {
+  const next = { ...(init || {}) };
+  const headers = new Headers(next.headers || {});
+  headers.set("authorization", `Bearer ${token}`);
+  next.headers = headers;
+  return next;
+}
+
+async function fetchWithAdminAuthRetry(url, init) {
+  const token = await ensureAdminAccessToken();
+  if (!token) return fetch(url, { credentials: "include", cache: "no-store", ...(init || {}) });
+  let res = await fetch(url, { credentials: "include", cache: "no-store", ...withAdminAuthHeader(init, token) });
+  if (res.status !== 401) return res;
+  const refreshed = await refreshAccessToken();
+  if (!refreshed) return res;
+  res = await fetch(url, { credentials: "include", cache: "no-store", ...withAdminAuthHeader(init, refreshed) });
+  return res;
+}
+
+async function api(url, init) {
+  const res = await fetchWithAdminAuthRetry(url, init);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const text = (body && (body.error || body.message)) ? String(body.error || body.message) : `HTTP ${res.status}`;
+    throw new Error(text);
+  }
+  return body;
+}
+
+async function apiBlob(url, init) {
+  const res = await fetchWithAdminAuthRetry(url, init);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const text = (body && (body.error || body.message)) ? String(body.error || body.message) : `HTTP ${res.status}`;
+    throw new Error(text);
+  }
+  return res.blob();
+}
+
+async function apiDownload(url, init) {
+  const res = await fetchWithAdminAuthRetry(url, init);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const text = (body && (body.error || body.message)) ? String(body.error || body.message) : `HTTP ${res.status}`;
+    throw new Error(text);
+  }
+  return {
+    blob: await res.blob(),
+    headers: res.headers
+  };
+}
+
+function parseDownloadFileName(headerValue) {
+  const header = String(headerValue || "");
+  const encoded = header.match(/filename\*=UTF-8''([^;]+)/i);
+  if (encoded && encoded[1]) {
+    try {
+      return decodeURIComponent(encoded[1].trim().replace(/^"|"$/g, ""));
+    } catch {
+      return encoded[1].trim().replace(/^"|"$/g, "");
+    }
+  }
+  const plain = header.match(/filename="?([^";]+)"?/i);
+  return plain && plain[1] ? plain[1].trim() : "";
+}
+
+function downloadBlob(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName || `download-${Date.now()}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 function escapeHtml(value) {
   return String(value == null ? "" : value)
     .replace(/&/g, "&amp;")
