@@ -3173,7 +3173,7 @@ async function doLogout() {
 if (menuAdminBtn) {
   menuAdminBtn.addEventListener("click", () => {
     closeSettingsMenu();
-    location.href = resolveRuntimePath("/admin");
+    location.href = resolveRuntimePath("/admin.html");
   });
 }
 if (menuLogoutBtn) {
