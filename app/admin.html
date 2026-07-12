@@ -281,6 +281,17 @@
 
       <section id="tab-notifications" class="tab-pane">
         <section class="card">
+          <h2>Mobile Push</h2>
+          <p class="muted">Firebase push is optional for Android. Credentials stay in the server .env file and are not edited in the browser.</p>
+          <div class="row" style="margin-bottom:10px;">
+            <button id="reloadMobilePushStatusBtn" class="btn" type="button">Reload push status</button>
+            <span id="mobilePushStatusMsg" class="muted"></span>
+          </div>
+          <div id="mobilePushStatusWrap" class="perm-section">
+            <div class="muted">Load the status to see whether Firebase push is configured.</div>
+          </div>
+        </section>
+        <section class="card">
           <h2>Important Admin Notification</h2>
           <p class="muted">Broadcast important message to all active users. It will be highlighted in red in user notifications.</p>
           <div class="row" style="align-items:flex-start;">

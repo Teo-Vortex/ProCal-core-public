@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { requireAuth } from "../middleware/auth";
-import { isMobilePushConfigured } from "../services/mobilePushService";
+import { getMobilePushStatus } from "../services/mobilePushService";
 import { registerPushDevice, unregisterPushDevice } from "../services/pushDeviceService";
 import { logger } from "../utils/logger";
 
@@ -26,9 +26,13 @@ const unregisterSchema = z.object({
 pushRouter.use(requireAuth);
 
 pushRouter.get("/api/mobile/push/status", async (_req, res) => {
+  const status = getMobilePushStatus();
   res.json({
     ok: true,
-    configured: isMobilePushConfigured()
+    configured: status.configured,
+    payloadMode: status.payloadMode,
+    credentialEnv: status.credentialEnv,
+    payloadModeEnv: status.payloadModeEnv
   });
 });
 
@@ -57,7 +61,7 @@ pushRouter.post("/api/mobile/push/register", async (req, res) => {
 
   res.status(201).json({
     ok: true,
-    configured: isMobilePushConfigured(),
+    configured: getMobilePushStatus().configured,
     deviceId: device.id
   });
 });

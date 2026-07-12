@@ -119,6 +119,9 @@ const notifSettingsWrapEl = document.getElementById("notifSettingsWrap");
 const reloadNotifSettingsBtn = document.getElementById("reloadNotifSettingsBtn");
 const saveNotifSettingsBtn = document.getElementById("saveNotifSettingsBtn");
 const notifSettingsMsgEl = document.getElementById("notifSettingsMsg");
+const reloadMobilePushStatusBtn = document.getElementById("reloadMobilePushStatusBtn");
+const mobilePushStatusMsgEl = document.getElementById("mobilePushStatusMsg");
+const mobilePushStatusWrapEl = document.getElementById("mobilePushStatusWrap");
 const notifFilterUserEl = document.getElementById("notifFilterUser");
 const notifFilterTypeEl = document.getElementById("notifFilterType");
 const notifFilterReadEl = document.getElementById("notifFilterRead");
@@ -290,7 +293,10 @@ function scheduleAdminRealtimeReload() {
     if (isFeatureEnabled("admin_roles")) reloadJobs.push(loadRoles());
     if (isFeatureEnabled("admin_categories")) reloadJobs.push(loadCategories());
     if (isFeatureEnabled("admin_holidays")) reloadJobs.push(loadHolidayRules());
-    if (isFeatureEnabled("admin_notifications")) reloadJobs.push(loadNotifSettings());
+    if (isFeatureEnabled("admin_notifications")) {
+      reloadJobs.push(loadNotifSettings());
+      reloadJobs.push(loadMobilePushStatus());
+    }
     await Promise.allSettled(reloadJobs);
     const activeNotificationsTab = document.getElementById("tab-notifications");
     if (isFeatureEnabled("admin_notifications") && activeNotificationsTab && activeNotificationsTab.classList.contains("active") && notifLoadedOnce) {
@@ -1437,6 +1443,46 @@ function notifSettingsMsg(text, danger) {
   if (text) setGlobalStatus(text, danger);
 }
 
+function mobilePushStatusMsg(text, danger) {
+  if (!mobilePushStatusMsgEl) return;
+  mobilePushStatusMsgEl.textContent = text || "";
+  mobilePushStatusMsgEl.style.color = danger ? "#b91c1c" : "#6b7280";
+  if (text) setGlobalStatus(text, danger);
+}
+
+function renderMobilePushStatus(body) {
+  if (!mobilePushStatusWrapEl) return;
+  const configured = Boolean(body && body.configured);
+  const payloadMode = String((body && body.payloadMode) || "generic").trim() || "generic";
+  const credentialEnv = String((body && body.credentialEnv) || "PROCAL_FCM_SERVICE_ACCOUNT_JSON_BASE64");
+  const payloadModeEnv = String((body && body.payloadModeEnv) || "PROCAL_PUSH_PAYLOAD_MODE");
+  const statusText = configured ? "Configured" : "Disabled";
+  const statusColor = configured ? "#166534" : "#92400e";
+  mobilePushStatusWrapEl.innerHTML = `
+    <div class="row" style="align-items:flex-start;gap:12px;">
+      <span class="pill" style="background:${configured ? "#dcfce7" : "#fef3c7"};color:${statusColor};">${escapeHtml(statusText)}</span>
+      <div>
+        <div><strong>Payload mode:</strong> ${escapeHtml(payloadMode)}</div>
+        <div class="muted" style="margin-top:6px;">To enable Android push for this self-hosted server, set these values in the server <code>.env</code> and restart the app container:</div>
+        <pre style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:8px;margin:8px 0 0;">${escapeHtml(credentialEnv)}=&lt;base64 Firebase service account JSON&gt;
+${escapeHtml(payloadModeEnv)}=generic</pre>
+        <div class="muted">Use a Firebase project owned by this installation owner. Keep <code>generic</code> unless you explicitly want Firebase to receive notification titles/bodies.</div>
+      </div>
+    </div>
+  `;
+}
+
+async function loadMobilePushStatus() {
+  if (!mobilePushStatusWrapEl) return;
+  try {
+    const body = await api("/api/mobile/push/status", { headers: { authorization: `Bearer ${getToken()}` } });
+    renderMobilePushStatus(body || {});
+    mobilePushStatusMsg("Mobile push status loaded.");
+  } catch (e) {
+    mobilePushStatusMsg(String(e.message || e), true);
+  }
+}
+
 function notifPrefKey(userId, type) {
   return `${String(userId || "").trim()}::${String(type || "").trim().toLowerCase()}`;
 }
@@ -1727,6 +1773,7 @@ async function sendAdminImportantNotification() {
 }
 
 function bindNotificationsAdmin() {
+  if (reloadMobilePushStatusBtn) reloadMobilePushStatusBtn.onclick = () => { void loadMobilePushStatus(); };
   if (reloadNotifSettingsBtn) reloadNotifSettingsBtn.onclick = () => { void loadNotifSettings(); };
   if (saveNotifSettingsBtn) saveNotifSettingsBtn.onclick = () => { void saveNotifSettings(); };
   if (notifApplyBtn) notifApplyBtn.onclick = () => { void loadNotifRows(false); };
@@ -3097,6 +3144,7 @@ function bindTabs() {
         void loadAudit(false);
       }
       if (tab === "notifications" && isFeatureEnabled("admin_notifications")) {
+        void loadMobilePushStatus();
         if (!notifUsersCache.length || !notifTypesCache.length) void loadNotifSettings();
         if (!notifLoadedOnce) void loadNotifRows(false);
       }
@@ -3133,7 +3181,10 @@ async function init() {
   if (isFeatureEnabled("admin_categories")) await loadCategories();
   if (isFeatureEnabled("admin_holidays")) await loadHolidayRules();
   if (isFeatureEnabled("admin_leave_template")) await loadLeaveTemplate();
-  if (isFeatureEnabled("admin_notifications")) await loadNotifSettings();
+  if (isFeatureEnabled("admin_notifications")) {
+    await loadMobilePushStatus();
+    await loadNotifSettings();
+  }
   void initRealtimeAutoReload();
 }
 

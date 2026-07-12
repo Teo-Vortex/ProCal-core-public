@@ -46,6 +46,16 @@ export function isMobilePushConfigured(): boolean {
   return Boolean(readServiceAccountJson());
 }
 
+export function getMobilePushStatus() {
+  const payloadMode = String(process.env.PROCAL_PUSH_PAYLOAD_MODE || "generic").trim().toLowerCase() || "generic";
+  return {
+    configured: isMobilePushConfigured(),
+    payloadMode,
+    credentialEnv: "PROCAL_FCM_SERVICE_ACCOUNT_JSON_BASE64",
+    payloadModeEnv: "PROCAL_PUSH_PAYLOAD_MODE"
+  };
+}
+
 function getFirebaseApp(): admin.app.App | null {
   if (firebaseApp === null) return null;
   if (firebaseApp) return firebaseApp;
