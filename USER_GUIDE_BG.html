@@ -100,7 +100,7 @@
   <div class="wrap">
     <header class="hero">
       <h1>ProCal - Ръководство за работа</h1>
-      <p>Актуално ръководство за hosted и self-hosted realm-и в ProCal, включително ежедневна работа и локална администрация.</p>
+      <p>Актуално ръководство за self-hosted ProCal Core: ежедневна работа, локални акаунти и администриране.</p>
       <div class="meta">
         <span class="chip">Версия: 0.9.9</span>
         <span class="chip">Език: BG</span>
@@ -129,18 +129,13 @@
         <section id="access">
           <h2>1. Достъп и вход</h2>
           <ol>
-            <li>Hosted realm-ите не използват локална регистрация. Входът става през <b>ProCal Public</b>.</li>
-            <li>След логин в Public акаунтът може да:
-              <ul>
-                <li>създаде realm</li>
-                <li>изпрати заявка за join към съществуващ realm</li>
-                <li>избере realm, ако има достъп до повече от един</li>
-              </ul>
-            </li>
-            <li>След избор на realm ProCal прави автоматичен вход към конкретното работно пространство.</li>
-            <li>Ако заявката за join още не е одобрена, потребителят няма да влиза директно в realm-а.</li>
+            <li>Отвори адреса на ProCal Core, даден от собственика на инсталацията, например <code>http://server-ip:8080</code>.</li>
+            <li>При нова инсталация отвори <code>/setup</code> и създай първия локален админ акаунт.</li>
+            <li>След setup потребителите влизат с локално потребителско име и парола през login страницата на ProCal Core.</li>
+            <li>Новите потребители могат да използват <b>Create account</b> от login страницата. Акаунтът остава pending, докато админ не го одобри.</li>
+            <li>Админите одобряват, спират, reset-ват или премахват потребители от <b>Admin panel</b> &gt; <b>Personnel</b>.</li>
           </ol>
-          <div class="hint warn">Ако отваряш ProCal през интернет, ползвай каноничния адрес на realm-а, който идва от ProCal Public. Не сменяй ръчно path-а в браузъра.</div>
+          <div class="hint warn">Използвай един и същ адрес на сървъра. Ако ProCal е зад reverse proxy или домейн, настрой proxy-то и allowed origins преди да поканиш потребители.</div>
         </section>
 
         <section id="workspace">
@@ -294,17 +289,17 @@
                 <li>job title</li>
               </ul>
             </li>
-            <li>При hosted realm-и локалната смяна на парола е премахната и паролата се управлява през бутона <b>Manage password in ProCal Public</b>.</li>
-            <li>При self-hosted realm-и акаунтите се управляват от локалния Admin панел.</li>
-            <li>При първо влизане realm-ът може да изиска попълване на липсващите профилни данни.</li>
+            <li>Акаунтите се управляват от локалния Admin панел.</li>
+            <li>Админите могат да одобряват потребители, да reset-ват пароли, да сменят роли, да спират акаунти или да hard-delete-ват тестови акаунти, когато е подходящо.</li>
+            <li>При първо влизане ProCal може да изиска попълване на липсващите профилни данни.</li>
           </ul>
         </section>
 
         <section id="admin">
           <h2>11. Админ панел</h2>
-          <p>Локалният админ панел управлява конкретния realm. При hosted инсталации той допълва ProCal Control; при self-hosted инсталации е основният локален админ интерфейс.</p>
+          <p>Локалният админ панел е основното място за управление на тази self-hosted ProCal Core инсталация.</p>
           <ul>
-            <li><b>Personnel</b> - потребители, роли и overrides.</li>            <li><b>Roles</b>, <b>Categories</b>, <b>Holidays</b>, <b>Leave Form</b>.</li>
+            <li><b>Personnel</b> - потребители, одобрения, роли, reset на пароли и permission overrides.</li>            <li><b>Roles</b>, <b>Categories</b>, <b>Holidays</b>, <b>Leave Form</b>.</li>
             <li><b>Notifications</b> и <b>Audit</b>.</li>
             <li><b>Files</b> - следене на капацитета и retention на чат файловете.</li>
             <li><b>Backups</b> - encrypted full/working exports and temporary upload validate/restore; no server-side realm backup catalog.</li>
@@ -315,8 +310,8 @@
           <p class="hint">Realm backup exports are encrypted downloads kept by the realm admin. Validate/restore uploads the selected file temporarily and deletes the server copy after the operation.</p>
           <h2>12. Бъгове, бекъпи и поддръжка</h2>
           <ul>
-            <li><b>Report bug</b> изпраща сигнала централизирано, когато има активна ProCal Control интеграция.</li>
-            <li>Локалният admin panel вече няма отделен bugs таб.</li>
+            <li><b>Report bug</b> записва локален сигнал, който собственикът/админът на инсталацията може да прегледа.</li>
+            <li>При self-hosted инсталация поддръжката и решенията за update се управляват от собственика на инсталацията.</li>
             <li>Преди големи промени по realm-а прави <b>full backup</b>.</li>
             <li>При странно поведение след update първо тествай с <code>Ctrl + F5</code>.</li>
           </ul>
