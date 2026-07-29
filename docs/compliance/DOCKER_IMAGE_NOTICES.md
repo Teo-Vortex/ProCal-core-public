@@ -6,7 +6,7 @@ This file tracks container-layer license obligations for ProCal release packagin
 
 | Component | Image | License Notes | Packaging Notes |
 | --- | --- | --- | --- |
-| ProCal Core image base | node:20-bullseye-slim | Node.js MIT; Debian base packages under their respective free software licenses | The ProCal image is derived from this base image. |
+| ProCal Core image base | node:24-alpine | Node.js MIT; Alpine base packages under their respective free software licenses | The ProCal image is derived from this base image. |
 | Self-sustained / channel database | linuxserver/mariadb:11.4.8 | Image label reports GPL-3.0-only; MariaDB Server is GPL-family software | Used as a separate database container. If shipped as offline tar, include this notice and upstream source/license links. |
 | WordPress database | mariadb:11.4 | Image label reports GPL-2.0 | Hosted SaaS platform only. |
 | WordPress site | wordpress:6.8.1-php8.3-apache | WordPress is GPLv2 or later | Hosted SaaS marketing/site container only. Do not include in Self-sustained Core bundles. |

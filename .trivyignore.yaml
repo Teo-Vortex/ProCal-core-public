@@ -2,4 +2,4 @@ misconfigurations:
   - id: AVD-DS-0002
     paths:
       - Dockerfile
-    statement: The root entrypoint only fixes persistent-volume ownership, then uses setpriv to run the Node process as UID/GID 1000.
+    statement: The root entrypoint only fixes persistent-volume ownership, then uses su-exec to run the Node process as UID/GID 1000.

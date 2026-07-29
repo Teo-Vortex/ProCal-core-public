@@ -1,10 +1,7 @@
 ﻿# syntax=docker/dockerfile:1
-FROM node:20-bookworm-slim AS base
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update \
-  && apt-get upgrade -y \
-  && apt-get install -y --no-install-recommends ca-certificates openssl \
-  && rm -rf /var/lib/apt/lists/*
+FROM node:24-alpine AS base
+RUN apk upgrade --no-cache \
+  && apk add --no-cache ca-certificates openssl su-exec
 
 FROM base AS builder
 WORKDIR /app/server

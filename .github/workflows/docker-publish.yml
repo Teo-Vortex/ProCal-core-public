@@ -75,7 +75,15 @@ jobs:
             aquasec/trivy@sha256:cffe3f5161a47a6823fbd23d985795b3ed72a4c806da4c4df16266c02accdd6f \
             fs --scanners secret,misconfig --severity HIGH,CRITICAL --ignorefile /src/.trivyignore.yaml --exit-code 1 /src
 
-      - name: Scan Docker image
+      - name: Report all High and Critical image findings
+        shell: bash
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy@sha256:cffe3f5161a47a6823fbd23d985795b3ed72a4c806da4c4df16266c02accdd6f \
+            image --scanners vuln --severity HIGH,CRITICAL --exit-code 0 procal-core:security-scan
+
+      - name: Reject fixable High and Critical image findings
         shell: bash
         run: |
           docker run --rm \

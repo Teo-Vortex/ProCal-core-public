@@ -18,7 +18,7 @@ prepare_volume() {
 if [ "$(id -u)" = "0" ]; then
   prepare_volume /app/config
   prepare_volume /app/backups
-  exec setpriv --reuid=node --regid=node --init-groups "$@"
+  exec su-exec node:node "$@"
 fi
 
 exec "$@"
