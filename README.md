@@ -67,14 +67,14 @@ docker compose --env-file .\.env -f .\docker-compose.yml up -d --build
 Use this when the project publishes a Docker image to GitHub Container Registry.
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Mode image -Image ghcr.io/<owner>/procal-core-public:latest
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Mode image -Image ghcr.io/teo-vortex/procal-core-public:latest
 ```
 
 Manual image start:
 
 ```powershell
 Copy-Item .\.env.example .\.env
-# Edit .env and set PROCAL_CORE_IMAGE=ghcr.io/<owner>/procal-core-public:latest
+# Edit .env and set PROCAL_CORE_IMAGE=ghcr.io/teo-vortex/procal-core-public:latest
 docker compose --env-file .\.env -f .\docker-compose.image.yml up -d
 ```
 

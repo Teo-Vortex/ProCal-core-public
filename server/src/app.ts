@@ -227,6 +227,7 @@ const setupHtml = `<!doctype html>
 <style>body{font-family:system-ui;margin:2rem;max-width:820px}label{display:block;margin-top:.7rem}input,select,button{padding:.5rem;width:100%}button{margin-top:.8rem}pre{background:#f3f3f3;padding:.8rem;overflow:auto}.hide{display:none}</style></head>
 <body><h1>ProCal Setup</h1><p id="desc">Internal database mode is enabled. Create the first admin account.</p>
 <form id="f">
+<label>Setup token<input name="setupToken" type="password" required autocomplete="off"></label>
 <label>First admin username<input name="adminUsername" required></label>
 <label>First admin nickname<input name="adminNickname" required></label>
 <label>Full name<input name="adminFullName" required></label>
@@ -278,6 +279,7 @@ f.onsubmit=async(e)=>{
   }
 
   const body={
+    setupToken:f.setupToken.value,
     adminUsername:lockedAdminUsername||f.adminUsername.value,
     adminNickname:f.adminNickname.value,
     adminFullName:f.adminFullName.value,
