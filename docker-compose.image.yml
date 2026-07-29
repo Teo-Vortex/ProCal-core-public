@@ -3,7 +3,6 @@ name: procal-core
 services:
   db:
     image: linuxserver/mariadb:11.4.8
-    container_name: procal-core-db
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=${PROCAL_SELF_DB_ROOT_PASSWORD:?Set PROCAL_SELF_DB_ROOT_PASSWORD in .env}
@@ -21,7 +20,6 @@ services:
 
   app:
     image: ${PROCAL_CORE_IMAGE:?Set PROCAL_CORE_IMAGE in .env}
-    container_name: procal-core-app
     restart: unless-stopped
     environment:
       - NODE_ENV=production
@@ -39,6 +37,9 @@ services:
       - PROCAL_RELEASE_CHANNEL=self
       - REALM_RELEASE_CHANNEL=self
       - PROCAL_APP_VERSION=${PROCAL_SELF_APP_VERSION:-0.9.9-community}
+      - PROCAL_FCM_SERVICE_ACCOUNT_JSON_BASE64=${PROCAL_FCM_SERVICE_ACCOUNT_JSON_BASE64:-}
+      - PROCAL_PUSH_PAYLOAD_MODE=${PROCAL_PUSH_PAYLOAD_MODE:-generic}
+      - FIRST_ADMIN_SETUP_TOKEN=${PROCAL_SELF_SETUP_TOKEN:?Set PROCAL_SELF_SETUP_TOKEN in .env}
       - DB_HOST=db
       - DB_PORT=3306
       - DB_NAME=${PROCAL_SELF_DB_NAME:-procal}

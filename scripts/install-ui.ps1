@@ -1,5 +1,5 @@
 param(
-  [string]$DefaultImage = "ghcr.io/replace-owner/procal-core-public:latest",
+  [string]$DefaultImage = "ghcr.io/teo-vortex/procal-core-public:latest",
   [string]$DefaultBindIp = "0.0.0.0",
   [int]$DefaultPort = 8080,
   [string]$DefaultTimezone = "Europe/Sofia",

@@ -10,6 +10,15 @@
       : value;
   };
 
+  function escapeHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   const state = {
     lang: localStorage.getItem("procal_lang") === "bg" ? "bg" : "en",
     me: null,
@@ -797,7 +806,7 @@
       </section>
     `;
     if (el.balancesSummary) {
-      el.balancesSummary.innerHTML = `<strong>${t("owner")}:</strong> ${ownerName}<br><strong>${t("totalAvailable")}:</strong> ${(leave.totalAvailable || 0)} ${t("days")}<br><strong>${t("clock")}:</strong> <span style="color:${compTone};">${formatCompMinutes(compMinutes)}</span>`;
+      el.balancesSummary.innerHTML = `<strong>${escapeHtml(t("owner"))}:</strong> ${escapeHtml(ownerName)}<br><strong>${escapeHtml(t("totalAvailable"))}:</strong> ${escapeHtml(leave.totalAvailable || 0)} ${escapeHtml(t("days"))}<br><strong>${escapeHtml(t("clock"))}:</strong> <span style="color:${compTone};">${escapeHtml(formatCompMinutes(compMinutes))}</span>`;
     }
 
     refreshSourceYearOptions();
@@ -817,8 +826,8 @@
       const typeLabel = row.leaveType === "paid" ? t("paid") : t(row.leaveType);
       const statusLabel = row.status === "pending" ? t("pending") : (row.status === "rejected" ? t("rejected") : t("approved"));
       const substitute = row.substituteUserId ? findUser(row.substituteUserId) : null;
-      const substituteLine = substitute ? `<br><span class=\"muted\">${t("substitute")}: ${formatUserName(substitute)}</span>` : "";
-      main.innerHTML = `<strong>${typeLabel}</strong> [${statusLabel}] ${t("from")} ${row.startDate} ${t("to")} ${row.endDate} (${row.days} ${t("days")})${row.sourceYear ? ` [${row.sourceYear}]` : ""}${substituteLine}${row.note ? `<br><span class=\"muted\">${row.note}</span>` : ""}`;
+      const substituteLine = substitute ? `<br><span class=\"muted\">${escapeHtml(t("substitute"))}: ${escapeHtml(formatUserName(substitute))}</span>` : "";
+      main.innerHTML = `<strong>${escapeHtml(typeLabel)}</strong> [${escapeHtml(statusLabel)}] ${escapeHtml(t("from"))} ${escapeHtml(row.startDate)} ${escapeHtml(t("to"))} ${escapeHtml(row.endDate)} (${escapeHtml(row.days)} ${escapeHtml(t("days"))})${row.sourceYear ? ` [${escapeHtml(row.sourceYear)}]` : ""}${substituteLine}${row.note ? `<br><span class=\"muted\">${escapeHtml(row.note)}</span>` : ""}`;
       item.appendChild(main);
 
       if (state.canManage) {

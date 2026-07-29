@@ -1,4 +1,5 @@
 import { Router } from "express";
+import crypto from "crypto";
 import { loadStoredConfig } from "../config/store";
 import { firstAdminSchema, registerFirstAdmin } from "../setup/installer";
 import { getPrisma } from "../db/prisma";
@@ -6,6 +7,19 @@ import { isInstalled } from "../db/installState";
 
 export const setupRouter = Router();
 type FirstAdminInput = Parameters<typeof registerFirstAdmin>[0];
+
+function getExpectedSetupToken(): string {
+  return String(process.env.FIRST_ADMIN_SETUP_TOKEN || process.env.PROCAL_SETUP_TOKEN || "").trim();
+}
+
+function setupTokenMatches(providedValue: unknown): boolean {
+  const expected = getExpectedSetupToken();
+  const provided = typeof providedValue === "string" ? providedValue.trim() : "";
+  if (!expected || !provided) return false;
+  const expectedBuffer = Buffer.from(expected);
+  const providedBuffer = Buffer.from(provided);
+  return expectedBuffer.length === providedBuffer.length && crypto.timingSafeEqual(expectedBuffer, providedBuffer);
+}
 
 setupRouter.post("/api/setup/test-connection", async (_req, res) => {
   res.status(410).json({
@@ -48,6 +62,19 @@ setupRouter.post("/api/setup/register-first-admin", async (req, res) => {
     return;
   }
 
+  if (!getExpectedSetupToken()) {
+    res.status(503).json({
+      ok: false,
+      error: "Initial setup is locked because FIRST_ADMIN_SETUP_TOKEN is not configured."
+    });
+    return;
+  }
+
+  if (!setupTokenMatches(req.body?.setupToken)) {
+    res.status(403).json({ ok: false, error: "Invalid setup token" });
+    return;
+  }
+
   try {
     let setupInput: FirstAdminInput;
     const parsed = firstAdminSchema.safeParse(req.body);
@@ -82,7 +109,12 @@ setupRouter.get("/api/setup/status", async (_req, res) => {
 
     const prisma = getPrisma();
     const meta = await prisma.appMeta.findUnique({ where: { id: 1 } });
-    res.json({ installed: Boolean(meta?.installed), dbConfigured: true, mode: "admin-bootstrap" });
+    res.json({
+      installed: Boolean(meta?.installed),
+      dbConfigured: true,
+      setupTokenConfigured: Boolean(getExpectedSetupToken()),
+      mode: "admin-bootstrap"
+    });
   } catch {
     res.json({ installed: false, dbConfigured, mode: "admin-bootstrap" });
   }

@@ -2,11 +2,11 @@
   "generatedBy": "infra/scripts/generate-compliance-artifacts.cjs",
   "scope": "ProCal Core production Node.js runtime dependencies",
   "source": "apps/procal-core/server/package-lock.json + apps/procal-core/server/node_modules",
-  "packageCount": 253,
+  "packageCount": 249,
   "summary": [
     {
       "license": "MIT",
-      "count": 191
+      "count": 187
     },
     {
       "license": "Apache-2.0",
@@ -308,7 +308,7 @@
     },
     {
       "name": "balanced-match",
-      "version": "1.0.2",
+      "version": "4.0.4",
       "license": "MIT",
       "repository": "git://github.com/juliangruber/balanced-match.git",
       "licenseFile": "apps/procal-core/server/node_modules/balanced-match/LICENSE.md",
@@ -371,14 +371,6 @@
       "packagePath": "apps/procal-core/server/node_modules/base64-js"
     },
     {
-      "name": "basic-auth",
-      "version": "2.0.1",
-      "license": "MIT",
-      "repository": "jshttp/basic-auth",
-      "licenseFile": "apps/procal-core/server/node_modules/basic-auth/LICENSE",
-      "packagePath": "apps/procal-core/server/node_modules/basic-auth"
-    },
-    {
       "name": "bcrypt",
       "version": "6.0.0",
       "license": "MIT",
@@ -396,7 +388,7 @@
     },
     {
       "name": "body-parser",
-      "version": "1.20.5",
+      "version": "1.20.6",
       "license": "MIT",
       "repository": "expressjs/body-parser",
       "licenseFile": "apps/procal-core/server/node_modules/body-parser/LICENSE",
@@ -404,9 +396,9 @@
     },
     {
       "name": "brace-expansion",
-      "version": "2.0.3",
+      "version": "5.0.8",
       "license": "MIT",
-      "repository": "git://github.com/juliangruber/brace-expansion.git",
+      "repository": "git+https://github.com/juliangruber/brace-expansion.git",
       "licenseFile": "apps/procal-core/server/node_modules/brace-expansion/LICENSE",
       "packagePath": "apps/procal-core/server/node_modules/brace-expansion"
     },
@@ -1355,14 +1347,6 @@
       "packagePath": "apps/procal-core/server/node_modules/minipass"
     },
     {
-      "name": "morgan",
-      "version": "1.10.1",
-      "license": "MIT",
-      "repository": "expressjs/morgan",
-      "licenseFile": "apps/procal-core/server/node_modules/morgan/LICENSE",
-      "packagePath": "apps/procal-core/server/node_modules/morgan"
-    },
-    {
       "name": "ms",
       "version": "2.0.0",
       "license": "MIT",
@@ -1460,27 +1444,11 @@
     },
     {
       "name": "on-finished",
-      "version": "2.3.0",
-      "license": "MIT",
-      "repository": "jshttp/on-finished",
-      "licenseFile": "apps/procal-core/server/node_modules/morgan/node_modules/on-finished/LICENSE",
-      "packagePath": "apps/procal-core/server/node_modules/morgan/node_modules/on-finished"
-    },
-    {
-      "name": "on-finished",
       "version": "2.4.1",
       "license": "MIT",
       "repository": "jshttp/on-finished",
       "licenseFile": "apps/procal-core/server/node_modules/on-finished/LICENSE",
       "packagePath": "apps/procal-core/server/node_modules/on-finished"
-    },
-    {
-      "name": "on-headers",
-      "version": "1.1.0",
-      "license": "MIT",
-      "repository": "jshttp/on-headers",
-      "licenseFile": "apps/procal-core/server/node_modules/on-headers/LICENSE",
-      "packagePath": "apps/procal-core/server/node_modules/on-headers"
     },
     {
       "name": "package-json-from-dist",
@@ -1671,8 +1639,8 @@
       "version": "5.1.2",
       "license": "MIT",
       "repository": "git://github.com/feross/safe-buffer.git",
-      "licenseFile": "apps/procal-core/server/node_modules/basic-auth/node_modules/safe-buffer/LICENSE",
-      "packagePath": "apps/procal-core/server/node_modules/basic-auth/node_modules/safe-buffer"
+      "licenseFile": "apps/procal-core/server/node_modules/lazystream/node_modules/safe-buffer/LICENSE",
+      "packagePath": "apps/procal-core/server/node_modules/lazystream/node_modules/safe-buffer"
     },
     {
       "name": "safe-buffer",
@@ -1996,7 +1964,7 @@
     },
     {
       "name": "websocket-driver",
-      "version": "0.7.4",
+      "version": "0.7.5",
       "license": "Apache-2.0",
       "repository": "git://github.com/faye/websocket-driver-node.git",
       "licenseFile": "apps/procal-core/server/node_modules/websocket-driver/LICENSE.md",

@@ -10,6 +10,10 @@ Only the latest published ProCal Core release is intended to receive security fi
 
 ## Reporting
 
-Before the public security contact is finalized, report privately to the project owner or maintainer who gave you access to the release.
+Use GitHub private vulnerability reporting:
 
-After the public repository is created, replace this section with the official security email or GitHub private vulnerability reporting link.
+https://github.com/Teo-Vortex/ProCal-core-public/security/advisories/new
+
+Do not open a public issue for an unpatched vulnerability. Include the affected
+version, reproduction steps, impact, and any suggested mitigation without
+attaching real user data or credentials.

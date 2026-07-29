@@ -1,5 +1,6 @@
 ﻿import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import express, { type Request } from "express";
 import helmet from "helmet";
 import cors from "cors";
@@ -75,6 +76,34 @@ function resolveAllowedCorsOrigins(): Set<string> {
 
 function normalizeCorsOrigin(value: unknown): string {
   return String(value || "").trim().replace(/\/+$/, "");
+}
+
+function getCspNonce(req: Request): string {
+  const requestWithNonce = req as Request & { cspNonce?: string };
+  if (!requestWithNonce.cspNonce) {
+    requestWithNonce.cspNonce = crypto.randomBytes(18).toString("base64");
+  }
+  return requestWithNonce.cspNonce;
+}
+
+function buildContentSecurityPolicy(req: Request): string {
+  const nonce = getCspNonce(req);
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}'`,
+    "script-src-attr 'none'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self'",
+    "media-src 'self' blob:",
+    "frame-src 'self' blob:",
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'self'"
+  ].join("; ");
 }
 
 function splitHeaderValues(value: string | string[] | undefined): string[] {
@@ -168,6 +197,8 @@ function injectRuntimeIntoHtml(req: any, html: string): string {
   output = output.includes("<head>")
     ? output.replace("<head>", `<head>\n  ${headInjection}`)
     : `${headInjection}\n${output}`;
+  const nonce = getCspNonce(req as Request);
+  output = output.replace(/<script(?![^>]*\bnonce=)(?=[\s>])/gi, `<script nonce="${nonce}"`);
   return output;
 }
 
@@ -369,6 +400,10 @@ export function createApp() {
 
   app.use(pinoHttp({ logger }));
   app.use(helmet({ contentSecurityPolicy: false }));
+  app.use((req, res, next) => {
+    res.setHeader("Content-Security-Policy", buildContentSecurityPolicy(req));
+    next();
+  });
   const allowedCorsOrigins = resolveAllowedCorsOrigins();
   app.use(cors((req, callback) => {
     callback(null, {

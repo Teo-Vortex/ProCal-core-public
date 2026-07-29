@@ -3,7 +3,7 @@ import type { User } from "@prisma/client";
 import { getPrisma } from "../db/prisma";
 import { writeAudit } from "../services/auditService";
 import { credentialsSchema, mePreferencesSchema, meProfileSchema, publicRegisterSchema } from "../utils/schemas";
-import { consumeRefreshToken, getRefreshCookieName, issueRefreshToken, revokeRefreshToken, signAccessToken, verifyPassword, hashPassword } from "../auth/tokens";
+import { getRefreshCookieName, issueRefreshToken, revokeRefreshToken, rotateRefreshToken, signAccessToken, verifyPassword, hashPassword } from "../auth/tokens";
 import { getRuntimeConfig } from "../config/env";
 import { loginRateLimiter } from "../middleware/rateLimit";
 import { requireAuth } from "../middleware/auth";
@@ -70,18 +70,22 @@ async function respondWithSession(
   const accessToken = signAccessToken({ userId: user.id, role: user.role }, runtime.accessTokenTtlSec);
   const refreshToken = await issueRefreshToken(user.id, runtime.refreshTokenTtlSec);
 
-  res.cookie(getRefreshCookieName(), refreshToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: req.secure || req.header("x-forwarded-proto") === "https",
-    maxAge: runtime.refreshTokenTtlSec * 1000,
-    path: buildCookiePath(req, "/api/auth")
-  });
+  setRefreshCookie(req, res, refreshToken, runtime.refreshTokenTtlSec);
 
   await writeAudit(user.id, auditAction, "auth", user.id, auditMeta);
   res.json({
     accessToken,
     user: serializeUser(user)
+  });
+}
+
+function setRefreshCookie(req: any, res: any, refreshToken: string, ttlSec: number) {
+  res.cookie(getRefreshCookieName(), refreshToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: req.secure || req.header("x-forwarded-proto") === "https",
+    maxAge: ttlSec * 1000,
+    path: buildCookiePath(req, "/api/auth")
   });
 }
 
@@ -222,21 +226,28 @@ authRouter.post("/api/auth/refresh", async (req, res) => {
     return;
   }
 
-  const userId = await consumeRefreshToken(token);
-  if (!userId) {
+  const runtime = getRuntimeConfig();
+  const rotation = await rotateRefreshToken(token, runtime.refreshTokenTtlSec);
+  if (rotation.status !== "ok") {
+    res.clearCookie(getRefreshCookieName(), { path: buildCookiePath(req, "/api/auth") });
+    if (rotation.status === "reused") {
+      await writeAudit(null, "token.refresh_reuse", "auth", rotation.userId);
+    }
     res.status(401).json({ error: "Invalid refresh token" });
     return;
   }
 
   const prisma = getPrisma();
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await prisma.user.findUnique({ where: { id: rotation.userId } });
   if (!user || user.isDeleted || user.status !== "active") {
+    await revokeRefreshToken(rotation.refreshToken);
+    res.clearCookie(getRefreshCookieName(), { path: buildCookiePath(req, "/api/auth") });
     res.status(401).json({ error: "User not found" });
     return;
   }
 
-  const runtime = getRuntimeConfig();
   const accessToken = signAccessToken({ userId: user.id, role: user.role }, runtime.accessTokenTtlSec);
+  setRefreshCookie(req, res, rotation.refreshToken, runtime.refreshTokenTtlSec);
   await writeAudit(user.id, "token.refresh", "auth", user.id);
   res.json({ accessToken });
 });

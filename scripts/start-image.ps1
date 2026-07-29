@@ -1,5 +1,5 @@
 param(
-  [string]$Image = "ghcr.io/replace-owner/procal-core-public:latest",
+  [string]$Image = "ghcr.io/teo-vortex/procal-core-public:latest",
   [string]$BindIp = "0.0.0.0",
   [int]$Port = 8080,
   [switch]$NoPull
@@ -82,11 +82,13 @@ if ($Image -match "replace-owner") {
 if (-not (Test-Path $envPath)) {
   $rootPassword = New-HexSecret
   $appPassword = New-HexSecret
+  $setupToken = New-HexSecret
   @"
 PROCAL_SELF_BIND_IP=$BindIp
 PROCAL_SELF_PORT=$Port
 PROCAL_SELF_TRUST_PROXY=0
 PROCAL_SELF_APP_VERSION=0.9.9-community
+PROCAL_SELF_SETUP_TOKEN=$setupToken
 PROCAL_CORE_IMAGE=$Image
 TZ=Europe/Sofia
 
@@ -95,10 +97,17 @@ PROCAL_SELF_DB_NAME=procal
 PROCAL_SELF_DB_USER=procal
 PROCAL_SELF_DB_PASSWORD=$appPassword
 "@ | Set-Content -LiteralPath $envPath -Encoding UTF8
-  Write-Host "Created $envPath with generated local passwords."
+  Write-Host "Created $envPath with generated local passwords and setup token."
 } else {
   Write-Host "Using existing $envPath."
   Set-EnvLine -Path $envPath -Name "PROCAL_CORE_IMAGE" -Value $Image
+  $setupTokenLine = Get-Content -LiteralPath $envPath | Where-Object { $_ -match '^PROCAL_SELF_SETUP_TOKEN=' } | Select-Object -First 1
+  $setupToken = if ($setupTokenLine) { ($setupTokenLine -split '=', 2)[1].Trim() } else { "" }
+  if (-not $setupToken) {
+    $setupToken = New-HexSecret
+    Set-EnvLine -Path $envPath -Name "PROCAL_SELF_SETUP_TOKEN" -Value $setupToken
+    Write-Host "Added a generated setup token to the existing environment."
+  }
 }
 
 if (-not $NoPull) {
@@ -118,3 +127,4 @@ Write-Host "ProCal Core image install is starting."
 Write-Host "Image: $Image"
 Write-Host "Open: http://localhost:$Port/setup"
 Write-Host "LAN:  http://<this-computer-ip>:$Port/setup"
+Write-Host "Setup token: $setupToken"

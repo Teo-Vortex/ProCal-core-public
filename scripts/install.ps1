@@ -1,7 +1,7 @@
 param(
   [ValidateSet("auto", "source", "image")]
   [string]$Mode = "auto",
-  [string]$Image = "ghcr.io/replace-owner/procal-core-public:latest",
+  [string]$Image = "ghcr.io/teo-vortex/procal-core-public:latest",
   [string]$BindIp = "0.0.0.0",
   [int]$Port = 8080,
   [string]$Timezone = "Europe/Sofia",
@@ -183,6 +183,7 @@ PROCAL_SELF_BIND_IP=$InstallBindIp
 PROCAL_SELF_PORT=$InstallPort
 PROCAL_SELF_TRUST_PROXY=0
 PROCAL_SELF_APP_VERSION=0.9.9-community
+PROCAL_SELF_SETUP_TOKEN=$(New-HexSecret)
 PROCAL_CORE_IMAGE=$InstallImage
 TZ=$InstallTimezone
 
@@ -200,6 +201,7 @@ PROCAL_SELF_DB_PASSWORD=$(New-HexSecret)
   Set-EnvLine -Name "PROCAL_SELF_PORT" -Value ([string]$InstallPort)
   Set-EnvLine -Name "PROCAL_SELF_TRUST_PROXY" -Value (Get-EnvValue -Name "PROCAL_SELF_TRUST_PROXY" -Default "0")
   Set-EnvLine -Name "PROCAL_SELF_APP_VERSION" -Value (Get-EnvValue -Name "PROCAL_SELF_APP_VERSION" -Default "0.9.9-community")
+  Set-EnvLine -Name "PROCAL_SELF_SETUP_TOKEN" -Value (Get-EnvValue -Name "PROCAL_SELF_SETUP_TOKEN" -Default (New-HexSecret))
   Set-EnvLine -Name "PROCAL_CORE_IMAGE" -Value $InstallImage
   Set-EnvLine -Name "TZ" -Value $InstallTimezone
   Set-EnvLine -Name "PROCAL_SELF_DB_ROOT_PASSWORD" -Value (Get-EnvValue -Name "PROCAL_SELF_DB_ROOT_PASSWORD" -Default (New-HexSecret))
@@ -273,3 +275,6 @@ if ($installMode -eq "image") {
 }
 Write-Host "Open: http://localhost:$Port/setup"
 Write-Host "LAN:  http://<this-computer-ip>:$Port/setup"
+if (-not $DryRun) {
+  Write-Host "Setup token: $(Get-EnvValue -Name 'PROCAL_SELF_SETUP_TOKEN')"
+}

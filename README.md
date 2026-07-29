@@ -84,6 +84,8 @@ Open:
 http://localhost:8080/setup
 ```
 
+Enter the `PROCAL_SELF_SETUP_TOKEN` value from the local `.env` file when creating the first administrator. The guided installers generate and print this one-time setup token automatically.
+
 For another computer on the same LAN:
 
 ```text
