@@ -29,6 +29,8 @@ Prerequisites:
 - Docker
 - Docker Compose
 
+The official prebuilt image currently targets `linux/amd64` (x86-64). ARM64 and Raspberry Pi images are not published or tested yet.
+
 ### Guided Installer
 
 On Windows:
