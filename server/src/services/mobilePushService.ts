@@ -1,4 +1,14 @@
-import admin from "firebase-admin";
+import {
+  cert,
+  getApps,
+  initializeApp,
+  type App,
+  type ServiceAccount
+} from "firebase-admin/app";
+import {
+  getMessaging as getFirebaseMessaging,
+  type Messaging
+} from "firebase-admin/messaging";
 import { logger } from "../utils/logger";
 import { listEnabledPushDevicesForUsers, removePushDevicesByIds } from "./pushDeviceService";
 
@@ -11,10 +21,10 @@ type PushMessageInput = {
   collapseKey?: string | null;
 };
 
-let firebaseApp: admin.app.App | null | undefined;
+let firebaseApp: App | null | undefined;
 let initLogged = false;
 
-function readServiceAccountJson(): admin.ServiceAccount | null {
+function readServiceAccountJson(): ServiceAccount | null {
   const rawBase64 = String(
     process.env.FCM_SERVICE_ACCOUNT_JSON_BASE64 ||
     process.env.PROCAL_FCM_SERVICE_ACCOUNT_JSON_BASE64 ||
@@ -28,10 +38,10 @@ function readServiceAccountJson(): admin.ServiceAccount | null {
 
   try {
     if (rawBase64) {
-      return JSON.parse(Buffer.from(rawBase64, "base64").toString("utf8")) as admin.ServiceAccount;
+      return JSON.parse(Buffer.from(rawBase64, "base64").toString("utf8")) as ServiceAccount;
     }
     if (rawJson) {
-      return JSON.parse(rawJson) as admin.ServiceAccount;
+      return JSON.parse(rawJson) as ServiceAccount;
     }
   } catch (error) {
     if (!initLogged) {
@@ -56,7 +66,7 @@ export function getMobilePushStatus() {
   };
 }
 
-function getFirebaseApp(): admin.app.App | null {
+function getFirebaseApp(): App | null {
   if (firebaseApp === null) return null;
   if (firebaseApp) return firebaseApp;
 
@@ -71,10 +81,11 @@ function getFirebaseApp(): admin.app.App | null {
   }
 
   try {
-    firebaseApp = admin.apps.length
-      ? admin.app()
-      : admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount)
+    const existingApps = getApps();
+    firebaseApp = existingApps.length
+      ? existingApps[0]
+      : initializeApp({
+          credential: cert(serviceAccount)
         });
     return firebaseApp;
   } catch (error) {
@@ -84,9 +95,9 @@ function getFirebaseApp(): admin.app.App | null {
   }
 }
 
-function getMessaging(): admin.messaging.Messaging | null {
+function getMessaging(): Messaging | null {
   const app = getFirebaseApp();
-  return app ? admin.messaging(app) : null;
+  return app ? getFirebaseMessaging(app) : null;
 }
 
 function buildRealmUrl(relativePath: string): string {
