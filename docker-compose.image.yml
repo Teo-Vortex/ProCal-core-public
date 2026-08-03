@@ -12,8 +12,12 @@ services:
       - TZ=${TZ:-Europe/Sofia}
     volumes:
       - procal_core_db:/config
+    networks:
+      procal_internal:
+        aliases:
+          - db
     healthcheck:
-      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} || exit 1"]
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 3306 || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 30
@@ -50,6 +54,8 @@ services:
     volumes:
       - procal_core_config:/app/config
       - procal_core_backups:/app/backups
+    networks:
+      - procal_internal
     healthcheck:
       test:
         [
@@ -69,3 +75,8 @@ volumes:
   procal_core_config: {}
   procal_core_db: {}
   procal_core_backups: {}
+
+networks:
+  procal_internal:
+    name: procal-core-internal
+    driver: bridge
