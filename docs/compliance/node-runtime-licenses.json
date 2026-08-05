@@ -2,11 +2,11 @@
   "generatedBy": "infra/scripts/generate-compliance-artifacts.cjs",
   "scope": "ProCal Core production Node.js runtime dependencies",
   "source": "apps/procal-core/server/package-lock.json + apps/procal-core/server/node_modules",
-  "packageCount": 249,
+  "packageCount": 247,
   "summary": [
     {
       "license": "MIT",
-      "count": 187
+      "count": 186
     },
     {
       "license": "Apache-2.0",
@@ -14,11 +14,11 @@
     },
     {
       "license": "ISC",
-      "count": 17
+      "count": 15
     },
     {
       "license": "BlueOak-1.0.0",
-      "count": 4
+      "count": 5
     },
     {
       "license": "BSD-3-Clause",
@@ -44,7 +44,7 @@
     },
     {
       "name": "@firebase/app-check-interop-types",
-      "version": "0.3.3",
+      "version": "0.3.4",
       "license": "Apache-2.0",
       "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
       "licenseFile": "",
@@ -52,7 +52,7 @@
     },
     {
       "name": "@firebase/app-types",
-      "version": "0.9.3",
+      "version": "0.9.5",
       "license": "Apache-2.0",
       "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
       "licenseFile": "",
@@ -60,7 +60,7 @@
     },
     {
       "name": "@firebase/auth-interop-types",
-      "version": "0.2.4",
+      "version": "0.2.5",
       "license": "Apache-2.0",
       "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
       "licenseFile": "",
@@ -68,7 +68,7 @@
     },
     {
       "name": "@firebase/component",
-      "version": "0.7.2",
+      "version": "0.7.4",
       "license": "Apache-2.0",
       "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
       "licenseFile": "",
@@ -76,7 +76,7 @@
     },
     {
       "name": "@firebase/database-compat",
-      "version": "2.1.2",
+      "version": "2.1.5",
       "license": "Apache-2.0",
       "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
       "licenseFile": "",
@@ -84,7 +84,7 @@
     },
     {
       "name": "@firebase/database-types",
-      "version": "1.0.18",
+      "version": "1.0.21",
       "license": "Apache-2.0",
       "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
       "licenseFile": "",
@@ -92,7 +92,7 @@
     },
     {
       "name": "@firebase/database",
-      "version": "1.1.2",
+      "version": "1.1.4",
       "license": "Apache-2.0",
       "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
       "licenseFile": "",
@@ -100,7 +100,7 @@
     },
     {
       "name": "@firebase/logger",
-      "version": "0.5.0",
+      "version": "0.5.1",
       "license": "Apache-2.0",
       "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
       "licenseFile": "",
@@ -108,7 +108,7 @@
     },
     {
       "name": "@firebase/util",
-      "version": "1.15.0",
+      "version": "1.15.2",
       "license": "Apache-2.0",
       "repository": "git+https://github.com/firebase/firebase-js-sdk.git",
       "licenseFile": "",
@@ -396,7 +396,7 @@
     },
     {
       "name": "brace-expansion",
-      "version": "5.0.8",
+      "version": "5.0.9",
       "license": "MIT",
       "repository": "git+https://github.com/juliangruber/brace-expansion.git",
       "licenseFile": "apps/procal-core/server/node_modules/brace-expansion/LICENSE",
@@ -779,14 +779,6 @@
       "packagePath": "apps/procal-core/server/node_modules/extend"
     },
     {
-      "name": "farmhash-modern",
-      "version": "1.1.0",
-      "license": "MIT",
-      "repository": "git@github.com:ForbesLindesay/npm-package-template.git",
-      "licenseFile": "apps/procal-core/server/node_modules/farmhash-modern/LICENSE",
-      "packagePath": "apps/procal-core/server/node_modules/farmhash-modern"
-    },
-    {
       "name": "fast-deep-equal",
       "version": "3.1.3",
       "license": "MIT",
@@ -836,7 +828,7 @@
     },
     {
       "name": "firebase-admin",
-      "version": "13.10.0",
+      "version": "14.2.0",
       "license": "Apache-2.0",
       "repository": "https://github.com/firebase/firebase-admin-node",
       "licenseFile": "apps/procal-core/server/node_modules/firebase-admin/LICENSE",
@@ -1092,7 +1084,7 @@
     },
     {
       "name": "jose",
-      "version": "4.15.9",
+      "version": "6.2.8",
       "license": "MIT",
       "repository": "panva/jose",
       "licenseFile": "apps/procal-core/server/node_modules/jose/LICENSE.md",
@@ -1132,7 +1124,7 @@
     },
     {
       "name": "jwks-rsa",
-      "version": "3.2.2",
+      "version": "4.1.0",
       "license": "MIT",
       "repository": "git+https://github.com/auth0/node-jwks-rsa.git",
       "licenseFile": "apps/procal-core/server/node_modules/jwks-rsa/LICENSE",
@@ -1252,15 +1244,15 @@
     },
     {
       "name": "lru-cache",
-      "version": "6.0.0",
-      "license": "ISC",
-      "repository": "git://github.com/isaacs/node-lru-cache.git",
-      "licenseFile": "apps/procal-core/server/node_modules/lru-cache/LICENSE",
+      "version": "11.5.2",
+      "license": "BlueOak-1.0.0",
+      "repository": "git+ssh://git@github.com/isaacs/node-lru-cache.git",
+      "licenseFile": "apps/procal-core/server/node_modules/lru-cache/LICENSE.md",
       "packagePath": "apps/procal-core/server/node_modules/lru-cache"
     },
     {
       "name": "lru-memoizer",
-      "version": "2.3.0",
+      "version": "3.0.0",
       "license": "MIT",
       "repository": "git://github.com/jfromaniello/lru-memoizer.git",
       "licenseFile": "apps/procal-core/server/node_modules/lru-memoizer/LICENSE",
@@ -2001,14 +1993,6 @@
       "repository": "chalk/wrap-ansi",
       "licenseFile": "apps/procal-core/server/node_modules/wrap-ansi/LICENSE",
       "packagePath": "apps/procal-core/server/node_modules/wrap-ansi"
-    },
-    {
-      "name": "yallist",
-      "version": "4.0.0",
-      "license": "ISC",
-      "repository": "git+https://github.com/isaacs/yallist.git",
-      "licenseFile": "apps/procal-core/server/node_modules/yallist/LICENSE",
-      "packagePath": "apps/procal-core/server/node_modules/yallist"
     },
     {
       "name": "zip-stream",

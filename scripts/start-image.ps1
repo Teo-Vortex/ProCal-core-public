@@ -83,6 +83,7 @@ if (-not (Test-Path $envPath)) {
   $rootPassword = New-HexSecret
   $appPassword = New-HexSecret
   $setupToken = New-HexSecret
+  $updaterToken = New-HexSecret
   @"
 PROCAL_SELF_BIND_IP=$BindIp
 PROCAL_SELF_PORT=$Port
@@ -90,6 +91,10 @@ PROCAL_SELF_TRUST_PROXY=0
 PROCAL_SELF_APP_VERSION=0.9.9-community
 PROCAL_SELF_SETUP_TOKEN=$setupToken
 PROCAL_CORE_IMAGE=$Image
+PROCAL_UPDATER_IMAGE=ghcr.io/teo-vortex/procal-core-updater:latest
+PROCAL_UPDATE_ALLOWED_IMAGE=ghcr.io/teo-vortex/procal-core-public
+PROCAL_UPDATE_GITHUB_REPO=Teo-Vortex/ProCal-core-public
+PROCAL_UPDATER_TOKEN=$updaterToken
 TZ=Europe/Sofia
 
 PROCAL_SELF_DB_ROOT_PASSWORD=$rootPassword
@@ -107,6 +112,12 @@ PROCAL_SELF_DB_PASSWORD=$appPassword
     $setupToken = New-HexSecret
     Set-EnvLine -Path $envPath -Name "PROCAL_SELF_SETUP_TOKEN" -Value $setupToken
     Write-Host "Added a generated setup token to the existing environment."
+  }
+  $updaterTokenLine = Get-Content -LiteralPath $envPath | Where-Object { $_ -match '^PROCAL_UPDATER_TOKEN=' } | Select-Object -First 1
+  $updaterToken = if ($updaterTokenLine) { ($updaterTokenLine -split '=', 2)[1].Trim() } else { "" }
+  if (-not $updaterToken) {
+    Set-EnvLine -Path $envPath -Name "PROCAL_UPDATER_TOKEN" -Value (New-HexSecret)
+    Write-Host "Added a generated updater token to the existing environment."
   }
 }
 

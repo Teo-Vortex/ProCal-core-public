@@ -20,6 +20,7 @@ The ProCal name, logos, and brand assets are not licensed for unrestricted use. 
 
 - ProCal Core web app and API
 - MariaDB
+- Internal update manager for prebuilt-image installations
 - Local Docker volumes for database, runtime config, and backups
 
 ## Install
@@ -104,13 +105,19 @@ New users can register locally from `/register`; accounts remain pending until a
 
 Use `Admin -> Backups` and export an encrypted `full` backup before updates or risky changes. Store both the backup file and key outside the server.
 
+## Updates
+
+Prebuilt-image installations run a third internal container named `updater`. A `system_admin` can open `Admin -> Updates`, check the published GHCR image, and start an update. The updater pulls only the configured ProCal image repository, replaces only the application container, waits for its health check, and restores the previous container automatically if startup fails. The database and persistent volumes are not replaced.
+
+The updater has no host port and does not receive database, file-storage, backup, or Firebase credentials. It does mount `/var/run/docker.sock`, which is a privileged host capability. Keep the updater image and `PROCAL_UPDATER_TOKEN` private to the installation, and do not expose the updater service outside the Compose network.
+
+After a successful update, one previous application container is retained for manual rollback. Export a full encrypted backup first because application rollback cannot reverse database migrations. Source-build installations continue to update by pulling source and rebuilding with Docker Compose.
+
 ## Optional Mobile Push
 
 Firebase push is disabled by default. This package does not include Firebase credentials, service accounts, or `google-services.json`.
 
-If an installation owner wants Firebase push, they must use their own Firebase project and set `PROCAL_FCM_SERVICE_ACCOUNT_JSON_BASE64` in their local `.env`. Push payloads use privacy mode by default: Firebase receives a generic notification text and routing metadata, while the real notification content stays in ProCal Core.
-
-Detailed push payloads can be enabled explicitly with `PROCAL_PUSH_PAYLOAD_MODE=full`, but that sends notification titles/bodies through Firebase.
+The installation owner can upload credentials for their own Firebase project from `Admin -> Notifications`. ProCal encrypts the server credential in the persistent local config volume. Generic payload mode is the default: Firebase receives generic notification text and routing metadata, while the real content stays in ProCal Core. Detailed mode is optional and sends notification titles and bodies through Firebase.
 
 ## Third-Party Notices
 

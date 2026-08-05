@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ProCal Admin</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script>
     try {
       if (localStorage.getItem("procal_theme") === "dark") {
@@ -15,6 +16,9 @@
     body{font-family:system-ui;margin:0;background:#f3f5f8;color:#1f2937}
     .wrap{max-width:1520px;margin:0 auto;padding:16px}
     .head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .page-brand{display:flex;align-items:center;gap:10px;min-width:0}
+    .page-brand img{width:44px;height:44px;flex:0 0 auto}
+    .page-brand h1{margin-bottom:4px}
     .card{background:#fff;border:1px solid #d7dde6;border-radius:10px;padding:12px;margin-top:12px}
     h1,h2,h3{margin:6px 0 12px}
     table{width:100%;border-collapse:collapse;font-size:14px}
@@ -27,6 +31,7 @@
     .btn{padding:7px 10px;border:1px solid #cbd5e1;background:#fff;border-radius:7px;cursor:pointer;transition:transform .08s ease, box-shadow .12s ease, background-color .12s ease}
     .btn:hover{box-shadow:0 1px 6px rgba(15,23,42,.10)}
     .btn:active,.btn.btn-pressed{transform:translateY(1px) scale(.985);box-shadow:inset 0 2px 5px rgba(15,23,42,.18)}
+    .btn:disabled{opacity:.52;cursor:not-allowed;box-shadow:none;transform:none}
     .btn.primary{background:#2563eb;color:#fff;border-color:#2563eb}
     .btn.just-saved{box-shadow:0 0 0 2px rgba(16,185,129,.28)}
     .btn.just-error{box-shadow:0 0 0 2px rgba(239,68,68,.28)}
@@ -76,6 +81,15 @@
     .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:#e0f2fe;color:#075985;font-size:12px;font-weight:700}
     .badge.encrypted{background:#dcfce7;color:#166534}
     .badge.plain{background:#fef3c7;color:#92400e}
+    .update-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,.55fr);gap:12px;align-items:start}
+    .update-facts{display:grid;grid-template-columns:minmax(130px,.35fr) minmax(0,1fr);gap:8px 14px;margin:14px 0}
+    .update-facts dt{font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase}
+    .update-facts dd{margin:0;overflow-wrap:anywhere}
+    .update-state{display:inline-flex;align-items:center;min-height:28px;padding:4px 10px;border:1px solid #cbd5e1;border-radius:999px;background:#f8fafc;font-size:12px;font-weight:700}
+    .update-state.ready{border-color:#86efac;background:#ecfdf5;color:#166534}
+    .update-state.warn{border-color:#fcd34d;background:#fffbeb;color:#92400e}
+    .update-state.error{border-color:#fca5a5;background:#fef2f2;color:#991b1b}
+    .update-notes{white-space:pre-wrap;max-height:260px;overflow:auto;font-size:13px;line-height:1.5}
     :root[data-theme="dark"]{color-scheme:dark;--d-bg:#071017;--d-card:#102531;--d-card-2:#162f3d;--d-ink:#e6edf0;--d-muted:#a6bac3;--d-line:rgba(184,208,216,.24);--d-accent:#36d6bf;--d-danger:#fda4af;--d-warn:#fde68a;--d-ok:#86efac}
     :root[data-theme="dark"] body{background:radial-gradient(900px 520px at 8% 0%,rgba(54,214,191,.12),transparent 62%),linear-gradient(180deg,#071017,#0a1720);color:var(--d-ink)}
     :root[data-theme="dark"] .card,:root[data-theme="dark"] .modal-card,:root[data-theme="dark"] .global-status,:root[data-theme="dark"] .backup-setting-card,:root[data-theme="dark"] .backup-routine,:root[data-theme="dark"] .backup-action-strip,:root[data-theme="dark"] .perm-section{background:var(--d-card);border-color:var(--d-line);color:var(--d-ink);box-shadow:0 18px 44px rgba(0,0,0,.28)}
@@ -95,15 +109,23 @@
     :root[data-theme="dark"] .backup-note{background:rgba(54,214,191,.14);border-left-color:var(--d-accent);color:#ccfbf1}
     :root[data-theme="dark"] .danger,:root[data-theme="dark"] .global-status.err{color:var(--d-danger)}
     :root[data-theme="dark"] .global-status.err{background:rgba(251,113,133,.14);border-color:rgba(251,113,133,.34)}
-                            @media(max-width:900px){.backup-hero,.backup-layout{grid-template-columns:1fr}.backup-setting-grid{grid-template-columns:1fr}}
+                            :root[data-theme="dark"] .update-state{background:#08141d;border-color:var(--d-line);color:var(--d-ink)}
+    :root[data-theme="dark"] .update-state.ready{background:rgba(74,222,128,.14);border-color:rgba(74,222,128,.34);color:var(--d-ok)}
+    :root[data-theme="dark"] .update-state.warn{background:rgba(251,191,36,.16);border-color:rgba(251,191,36,.34);color:var(--d-warn)}
+    :root[data-theme="dark"] .update-state.error{background:rgba(251,113,133,.14);border-color:rgba(251,113,133,.34);color:var(--d-danger)}
+    :root[data-theme="dark"] .update-facts dt{color:var(--d-muted)}
+    @media(max-width:900px){.backup-hero,.backup-layout,.update-grid{grid-template-columns:1fr}.backup-setting-grid{grid-template-columns:1fr}.update-facts{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="head">
-      <div>
-        <h1>Admin Panel</h1>
-        <div class="muted">Users, roles, overrides, and categories.</div>
+      <div class="page-brand">
+        <img src="favicon.ico" alt="" width="44" height="44">
+        <div>
+          <h1>Admin Panel</h1>
+          <div class="muted">Users, roles, overrides, and categories.</div>
+        </div>
       </div>
       <div class="row">
         <span id="me" class="pill">-</span>
@@ -127,6 +149,7 @@
           <button class="btn tab-btn" data-tab="notifications">Notifications</button>
           <button class="btn tab-btn" data-tab="files">Files</button>
           <button class="btn tab-btn" data-tab="backups">Backups</button>
+          <button id="systemUpdateTabBtn" class="btn tab-btn" data-tab="updates">Updates</button>
           <button class="btn tab-btn" data-tab="audit">Audit</button>
         </div>
       </section>
@@ -282,13 +305,37 @@
       <section id="tab-notifications" class="tab-pane">
         <section class="card">
           <h2>Mobile Push</h2>
-          <p class="muted">Firebase push is optional for Android. Credentials stay in the server .env file and are not edited in the browser.</p>
+          <p class="muted">Connect this Core installation to a Firebase project owned by the installation operator. Only system administrators can change credentials.</p>
           <div class="row" style="margin-bottom:10px;">
             <button id="reloadMobilePushStatusBtn" class="btn" type="button">Reload push status</button>
             <span id="mobilePushStatusMsg" class="muted"></span>
           </div>
           <div id="mobilePushStatusWrap" class="perm-section">
             <div class="muted">Load the status to see whether Firebase push is configured.</div>
+          </div>
+          <div id="mobilePushConfigControls" class="perm-section" style="margin-top:12px;display:grid;gap:12px;">
+            <div class="row" style="align-items:flex-end;">
+              <label style="flex:1 1 280px;">Firebase service account JSON
+                <input id="mobilePushServiceAccountFile" type="file" accept=".json,application/json">
+              </label>
+              <label style="flex:1 1 280px;">Android google-services.json
+                <input id="mobilePushGoogleServicesFile" type="file" accept=".json,application/json">
+              </label>
+              <label>Notification content
+                <select id="mobilePushPayloadMode">
+                  <option value="generic">Generic (recommended)</option>
+                  <option value="detailed">Detailed</option>
+                </select>
+              </label>
+            </div>
+            <div class="row">
+              <button id="saveMobilePushConfigBtn" class="btn primary" type="button">Save Firebase configuration</button>
+              <button id="testMobilePushBtn" class="btn" type="button">Send test notification</button>
+              <button id="removeMobilePushConfigBtn" class="btn danger" type="button">Disable and remove</button>
+            </div>
+            <div class="backup-note backup-warning">
+              The service account is encrypted on this server. It is never returned to the browser, included in ProCal backups, or sent to the Android app. Upload files directly from Firebase; do not paste their contents into chat or support requests.
+            </div>
           </div>
         </section>
         <section class="card">
@@ -375,6 +422,40 @@
         </section>
       </section>
 
+      <section id="tab-updates" class="tab-pane">
+        <div class="update-grid">
+          <section class="card">
+            <div class="row" style="justify-content:space-between;align-items:flex-start;">
+              <div>
+                <h2>System Update</h2>
+                <p class="muted">Updates the ProCal application container. The database and persistent files stay in their existing Docker volumes.</p>
+              </div>
+              <span id="systemUpdateState" class="update-state">Not checked</span>
+            </div>
+            <dl class="update-facts">
+              <dt>Installed version</dt><dd id="systemUpdateCurrentVersion">-</dd>
+              <dt>Installed image</dt><dd id="systemUpdateCurrentImage">-</dd>
+              <dt>Latest release</dt><dd id="systemUpdateLatestVersion">-</dd>
+              <dt>Last checked</dt><dd id="systemUpdateLastChecked">-</dd>
+            </dl>
+            <div class="row">
+              <button id="systemUpdateCheckBtn" class="btn" type="button">Check for updates</button>
+              <button id="systemUpdateApplyBtn" class="btn primary" type="button" disabled>Update now</button>
+              <button id="systemUpdateRollbackBtn" class="btn" type="button" disabled>Roll back</button>
+              <span id="systemUpdateMsg" class="muted"></span>
+            </div>
+          </section>
+          <section class="card">
+            <h2>Release Notes</h2>
+            <a id="systemUpdateReleaseLink" class="hidden" href="#" target="_blank" rel="noreferrer">Open release on GitHub</a>
+            <p id="systemUpdateNotes" class="update-notes muted">Check for updates to load the latest release information.</p>
+            <div class="backup-note backup-warning">
+              Export an encrypted full backup before updating. If the new application fails its health check, ProCal restores the previous container automatically. A manual rollback cannot undo database migrations.
+            </div>
+          </section>
+        </div>
+      </section>
+
       <section id="tab-backups" class="tab-pane">
         <section class="card backup-hero">
           <div class="backup-hero-copy">
@@ -409,7 +490,7 @@
               <button id="backupsCreateWorkingBtn" class="btn" type="button">Export encrypted working backup</button>
             </div>
             <div class="backup-note">
-              <strong>Full</strong> includes database content and config/files snapshot. <strong>Working</strong> is database-only. Both require the same key flow for validate and restore. The key PDF downloads before the backup file.
+              <strong>Full</strong> includes database content and a non-secret config/files snapshot. Database credentials, signing secrets, and Firebase credentials are excluded. <strong>Working</strong> is database-only. Both require the same key flow for validate and restore. The key PDF downloads before the backup file.
             </div>
           </section>
 

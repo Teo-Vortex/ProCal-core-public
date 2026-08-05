@@ -185,6 +185,10 @@ PROCAL_SELF_TRUST_PROXY=0
 PROCAL_SELF_APP_VERSION=0.9.9-community
 PROCAL_SELF_SETUP_TOKEN=$(New-HexSecret)
 PROCAL_CORE_IMAGE=$InstallImage
+PROCAL_UPDATER_IMAGE=ghcr.io/teo-vortex/procal-core-updater:latest
+PROCAL_UPDATE_ALLOWED_IMAGE=ghcr.io/teo-vortex/procal-core-public
+PROCAL_UPDATE_GITHUB_REPO=Teo-Vortex/ProCal-core-public
+PROCAL_UPDATER_TOKEN=$(New-HexSecret)
 TZ=$InstallTimezone
 
 PROCAL_SELF_DB_ROOT_PASSWORD=$(New-HexSecret)
@@ -203,6 +207,10 @@ PROCAL_SELF_DB_PASSWORD=$(New-HexSecret)
   Set-EnvLine -Name "PROCAL_SELF_APP_VERSION" -Value (Get-EnvValue -Name "PROCAL_SELF_APP_VERSION" -Default "0.9.9-community")
   Set-EnvLine -Name "PROCAL_SELF_SETUP_TOKEN" -Value (Get-EnvValue -Name "PROCAL_SELF_SETUP_TOKEN" -Default (New-HexSecret))
   Set-EnvLine -Name "PROCAL_CORE_IMAGE" -Value $InstallImage
+  Set-EnvLine -Name "PROCAL_UPDATER_IMAGE" -Value (Get-EnvValue -Name "PROCAL_UPDATER_IMAGE" -Default "ghcr.io/teo-vortex/procal-core-updater:latest")
+  Set-EnvLine -Name "PROCAL_UPDATE_ALLOWED_IMAGE" -Value (Get-EnvValue -Name "PROCAL_UPDATE_ALLOWED_IMAGE" -Default "ghcr.io/teo-vortex/procal-core-public")
+  Set-EnvLine -Name "PROCAL_UPDATE_GITHUB_REPO" -Value (Get-EnvValue -Name "PROCAL_UPDATE_GITHUB_REPO" -Default "Teo-Vortex/ProCal-core-public")
+  Set-EnvLine -Name "PROCAL_UPDATER_TOKEN" -Value (Get-EnvValue -Name "PROCAL_UPDATER_TOKEN" -Default (New-HexSecret))
   Set-EnvLine -Name "TZ" -Value $InstallTimezone
   Set-EnvLine -Name "PROCAL_SELF_DB_ROOT_PASSWORD" -Value (Get-EnvValue -Name "PROCAL_SELF_DB_ROOT_PASSWORD" -Default (New-HexSecret))
   Set-EnvLine -Name "PROCAL_SELF_DB_NAME" -Value (Get-EnvValue -Name "PROCAL_SELF_DB_NAME" -Default "procal")

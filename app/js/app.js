@@ -228,6 +228,7 @@ const notesViewYearBtn = document.getElementById("notesViewYearBtn");
 const menuProfileBtn = document.getElementById("menuProfileBtn");
 const menuGuideBtn = document.getElementById("menuGuideBtn");
 const menuMobileAppBtn = document.getElementById("menuMobileAppBtn");
+const menuServerManagerBtn = document.getElementById("menuServerManagerBtn");
 const themeToggle = document.getElementById("themeToggle");
 const menuAdminBtn = document.getElementById("menuAdminBtn");
 const menuLogoutBtn = document.getElementById("menuLogoutBtn");
@@ -1118,6 +1119,7 @@ const I18N = {
     profile: "Profile",
     userGuide: "User guide",
     mobileApp: "Mobile app",
+    serverManager: "Servers and notifications",
     quickActions: "Quick actions",
     openAdminPanel: "Open admin panel",
     darkMode: "Dark mode",
@@ -1624,6 +1626,7 @@ const I18N = {
     profile: "\u041F\u0440\u043E\u0444\u0438\u043B",
     userGuide: "\u0418\u043D\u0441\u0442\u0440\u0443\u043A\u0446\u0438\u044F",
     mobileApp: "\u041C\u043E\u0431\u0438\u043B\u043D\u043E \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u0435",
+    serverManager: "\u0421\u044A\u0440\u0432\u044A\u0440\u0438 \u0438 \u0438\u0437\u0432\u0435\u0441\u0442\u0438\u044F",
     quickActions: "\u0411\u044A\u0440\u0437\u0438 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044F",
     openAdminPanel: "\u041E\u0442\u0432\u043E\u0440\u0438 \u0430\u0434\u043C\u0438\u043D \u043F\u0430\u043D\u0435\u043B",
     darkMode: "\u0422\u044A\u043C\u0435\u043D \u0440\u0435\u0436\u0438\u043C",
@@ -3201,6 +3204,16 @@ if (menuMobileAppBtn) {
     openMobileAppDownload();
   });
 }
+if (menuServerManagerBtn) {
+  const bridge = window.ProCalAndroidShell;
+  menuServerManagerBtn.style.display = bridge && typeof bridge.openServerManager === "function" ? "" : "none";
+  menuServerManagerBtn.addEventListener("click", () => {
+    closeSettingsMenu();
+    if (window.ProCalAndroidShell && typeof window.ProCalAndroidShell.openServerManager === "function") {
+      window.ProCalAndroidShell.openServerManager();
+    }
+  });
+}
 if (closeProfileBtn) {
   closeProfileBtn.addEventListener("click", () => {
     closeProfileModal();
@@ -4377,6 +4390,7 @@ function applyTranslations() {
   setText("menuProfileBtn", t("profile"));
   setText("menuGuideBtn", t("userGuide"));
   setText("menuMobileAppBtn", t("mobileApp"));
+  setText("menuServerManagerBtn", t("serverManager"));
   setText("profileTitle", t("profile"));
   setText("menuShortcutsTitle", t("quickActions"));
   setText("profileNicknameLabel", t("userLabel"));

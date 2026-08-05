@@ -122,6 +122,13 @@ const notifSettingsMsgEl = document.getElementById("notifSettingsMsg");
 const reloadMobilePushStatusBtn = document.getElementById("reloadMobilePushStatusBtn");
 const mobilePushStatusMsgEl = document.getElementById("mobilePushStatusMsg");
 const mobilePushStatusWrapEl = document.getElementById("mobilePushStatusWrap");
+const mobilePushConfigControlsEl = document.getElementById("mobilePushConfigControls");
+const mobilePushServiceAccountFileEl = document.getElementById("mobilePushServiceAccountFile");
+const mobilePushGoogleServicesFileEl = document.getElementById("mobilePushGoogleServicesFile");
+const mobilePushPayloadModeEl = document.getElementById("mobilePushPayloadMode");
+const saveMobilePushConfigBtn = document.getElementById("saveMobilePushConfigBtn");
+const testMobilePushBtn = document.getElementById("testMobilePushBtn");
+const removeMobilePushConfigBtn = document.getElementById("removeMobilePushConfigBtn");
 const notifFilterUserEl = document.getElementById("notifFilterUser");
 const notifFilterTypeEl = document.getElementById("notifFilterType");
 const notifFilterReadEl = document.getElementById("notifFilterRead");
@@ -151,6 +158,17 @@ const adminFilesStorageLabelEl = document.getElementById("adminFilesStorageLabel
 const adminFilesReloadBtn = document.getElementById("adminFilesReloadBtn");
 const filesRealmArchiveBtn = document.getElementById("filesRealmArchiveBtn");
 const filesAdminMsgEl = document.getElementById("filesAdminMsg");
+const systemUpdateStateEl = document.getElementById("systemUpdateState");
+const systemUpdateCurrentVersionEl = document.getElementById("systemUpdateCurrentVersion");
+const systemUpdateCurrentImageEl = document.getElementById("systemUpdateCurrentImage");
+const systemUpdateLatestVersionEl = document.getElementById("systemUpdateLatestVersion");
+const systemUpdateLastCheckedEl = document.getElementById("systemUpdateLastChecked");
+const systemUpdateCheckBtn = document.getElementById("systemUpdateCheckBtn");
+const systemUpdateApplyBtn = document.getElementById("systemUpdateApplyBtn");
+const systemUpdateRollbackBtn = document.getElementById("systemUpdateRollbackBtn");
+const systemUpdateMsgEl = document.getElementById("systemUpdateMsg");
+const systemUpdateNotesEl = document.getElementById("systemUpdateNotes");
+const systemUpdateReleaseLinkEl = document.getElementById("systemUpdateReleaseLink");
 
 let knownPermissions = [];
 let categoriesCache = [];
@@ -164,10 +182,13 @@ let auditRows = [];
 let auditNextCursor = null;
 let auditLoading = false;
 let auditLoadedOnce = false;
+let currentAdminRole = "";
 let leaveTemplateState = { backgroundDataUrl: "", fields: [], userOverrides: [] };
 let leaveTemplateDrag = null;
 let leaveTemplateSelectedFieldIdx = -1;
 let holidayRulesCache = [];
+let systemUpdateStatus = null;
+let systemUpdatePolling = false;
 let notifUsersCache = [];
 let notifTypesCache = [];
 let notifDisabledSet = new Set();
@@ -609,6 +630,7 @@ async function checkAccess() {
   }
   try {
     const me = await api("/api/me", { headers: { authorization: `Bearer ${token}` } });
+    currentAdminRole = String((me && me.role) || "");
     currentFeatureFlags = me && me.featureFlags && typeof me.featureFlags === "object" ? { ...me.featureFlags } : {};
     if (meEl) meEl.textContent = `${me.nickname || me.username} (${me.role})`;
     if (redeemRealmPromoBtn) {
@@ -647,7 +669,9 @@ function applyFeatureAccessToAdminTabs() {
   buttons.forEach((btn) => {
     const tab = String(btn.dataset.tab || "");
     const featureKey = ADMIN_TAB_FEATURES[tab] || "";
-    const allowed = featureKey ? isFeatureEnabled(featureKey) : true;
+    const allowed = tab === "updates"
+      ? isSystemAdminRole(currentAdminRole)
+      : (featureKey ? isFeatureEnabled(featureKey) : true);
     btn.style.display = allowed ? "" : "none";
     btn.disabled = !allowed;
     const pane = document.getElementById(`tab-${tab}`);
@@ -1452,21 +1476,31 @@ function mobilePushStatusMsg(text, danger) {
 
 function renderMobilePushStatus(body) {
   if (!mobilePushStatusWrapEl) return;
-  const configured = Boolean(body && body.configured);
+  const serverConfigured = Boolean(body && body.configured);
+  const clientConfigured = Boolean(body && body.clientConfigured);
+  const configured = body && Object.prototype.hasOwnProperty.call(body, "androidReady")
+    ? Boolean(body.androidReady)
+    : serverConfigured && clientConfigured;
   const payloadMode = String((body && body.payloadMode) || "generic").trim() || "generic";
-  const credentialEnv = String((body && body.credentialEnv) || "PROCAL_FCM_SERVICE_ACCOUNT_JSON_BASE64");
-  const payloadModeEnv = String((body && body.payloadModeEnv) || "PROCAL_PUSH_PAYLOAD_MODE");
-  const statusText = configured ? "Configured" : "Disabled";
+  const source = String((body && body.source) || "disabled");
+  const projectId = String((body && body.projectId) || "");
+  const applicationId = String((body && body.applicationId) || "");
+  const updatedAt = body && body.updatedAt ? new Date(String(body.updatedAt)).toLocaleString() : "";
+  const statusText = configured ? "Ready" : (serverConfigured || clientConfigured ? "Incomplete" : "Disabled");
   const statusColor = configured ? "#166534" : "#92400e";
+  if (mobilePushPayloadModeEl) mobilePushPayloadModeEl.value = payloadMode === "detailed" ? "detailed" : "generic";
+  if (mobilePushConfigControlsEl) mobilePushConfigControlsEl.style.display = currentAdminRole === "system_admin" ? "grid" : "none";
   mobilePushStatusWrapEl.innerHTML = `
     <div class="row" style="align-items:flex-start;gap:12px;">
       <span class="pill" style="background:${configured ? "#dcfce7" : "#fef3c7"};color:${statusColor};">${escapeHtml(statusText)}</span>
       <div>
         <div><strong>Payload mode:</strong> ${escapeHtml(payloadMode)}</div>
-        <div class="muted" style="margin-top:6px;">To enable Android push for this self-hosted server, set these values in the server <code>.env</code> and restart the app container:</div>
-        <pre style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:8px;margin:8px 0 0;">${escapeHtml(credentialEnv)}=&lt;base64 Firebase service account JSON&gt;
-${escapeHtml(payloadModeEnv)}=generic</pre>
-        <div class="muted">Use a Firebase project owned by this installation owner. Keep <code>generic</code> unless you explicitly want Firebase to receive notification titles/bodies.</div>
+        <div><strong>Android client:</strong> ${clientConfigured ? "Configured" : "Missing"}</div>
+        <div><strong>Source:</strong> ${escapeHtml(source === "admin_ui" ? "Admin UI" : source === "environment" ? ".env" : "None")}</div>
+        ${projectId ? `<div><strong>Firebase project:</strong> ${escapeHtml(projectId)}</div>` : ""}
+        ${applicationId ? `<div><strong>Android app:</strong> ${escapeHtml(applicationId)}</div>` : ""}
+        ${updatedAt ? `<div class="muted" style="margin-top:6px;">Updated ${escapeHtml(updatedAt)}</div>` : ""}
+        ${source === "environment" ? '<div class="muted" style="margin-top:6px;">Environment credentials take precedence. Remove them from <code>.env</code> before replacing this configuration through the UI.</div>' : ""}
       </div>
     </div>
   `;
@@ -1480,6 +1514,89 @@ async function loadMobilePushStatus() {
     mobilePushStatusMsg("Mobile push status loaded.");
   } catch (e) {
     mobilePushStatusMsg(String(e.message || e), true);
+  }
+}
+
+async function readJsonFile(fileInput, label) {
+  const file = fileInput && fileInput.files && fileInput.files[0];
+  if (!file) throw new Error(`Select ${label}.`);
+  if (file.size > 1024 * 1024) throw new Error(`${label} is unexpectedly large.`);
+  try {
+    return JSON.parse(await file.text());
+  } catch {
+    throw new Error(`${label} is not valid JSON.`);
+  }
+}
+
+async function saveMobilePushConfig() {
+  if (currentAdminRole !== "system_admin") return;
+  if (saveMobilePushConfigBtn) saveMobilePushConfigBtn.disabled = true;
+  try {
+    const hasServiceAccount = Boolean(mobilePushServiceAccountFileEl && mobilePushServiceAccountFileEl.files && mobilePushServiceAccountFileEl.files[0]);
+    const hasGoogleServices = Boolean(mobilePushGoogleServicesFileEl && mobilePushGoogleServicesFileEl.files && mobilePushGoogleServicesFileEl.files[0]);
+    if (hasServiceAccount !== hasGoogleServices) {
+      throw new Error("Select both Firebase JSON files when replacing the configuration.");
+    }
+    const payloadMode = String((mobilePushPayloadModeEl && mobilePushPayloadModeEl.value) || "generic");
+    let body;
+    if (hasServiceAccount && hasGoogleServices) {
+      const [serviceAccount, googleServices] = await Promise.all([
+        readJsonFile(mobilePushServiceAccountFileEl, "the Firebase service account JSON"),
+        readJsonFile(mobilePushGoogleServicesFileEl, "google-services.json")
+      ]);
+      body = await api("/api/admin/mobile-push/config", {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ serviceAccount, googleServices, payloadMode })
+      });
+    } else {
+      body = await api("/api/admin/mobile-push/config", {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({ payloadMode })
+      });
+    }
+    if (mobilePushServiceAccountFileEl) mobilePushServiceAccountFileEl.value = "";
+    if (mobilePushGoogleServicesFileEl) mobilePushGoogleServicesFileEl.value = "";
+    renderMobilePushStatus(body || {});
+    mobilePushStatusMsg(hasServiceAccount
+      ? "Firebase configuration saved and activated."
+      : "Notification content mode updated.");
+  } catch (e) {
+    mobilePushStatusMsg(String(e.message || e), true);
+  } finally {
+    if (saveMobilePushConfigBtn) saveMobilePushConfigBtn.disabled = false;
+  }
+}
+
+async function testMobilePush() {
+  if (testMobilePushBtn) testMobilePushBtn.disabled = true;
+  try {
+    const body = await api("/api/admin/mobile-push/test", { method: "POST", headers: authHeaders() });
+    const sent = Number(body && body.delivery && body.delivery.sent || 0);
+    mobilePushStatusMsg(sent > 0
+      ? `Test notification sent to ${sent} registered device${sent === 1 ? "" : "s"}.`
+      : "Firebase initialized correctly, but this administrator has no active Android device registered on this server.");
+  } catch (e) {
+    mobilePushStatusMsg(String(e.message || e), true);
+  } finally {
+    if (testMobilePushBtn) testMobilePushBtn.disabled = false;
+  }
+}
+
+async function removeMobilePushConfig() {
+  if (!confirm("Disable mobile push and permanently remove the Firebase credentials stored by ProCal?")) return;
+  if (removeMobilePushConfigBtn) removeMobilePushConfigBtn.disabled = true;
+  try {
+    const body = await api("/api/admin/mobile-push/config", { method: "DELETE", headers: authHeaders() });
+    renderMobilePushStatus(body || {});
+    mobilePushStatusMsg(body && body.configured
+      ? "Stored credentials removed. Mobile push remains enabled by .env configuration."
+      : "Mobile push disabled and stored credentials removed.");
+  } catch (e) {
+    mobilePushStatusMsg(String(e.message || e), true);
+  } finally {
+    if (removeMobilePushConfigBtn) removeMobilePushConfigBtn.disabled = false;
   }
 }
 
@@ -1774,6 +1891,9 @@ async function sendAdminImportantNotification() {
 
 function bindNotificationsAdmin() {
   if (reloadMobilePushStatusBtn) reloadMobilePushStatusBtn.onclick = () => { void loadMobilePushStatus(); };
+  if (saveMobilePushConfigBtn) saveMobilePushConfigBtn.onclick = () => { void saveMobilePushConfig(); };
+  if (testMobilePushBtn) testMobilePushBtn.onclick = () => { void testMobilePush(); };
+  if (removeMobilePushConfigBtn) removeMobilePushConfigBtn.onclick = () => { void removeMobilePushConfig(); };
   if (reloadNotifSettingsBtn) reloadNotifSettingsBtn.onclick = () => { void loadNotifSettings(); };
   if (saveNotifSettingsBtn) saveNotifSettingsBtn.onclick = () => { void saveNotifSettings(); };
   if (notifApplyBtn) notifApplyBtn.onclick = () => { void loadNotifRows(false); };
@@ -3127,6 +3247,157 @@ function bindLeaveTemplate() {
   if (leaveTplAddCreatedBtn) leaveTplAddCreatedBtn.onclick = () => addLeaveTemplateField("created_at", "Created At");
 }
 
+function renderSystemUpdateStatus(status) {
+  systemUpdateStatus = status && typeof status === "object" ? status : null;
+  if (!systemUpdateStatus) return;
+
+  const enabled = systemUpdateStatus.enabled === true;
+  const reachable = systemUpdateStatus.reachable !== false;
+  const phase = String(systemUpdateStatus.phase || "idle");
+  const busy = ["queued", "updating", "rolling_back"].includes(phase);
+  const current = systemUpdateStatus.current && typeof systemUpdateStatus.current === "object" ? systemUpdateStatus.current : {};
+  const latest = systemUpdateStatus.latest && typeof systemUpdateStatus.latest === "object" ? systemUpdateStatus.latest : {};
+  const release = latest.release && typeof latest.release === "object" ? latest.release : null;
+
+  if (systemUpdateCurrentVersionEl) {
+    systemUpdateCurrentVersionEl.textContent = String(current.version || systemUpdateStatus.currentVersion || "Unknown");
+  }
+  if (systemUpdateCurrentImageEl) {
+    systemUpdateCurrentImageEl.textContent = String(current.image || "Not available");
+  }
+  if (systemUpdateLatestVersionEl) {
+    systemUpdateLatestVersionEl.textContent = release
+      ? String(release.name || release.tag || "Latest image")
+      : (latest.digest ? "Latest published image" : "Not checked");
+  }
+  if (systemUpdateLastCheckedEl) {
+    const checkedAt = systemUpdateStatus.lastCheckedAt ? new Date(String(systemUpdateStatus.lastCheckedAt)) : null;
+    systemUpdateLastCheckedEl.textContent = checkedAt && !Number.isNaN(checkedAt.getTime()) ? checkedAt.toLocaleString() : "Never";
+  }
+
+  let label = "Up to date";
+  let tone = "ready";
+  if (!enabled) {
+    label = "Manual updates";
+    tone = "warn";
+  } else if (!reachable) {
+    label = "Updater unavailable";
+    tone = "error";
+  } else if (busy) {
+    label = phase === "rolling_back" ? "Rolling back" : "Updating";
+    tone = "warn";
+  } else if (phase === "failed" || systemUpdateStatus.error) {
+    label = "Action required";
+    tone = "error";
+  } else if (systemUpdateStatus.updateAvailable) {
+    label = "Update available";
+    tone = "warn";
+  }
+  if (systemUpdateStateEl) {
+    systemUpdateStateEl.textContent = label;
+    systemUpdateStateEl.className = `update-state ${tone}`;
+  }
+
+  if (systemUpdateCheckBtn) systemUpdateCheckBtn.disabled = !enabled || !reachable || busy;
+  if (systemUpdateApplyBtn) systemUpdateApplyBtn.disabled = !enabled || !reachable || busy || !systemUpdateStatus.updateAvailable;
+  if (systemUpdateRollbackBtn) systemUpdateRollbackBtn.disabled = !enabled || !reachable || busy || !systemUpdateStatus.canRollback;
+  if (systemUpdateMsgEl) {
+    systemUpdateMsgEl.textContent = String(
+      systemUpdateStatus.error ||
+      systemUpdateStatus.checkError ||
+      systemUpdateStatus.message ||
+      (!enabled ? "One-click updates are available only in the prebuilt image installation." : "")
+    );
+  }
+  if (systemUpdateNotesEl) {
+    systemUpdateNotesEl.textContent = release && release.notes
+      ? String(release.notes)
+      : "No release notes are available for the latest image.";
+  }
+  if (systemUpdateReleaseLinkEl) {
+    const releaseUrl = release && typeof release.url === "string" && /^https:\/\/github\.com\//i.test(release.url) ? release.url : "";
+    systemUpdateReleaseLinkEl.href = releaseUrl || "#";
+    systemUpdateReleaseLinkEl.classList.toggle("hidden", !releaseUrl);
+  }
+}
+
+async function loadSystemUpdateStatus(checkRemote = false) {
+  if (!isSystemAdminRole(currentAdminRole)) return;
+  if (systemUpdateMsgEl) systemUpdateMsgEl.textContent = checkRemote ? "Checking GitHub Container Registry..." : "Loading update status...";
+  try {
+    const status = await api(checkRemote ? "/api/admin/system-update/check" : "/api/admin/system-update/status", {
+      method: checkRemote ? "POST" : "GET"
+    });
+    renderSystemUpdateStatus(status);
+  } catch (error) {
+    if (systemUpdateMsgEl) systemUpdateMsgEl.textContent = String(error.message || error);
+    if (systemUpdateStateEl) {
+      systemUpdateStateEl.textContent = "Status unavailable";
+      systemUpdateStateEl.className = "update-state error";
+    }
+  }
+}
+
+async function pollSystemUpdate() {
+  if (systemUpdatePolling) return;
+  systemUpdatePolling = true;
+  try {
+    for (let attempt = 0; attempt < 120; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+      try {
+        const status = await api("/api/admin/system-update/status", { method: "GET" });
+        renderSystemUpdateStatus(status);
+        const phase = String(status.phase || "idle");
+        if (!["queued", "updating", "rolling_back"].includes(phase)) break;
+      } catch {
+        if (systemUpdateMsgEl) systemUpdateMsgEl.textContent = "The application is restarting. Waiting for it to return...";
+      }
+    }
+  } finally {
+    systemUpdatePolling = false;
+  }
+}
+
+function bindSystemUpdate() {
+  if (systemUpdateCheckBtn) systemUpdateCheckBtn.onclick = () => { void loadSystemUpdateStatus(true); };
+  if (systemUpdateApplyBtn) {
+    systemUpdateApplyBtn.onclick = async () => {
+      if (!window.confirm("Update ProCal now? Export a full backup first. The application will be unavailable briefly.")) return;
+      systemUpdateApplyBtn.disabled = true;
+      try {
+        await api("/api/admin/system-update/apply", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({ confirmation: "UPDATE" })
+        });
+        renderSystemUpdateStatus({ ...(systemUpdateStatus || {}), phase: "queued", message: "Update queued" });
+        void pollSystemUpdate();
+      } catch (error) {
+        if (systemUpdateMsgEl) systemUpdateMsgEl.textContent = String(error.message || error);
+        systemUpdateApplyBtn.disabled = false;
+      }
+    };
+  }
+  if (systemUpdateRollbackBtn) {
+    systemUpdateRollbackBtn.onclick = async () => {
+      if (!window.confirm("Roll back to the previous application image? Database migrations cannot be reversed.")) return;
+      systemUpdateRollbackBtn.disabled = true;
+      try {
+        await api("/api/admin/system-update/rollback", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({ confirmation: "ROLLBACK" })
+        });
+        renderSystemUpdateStatus({ ...(systemUpdateStatus || {}), phase: "queued", message: "Rollback queued" });
+        void pollSystemUpdate();
+      } catch (error) {
+        if (systemUpdateMsgEl) systemUpdateMsgEl.textContent = String(error.message || error);
+        systemUpdateRollbackBtn.disabled = false;
+      }
+    };
+  }
+}
+
 function bindTabs() {
   const buttons = Array.from(document.querySelectorAll(".tab-btn"));
   buttons.forEach((btn) => {
@@ -3153,7 +3424,10 @@ function bindTabs() {
       }
       if (tab === "files" && isFeatureEnabled("admin_files") && !filesAdminLoadedOnce) {
         void loadFilesAdmin();
-      }    });
+      }      if (tab === "updates" && isSystemAdminRole(currentAdminRole)) {
+        void loadSystemUpdateStatus(true);
+      }
+    });
   });
 }
 
@@ -3170,6 +3444,7 @@ async function init() {
   bindNotificationsAdmin();
   bindBackupsAdmin();
   bindFilesAdmin();
+  bindSystemUpdate();
   document.getElementById("reloadUsers").onclick = loadUsers;
   bindCategories();
 

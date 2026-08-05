@@ -9,10 +9,10 @@ The Docker image also contains Node.js, Debian packages, and the MariaDB service
 
 | License | Count |
 | --- | ---: |
-| MIT | 187 |
+| MIT | 186 |
 | Apache-2.0 | 36 |
-| ISC | 17 |
-| BlueOak-1.0.0 | 4 |
+| ISC | 15 |
+| BlueOak-1.0.0 | 5 |
 | BSD-3-Clause | 3 |
 | 0BSD | 1 |
 | BSD-2-Clause | 1 |
@@ -26,15 +26,15 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | Package | License | Source | License File |
 | --- | --- | --- | --- |
 | @fastify/busboy@3.2.0 | MIT | [source](git+https://github.com/fastify/busboy.git) | apps/procal-core/server/node_modules/@fastify/busboy/LICENSE |
-| @firebase/app-check-interop-types@0.3.3 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
-| @firebase/app-types@0.9.3 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
-| @firebase/auth-interop-types@0.2.4 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
-| @firebase/component@0.7.2 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
-| @firebase/database-compat@2.1.2 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
-| @firebase/database-types@1.0.18 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
-| @firebase/database@1.1.2 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
-| @firebase/logger@0.5.0 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
-| @firebase/util@1.15.0 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
+| @firebase/app-check-interop-types@0.3.4 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
+| @firebase/app-types@0.9.5 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
+| @firebase/auth-interop-types@0.2.5 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
+| @firebase/component@0.7.4 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
+| @firebase/database-compat@2.1.5 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
+| @firebase/database-types@1.0.21 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
+| @firebase/database@1.1.4 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
+| @firebase/logger@0.5.1 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
+| @firebase/util@1.15.2 | Apache-2.0 | [source](git+https://github.com/firebase/firebase-js-sdk.git) |  |
 | @isaacs/cliui@8.0.2 | ISC | [source](yargs/cliui) | apps/procal-core/server/node_modules/@isaacs/cliui/LICENSE.txt |
 | @prisma/client@5.22.0 | Apache-2.0 | [source](https://github.com/prisma/prisma.git) | apps/procal-core/server/node_modules/@prisma/client/LICENSE |
 | @prisma/debug@5.22.0 | Apache-2.0 | [source](https://github.com/prisma/prisma.git) | apps/procal-core/server/node_modules/@prisma/debug/LICENSE |
@@ -70,7 +70,7 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | bcrypt@6.0.0 | MIT | [source](https://github.com/kelektiv/node.bcrypt.js.git) | apps/procal-core/server/node_modules/bcrypt/LICENSE |
 | bignumber.js@9.3.1 | MIT | [source](https://github.com/MikeMcl/bignumber.js.git) |  |
 | body-parser@1.20.6 | MIT | [source](expressjs/body-parser) | apps/procal-core/server/node_modules/body-parser/LICENSE |
-| brace-expansion@5.0.8 | MIT | [source](git+https://github.com/juliangruber/brace-expansion.git) | apps/procal-core/server/node_modules/brace-expansion/LICENSE |
+| brace-expansion@5.0.9 | MIT | [source](git+https://github.com/juliangruber/brace-expansion.git) | apps/procal-core/server/node_modules/brace-expansion/LICENSE |
 | buffer-crc32@1.0.0 | MIT | [source](git://github.com/brianloveswords/buffer-crc32.git) | apps/procal-core/server/node_modules/buffer-crc32/LICENSE |
 | buffer-equal-constant-time@1.0.1 | BSD-3-Clause | [source](git@github.com:goinstant/buffer-equal-constant-time.git) | apps/procal-core/server/node_modules/buffer-equal-constant-time/LICENSE.txt |
 | buffer-from@1.1.2 | MIT | [source](LinusU/buffer-from) | apps/procal-core/server/node_modules/buffer-from/LICENSE |
@@ -118,14 +118,13 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | express-rate-limit@7.5.0 | MIT | [source](git+https://github.com/express-rate-limit/express-rate-limit.git) | apps/procal-core/server/node_modules/express-rate-limit/LICENSE.md |
 | express@4.22.2 | MIT | [source](expressjs/express) | apps/procal-core/server/node_modules/express/LICENSE |
 | extend@3.0.2 | MIT | [source](https://github.com/justmoon/node-extend.git) | apps/procal-core/server/node_modules/extend/LICENSE |
-| farmhash-modern@1.1.0 | MIT | [source](git@github.com:ForbesLindesay/npm-package-template.git) | apps/procal-core/server/node_modules/farmhash-modern/LICENSE |
 | fast-deep-equal@3.1.3 | MIT | [source](git+https://github.com/epoberezkin/fast-deep-equal.git) | apps/procal-core/server/node_modules/fast-deep-equal/LICENSE |
 | fast-fifo@1.3.2 | MIT | [source](https://github.com/mafintosh/fast-fifo.git) | apps/procal-core/server/node_modules/fast-fifo/LICENSE |
 | fast-redact@3.5.0 | MIT | [source](git+https://github.com/davidmarkclements/fast-redact.git) | apps/procal-core/server/node_modules/fast-redact/LICENSE |
 | faye-websocket@0.11.4 | Apache-2.0 | [source](git://github.com/faye/faye-websocket-node.git) | apps/procal-core/server/node_modules/faye-websocket/LICENSE.md |
 | fetch-blob@3.2.0 | MIT | [source](https://github.com/node-fetch/fetch-blob.git) | apps/procal-core/server/node_modules/fetch-blob/LICENSE |
 | finalhandler@1.3.1 | MIT | [source](pillarjs/finalhandler) | apps/procal-core/server/node_modules/finalhandler/LICENSE |
-| firebase-admin@13.10.0 | Apache-2.0 | [source](https://github.com/firebase/firebase-admin-node) | apps/procal-core/server/node_modules/firebase-admin/LICENSE |
+| firebase-admin@14.2.0 | Apache-2.0 | [source](https://github.com/firebase/firebase-admin-node) | apps/procal-core/server/node_modules/firebase-admin/LICENSE |
 | foreground-child@3.3.1 | ISC | [source](git+https://github.com/tapjs/foreground-child.git) | apps/procal-core/server/node_modules/foreground-child/LICENSE |
 | formdata-polyfill@4.0.10 | MIT | [source](git+https://jimmywarting@github.com/jimmywarting/FormData.git) | apps/procal-core/server/node_modules/formdata-polyfill/LICENSE |
 | forwarded@0.2.0 | MIT | [source](jshttp/forwarded) | apps/procal-core/server/node_modules/forwarded/LICENSE |
@@ -157,12 +156,12 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | isarray@1.0.0 | MIT | [source](git://github.com/juliangruber/isarray.git) |  |
 | isexe@2.0.0 | ISC | [source](git+https://github.com/isaacs/isexe.git) | apps/procal-core/server/node_modules/isexe/LICENSE |
 | jackspeak@3.4.3 | BlueOak-1.0.0 | [source](git+https://github.com/isaacs/jackspeak.git) | apps/procal-core/server/node_modules/jackspeak/LICENSE.md |
-| jose@4.15.9 | MIT | [source](panva/jose) | apps/procal-core/server/node_modules/jose/LICENSE.md |
+| jose@6.2.8 | MIT | [source](panva/jose) | apps/procal-core/server/node_modules/jose/LICENSE.md |
 | json-bigint@1.0.0 | MIT | [source](git@github.com:sidorares/json-bigint.git) | apps/procal-core/server/node_modules/json-bigint/LICENSE |
 | jsonwebtoken@9.0.2 | MIT | [source](https://github.com/auth0/node-jsonwebtoken) | apps/procal-core/server/node_modules/jsonwebtoken/LICENSE |
 | jwa@1.4.2 | MIT | [source](git://github.com/brianloveswords/node-jwa.git) | apps/procal-core/server/node_modules/jsonwebtoken/node_modules/jwa/LICENSE |
 | jwa@2.0.1 | MIT | [source](git://github.com/brianloveswords/node-jwa.git) | apps/procal-core/server/node_modules/jwa/LICENSE |
-| jwks-rsa@3.2.2 | MIT | [source](git+https://github.com/auth0/node-jwks-rsa.git) | apps/procal-core/server/node_modules/jwks-rsa/LICENSE |
+| jwks-rsa@4.1.0 | MIT | [source](git+https://github.com/auth0/node-jwks-rsa.git) | apps/procal-core/server/node_modules/jwks-rsa/LICENSE |
 | jws@3.2.3 | MIT | [source](git://github.com/brianloveswords/node-jws.git) | apps/procal-core/server/node_modules/jsonwebtoken/node_modules/jws/LICENSE |
 | jws@4.0.1 | MIT | [source](git://github.com/brianloveswords/node-jws.git) | apps/procal-core/server/node_modules/jws/LICENSE |
 | lazystream@1.0.1 | MIT | [source](https://github.com/jpommerening/node-lazystream.git) | apps/procal-core/server/node_modules/lazystream/LICENSE |
@@ -177,8 +176,8 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | lodash.once@4.1.1 | MIT | [source](lodash/lodash) | apps/procal-core/server/node_modules/lodash.once/LICENSE |
 | lodash@4.18.1 | MIT | [source](lodash/lodash) | apps/procal-core/server/node_modules/lodash/LICENSE |
 | lru-cache@10.4.3 | ISC | [source](git://github.com/isaacs/node-lru-cache.git) | apps/procal-core/server/node_modules/path-scurry/node_modules/lru-cache/LICENSE |
-| lru-cache@6.0.0 | ISC | [source](git://github.com/isaacs/node-lru-cache.git) | apps/procal-core/server/node_modules/lru-cache/LICENSE |
-| lru-memoizer@2.3.0 | MIT | [source](git://github.com/jfromaniello/lru-memoizer.git) | apps/procal-core/server/node_modules/lru-memoizer/LICENSE |
+| lru-cache@11.5.2 | BlueOak-1.0.0 | [source](git+ssh://git@github.com/isaacs/node-lru-cache.git) | apps/procal-core/server/node_modules/lru-cache/LICENSE.md |
+| lru-memoizer@3.0.0 | MIT | [source](git://github.com/jfromaniello/lru-memoizer.git) | apps/procal-core/server/node_modules/lru-memoizer/LICENSE |
 | math-intrinsics@1.1.0 | MIT | [source](git+https://github.com/es-shims/math-intrinsics.git) | apps/procal-core/server/node_modules/math-intrinsics/LICENSE |
 | media-typer@0.3.0 | MIT | [source](jshttp/media-typer) | apps/procal-core/server/node_modules/media-typer/LICENSE |
 | merge-descriptors@1.0.3 | MIT | [source](sindresorhus/merge-descriptors) | apps/procal-core/server/node_modules/merge-descriptors/LICENSE |
@@ -271,7 +270,6 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | which@2.0.2 | ISC | [source](git://github.com/isaacs/node-which.git) | apps/procal-core/server/node_modules/which/LICENSE |
 | wrap-ansi@7.0.0 | MIT | [source](chalk/wrap-ansi) | apps/procal-core/server/node_modules/wrap-ansi-cjs/LICENSE |
 | wrap-ansi@8.1.0 | MIT | [source](chalk/wrap-ansi) | apps/procal-core/server/node_modules/wrap-ansi/LICENSE |
-| yallist@4.0.0 | ISC | [source](git+https://github.com/isaacs/yallist.git) | apps/procal-core/server/node_modules/yallist/LICENSE |
 | zip-stream@6.0.1 | MIT | [source](https://github.com/archiverjs/node-zip-stream.git) | apps/procal-core/server/node_modules/zip-stream/LICENSE |
 | zod@3.24.1 | MIT | [source](git+https://github.com/colinhacks/zod.git) | apps/procal-core/server/node_modules/zod/LICENSE |
 

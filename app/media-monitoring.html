@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ProCal Media Monitoring</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script>
     try {
       if (localStorage.getItem("procal_theme") === "dark") {
@@ -17,6 +18,8 @@
     body { margin:0; font-family:"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); }
     .wrap { padding:12px; max-width:1600px; margin:0 auto; }
     .head { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+    .page-brand { display:flex; align-items:center; gap:10px; min-width:0; }
+    .page-brand img { width:44px; height:44px; flex:0 0 auto; }
     .head h1 { margin:0; }
     .muted { color:var(--muted); font-size:13px; }
     .card { margin-top:12px; border:1px solid var(--line); border-radius:12px; background:var(--card); padding:10px; }
@@ -69,9 +72,12 @@
 <body>
   <div class="wrap">
     <div class="head">
-      <div>
-        <h1 id="title">Media Monitoring</h1>
-        <div id="subtitle" class="muted">Track owned publications and internet mentions</div>
+      <div class="page-brand">
+        <img src="favicon.ico" alt="" width="44" height="44">
+        <div>
+          <h1 id="title">Media Monitoring</h1>
+          <div id="subtitle" class="muted">Track owned publications and internet mentions</div>
+        </div>
       </div>
       <div class="row">
         <a id="backLink" class="btn" href="/">Back</a>

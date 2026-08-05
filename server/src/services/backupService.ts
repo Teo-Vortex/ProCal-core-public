@@ -445,12 +445,17 @@ function toSqlParam(value: unknown): unknown {
   return value;
 }
 
+function protectedConfigFileNames(): Set<string> {
+  return new Set([path.basename(getConfigPath()), "mobile-push.secrets.json"]);
+}
+
 function walkFiles(dir: string, rootDir: string, out: BackupFileEntry[]): void {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
     const abs = path.join(dir, entry.name);
     const rel = path.relative(rootDir, abs).replace(/\\/g, "/");
     if (rel === "backups" || rel.startsWith("backups/")) continue;
+    if (protectedConfigFileNames().has(rel)) continue;
     if (entry.isDirectory()) {
       walkFiles(abs, rootDir, out);
       continue;
@@ -489,11 +494,18 @@ function clearDirectoryRecursive(dir: string): void {
 function writeConfigFilesSnapshot(entries: BackupFileEntry[]): void {
   const root = getConfigDir();
   if (!fs.existsSync(root)) fs.mkdirSync(root, { recursive: true });
+  const protectedFiles = Array.from(protectedConfigFileNames())
+    .map((name) => ({ name, filePath: path.join(root, name) }))
+    .filter((entry) => fs.existsSync(entry.filePath))
+    .map((entry) => ({ name: entry.name, content: fs.readFileSync(entry.filePath) }));
   clearDirectoryRecursive(root);
+
+  protectedFiles.forEach((entry) => fs.writeFileSync(path.join(root, entry.name), entry.content, { mode: 0o600 }));
 
   for (const entry of entries) {
     const rel = String(entry.path || "").replace(/\\/g, "/").replace(/^\/+/, "");
     if (!rel || rel.startsWith("backups/") || rel === "backups") continue;
+    if (protectedConfigFileNames().has(rel)) continue;
     const abs = path.join(root, rel);
     const dir = path.dirname(abs);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });

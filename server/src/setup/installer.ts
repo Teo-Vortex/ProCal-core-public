@@ -24,10 +24,10 @@ export const setupInputSchema = z.object({
 export const firstAdminSchema = z.object({
   adminUsername: z.string().min(3).max(64),
   adminPassword: z.string().min(8).max(128),
-  adminNickname: z.string().min(2).max(64),
-  adminFullName: z.string().min(3).max(191),
-  adminWorkplace: z.string().min(2).max(191),
-  adminJobTitle: z.string().min(2).max(191),
+  adminNickname: z.string().trim().max(64).optional().default(""),
+  adminFullName: z.string().trim().max(191).optional().default(""),
+  adminWorkplace: z.string().trim().max(191).optional().default(""),
+  adminJobTitle: z.string().trim().max(191).optional().default(""),
   adminRole: z.enum(["system_admin", "admin", "boss"]).default("system_admin")
 });
 
@@ -106,11 +106,13 @@ async function createFirstAdminWithPrisma(
   if (existingUsers > 0) throw new Error("Admin already exists");
 
   const passwordHash = await hashPassword(input.adminPassword);
+  const nickname = input.adminNickname.trim() || input.adminUsername;
+  const fullName = input.adminFullName.trim() || nickname;
   const user = await prisma.user.create({
     data: {
       username: input.adminUsername,
-      nickname: input.adminNickname.trim(),
-      fullName: input.adminFullName.trim(),
+      nickname,
+      fullName,
       workplace: input.adminWorkplace.trim(),
       jobTitle: input.adminJobTitle.trim(),
       passwordHash,
@@ -193,7 +195,10 @@ export async function registerFirstAdmin(input: z.infer<typeof firstAdminSchema>
 
   const prisma = new PrismaClient({ datasourceUrl: databaseUrl });
   try {
-    return await createFirstAdminWithPrisma(prisma, input);
+    return await createFirstAdminWithPrisma(prisma, {
+      ...input,
+      adminRole: "system_admin"
+    });
   } finally {
     await prisma.$disconnect();
   }

@@ -266,6 +266,23 @@ body {
   flex-wrap: wrap;
 }
 
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.brand-mark {
+  width: 3rem;
+  height: 3rem;
+  flex: 0 0 auto;
+}
+
+.brand-lockup .title-wrap {
+  min-width: 0;
+}
+
 .title-wrap h1 {
   margin: 0;
   font-size: 1.75rem;

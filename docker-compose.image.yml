@@ -12,12 +12,8 @@ services:
       - TZ=${TZ:-Europe/Sofia}
     volumes:
       - procal_core_db:/config
-    networks:
-      procal_internal:
-        aliases:
-          - db
     healthcheck:
-      test: ["CMD-SHELL", "nc -z 127.0.0.1 3306 || exit 1"]
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 30
@@ -41,6 +37,8 @@ services:
       - PROCAL_RELEASE_CHANNEL=self
       - REALM_RELEASE_CHANNEL=self
       - PROCAL_APP_VERSION=${PROCAL_SELF_APP_VERSION:-0.9.9-community}
+      - PROCAL_UPDATER_URL=http://updater:7070
+      - PROCAL_UPDATER_TOKEN=${PROCAL_UPDATER_TOKEN:?Set PROCAL_UPDATER_TOKEN in .env}
       - PROCAL_FCM_SERVICE_ACCOUNT_JSON_BASE64=${PROCAL_FCM_SERVICE_ACCOUNT_JSON_BASE64:-}
       - PROCAL_PUSH_PAYLOAD_MODE=${PROCAL_PUSH_PAYLOAD_MODE:-generic}
       - FIRST_ADMIN_SETUP_TOKEN=${PROCAL_SELF_SETUP_TOKEN:?Set PROCAL_SELF_SETUP_TOKEN in .env}
@@ -54,8 +52,8 @@ services:
     volumes:
       - procal_core_config:/app/config
       - procal_core_backups:/app/backups
-    networks:
-      - procal_internal
+    labels:
+      - io.procal.updater.target=true
     healthcheck:
       test:
         [
@@ -71,12 +69,41 @@ services:
       db:
         condition: service_healthy
 
+  updater:
+    image: ${PROCAL_UPDATER_IMAGE:-ghcr.io/teo-vortex/procal-core-updater:latest}
+    restart: unless-stopped
+    environment:
+      - PORT=7070
+      - PROCAL_UPDATER_TOKEN=${PROCAL_UPDATER_TOKEN:?Set PROCAL_UPDATER_TOKEN in .env}
+      - PROCAL_UPDATE_IMAGE=${PROCAL_CORE_IMAGE:?Set PROCAL_CORE_IMAGE in .env}
+      - PROCAL_UPDATE_ALLOWED_IMAGE=${PROCAL_UPDATE_ALLOWED_IMAGE:-ghcr.io/teo-vortex/procal-core-public}
+      - PROCAL_UPDATE_GITHUB_REPO=${PROCAL_UPDATE_GITHUB_REPO:-Teo-Vortex/ProCal-core-public}
+      - PROCAL_UPDATE_HEALTH_TIMEOUT_SEC=${PROCAL_UPDATE_HEALTH_TIMEOUT_SEC:-180}
+      - PROCAL_UPDATE_PULL_MODE=${PROCAL_UPDATE_PULL_MODE:-always}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - procal_core_updater:/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "const http=require('http');const req=http.get('http://127.0.0.1:7070/health',(res)=>{process.exit(res.statusCode===200?0:1);});req.on('error',()=>process.exit(1));req.setTimeout(3000,()=>{req.destroy();process.exit(1);});"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
 volumes:
   procal_core_config: {}
   procal_core_db: {}
   procal_core_backups: {}
-
-networks:
-  procal_internal:
-    name: procal-core-internal
-    driver: bridge
+  procal_core_updater: {}

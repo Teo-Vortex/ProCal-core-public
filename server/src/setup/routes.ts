@@ -77,12 +77,15 @@ setupRouter.post("/api/setup/register-first-admin", async (req, res) => {
 
   try {
     let setupInput: FirstAdminInput;
-    const parsed = firstAdminSchema.safeParse(req.body);
+    const parsed = firstAdminSchema.safeParse({
+      ...req.body,
+      adminRole: "system_admin"
+    });
     if (!parsed.success) {
       res.status(400).json({ error: parsed.error.flatten() });
       return;
     }
-    setupInput = parsed.data;
+    setupInput = { ...parsed.data, adminRole: "system_admin" };
 
     const lockedAdminUsername = String(process.env.FIRST_ADMIN_USERNAME || "").trim();
     const adminUsername = lockedAdminUsername || setupInput.adminUsername;

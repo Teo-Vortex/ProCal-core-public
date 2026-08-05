@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ProCal</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script>
     try {
       if (localStorage.getItem("procal_theme") === "dark") {
@@ -19,15 +20,18 @@
 
   <main class="app">
     <header class="topbar">
-      <div class="title-wrap">
-        <div class="title-line">
-          <h1 id="appTitle">ProCal</h1>
-          <span id="connectionStatus" class="connection-status offline">
-            <span id="connectionStatusDot" class="connection-dot" aria-hidden="true"></span>
-            <span id="connectionStatusText">Offline</span>
-          </span>
+      <div class="brand-lockup">
+        <img class="brand-mark" src="favicon.ico" alt="" width="48" height="48">
+        <div class="title-wrap">
+          <div class="title-line">
+            <h1 id="appTitle">ProCal</h1>
+            <span id="connectionStatus" class="connection-status offline">
+              <span id="connectionStatusDot" class="connection-dot" aria-hidden="true"></span>
+              <span id="connectionStatusText">Offline</span>
+            </span>
+          </div>
+          <p id="appSubtitle">Shared calendar and task planner</p>
         </div>
-        <p id="appSubtitle">Shared calendar and task planner</p>
       </div>
       <div class="topbar-actions">
         <button id="notificationsBtn" class="ghost-btn topbar-icon-btn" type="button" title="Notifications" aria-label="Notifications">
@@ -654,6 +658,7 @@
           <button id="menuProfileBtn" class="ghost-btn" type="button">Profile</button>
           <button id="menuGuideBtn" class="ghost-btn" type="button">User guide</button>
           <button id="menuMobileAppBtn" class="ghost-btn" type="button">Mobile app</button>
+          <button id="menuServerManagerBtn" class="ghost-btn" type="button" style="display:none;">Servers and notifications</button>
           <button id="currentUserLeaveBtn" class="ghost-btn" type="button">My leave</button>
 
           <div id="settingsUserSection" class="settings-shortcuts">

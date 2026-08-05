@@ -1,5 +1,6 @@
 import {
   cert,
+  deleteApp,
   getApps,
   initializeApp,
   type App,
@@ -11,6 +12,11 @@ import {
 } from "firebase-admin/messaging";
 import { logger } from "../utils/logger";
 import { listEnabledPushDevicesForUsers, removePushDevicesByIds } from "./pushDeviceService";
+import {
+  extractFirebaseClientConfig,
+  loadMobilePushConfig,
+  type FirebaseClientConfig
+} from "./mobilePushConfigService";
 
 type PushMessageInput = {
   userIds: string[];
@@ -23,8 +29,9 @@ type PushMessageInput = {
 
 let firebaseApp: App | null | undefined;
 let initLogged = false;
+const FIREBASE_APP_NAME = "procal-mobile-push";
 
-function readServiceAccountJson(): ServiceAccount | null {
+function readEnvironmentServiceAccount(): ServiceAccount | null {
   const rawBase64 = String(
     process.env.FCM_SERVICE_ACCOUNT_JSON_BASE64 ||
     process.env.PROCAL_FCM_SERVICE_ACCOUNT_JSON_BASE64 ||
@@ -52,25 +59,98 @@ function readServiceAccountJson(): ServiceAccount | null {
   return null;
 }
 
+function readEnvironmentClientConfig(): FirebaseClientConfig | null {
+  const rawBase64 = String(process.env.PROCAL_FIREBASE_CLIENT_JSON_BASE64 || "").trim();
+  const rawJson = String(process.env.PROCAL_FIREBASE_CLIENT_JSON || "").trim();
+  if (!rawBase64 && !rawJson) return null;
+  try {
+    const parsed = JSON.parse(rawBase64 ? Buffer.from(rawBase64, "base64").toString("utf8") : rawJson);
+    return extractFirebaseClientConfig(parsed);
+  } catch (error) {
+    if (!initLogged) {
+      logger.warn({ err: error }, "Invalid Firebase Android client JSON for mobile push.");
+      initLogged = true;
+    }
+    return null;
+  }
+}
+
+function readStoredConfigSafely() {
+  try {
+    return loadMobilePushConfig();
+  } catch (error) {
+    if (!initLogged) {
+      logger.error({ err: error }, "Failed to decrypt mobile push configuration.");
+      initLogged = true;
+    }
+    return null;
+  }
+}
+
+function resolveMobilePushConfig() {
+  const environmentServiceAccount = readEnvironmentServiceAccount();
+  const stored = readStoredConfigSafely();
+  const serviceAccount = environmentServiceAccount || (stored?.serviceAccount as ServiceAccount | undefined) || null;
+  const client = readEnvironmentClientConfig() || stored?.client || null;
+  const source = environmentServiceAccount ? "environment" : stored ? "admin_ui" : "disabled";
+  const environmentPayloadMode = String(process.env.PROCAL_PUSH_PAYLOAD_MODE || "").trim();
+  const rawPayloadMode = String(
+    environmentServiceAccount
+      ? environmentPayloadMode || stored?.payloadMode || "generic"
+      : stored?.payloadMode || environmentPayloadMode || "generic"
+  ).trim().toLowerCase();
+  const payloadMode = rawPayloadMode === "full" || rawPayloadMode === "detailed" || rawPayloadMode === "content"
+    ? "detailed"
+    : "generic";
+  return { serviceAccount, client, source, payloadMode, updatedAt: stored?.updatedAt || "" };
+}
+
 export function isMobilePushConfigured(): boolean {
-  return Boolean(readServiceAccountJson());
+  return Boolean(resolveMobilePushConfig().serviceAccount);
 }
 
 export function getMobilePushStatus() {
-  const payloadMode = String(process.env.PROCAL_PUSH_PAYLOAD_MODE || "generic").trim().toLowerCase() || "generic";
+  const config = resolveMobilePushConfig();
+  const serviceProjectId = String((config.serviceAccount as Record<string, unknown> | null)?.project_id || "");
+  const clientProjectId = config.client?.projectId || "";
+  const androidReady = Boolean(config.serviceAccount && config.client && serviceProjectId === clientProjectId);
   return {
-    configured: isMobilePushConfigured(),
-    payloadMode,
+    configured: Boolean(config.serviceAccount),
+    clientConfigured: Boolean(config.client),
+    androidReady,
+    payloadMode: config.payloadMode,
+    source: config.source,
+    projectId: clientProjectId || serviceProjectId,
+    applicationId: config.client?.applicationId || "",
+    updatedAt: config.updatedAt,
     credentialEnv: "PROCAL_FCM_SERVICE_ACCOUNT_JSON_BASE64",
+    clientEnv: "PROCAL_FIREBASE_CLIENT_JSON_BASE64",
     payloadModeEnv: "PROCAL_PUSH_PAYLOAD_MODE"
   };
+}
+
+export function getMobilePushBootstrap(): { configured: boolean; client: FirebaseClientConfig | null } {
+  const config = resolveMobilePushConfig();
+  const projectMatches = Boolean(
+    config.serviceAccount &&
+    config.client &&
+    String((config.serviceAccount as Record<string, unknown>).project_id || "") === config.client.projectId
+  );
+  return { configured: projectMatches, client: projectMatches ? config.client : null };
+}
+
+export async function resetMobilePushRuntime(): Promise<void> {
+  const app = firebaseApp || getApps().find((item) => item.name === FIREBASE_APP_NAME) || null;
+  firebaseApp = undefined;
+  initLogged = false;
+  if (app) await deleteApp(app).catch(() => undefined);
 }
 
 function getFirebaseApp(): App | null {
   if (firebaseApp === null) return null;
   if (firebaseApp) return firebaseApp;
 
-  const serviceAccount = readServiceAccountJson();
+  const serviceAccount = resolveMobilePushConfig().serviceAccount;
   if (!serviceAccount) {
     if (!initLogged) {
       logger.info("Mobile push is not configured. Missing Firebase service account credentials.");
@@ -81,12 +161,12 @@ function getFirebaseApp(): App | null {
   }
 
   try {
-    const existingApps = getApps();
-    firebaseApp = existingApps.length
-      ? existingApps[0]
+    const existingApp = getApps().find((item) => item.name === FIREBASE_APP_NAME);
+    firebaseApp = existingApp
+      ? existingApp
       : initializeApp({
           credential: cert(serviceAccount)
-        });
+        }, FIREBASE_APP_NAME);
     return firebaseApp;
   } catch (error) {
     logger.error({ err: error }, "Failed to initialize Firebase Admin for mobile push.");
@@ -116,8 +196,14 @@ function normalizeDataMap(input: Record<string, unknown> | null | undefined): Re
 }
 
 function isDetailedPushPayloadEnabled(): boolean {
-  const mode = String(process.env.PROCAL_PUSH_PAYLOAD_MODE || "generic").trim().toLowerCase();
-  return mode === "full" || mode === "detailed" || mode === "content";
+  return resolveMobilePushConfig().payloadMode === "detailed";
+}
+
+export function testMobilePushConfiguration(): { ok: boolean; projectId: string } {
+  const app = getFirebaseApp();
+  if (!app) throw new Error("Firebase push is not configured");
+  getFirebaseMessaging(app);
+  return { ok: true, projectId: getMobilePushStatus().projectId };
 }
 
 function genericPushBody(data: Record<string, string>): string {

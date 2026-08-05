@@ -45,6 +45,8 @@
       installationId: String(row.installationId || "").trim(),
       pushSupported: row.pushSupported === false ? false : true,
       pushToken: String(row.pushToken || "").trim(),
+      pushSourceUrl: String(row.pushSourceUrl || "").trim(),
+      pushActiveForCurrentServer: row.pushActiveForCurrentServer === true,
       notificationPermission: String(row.notificationPermission || "").trim().toLowerCase(),
       appVersion: String(row.appVersion || "").trim()
     };
@@ -130,10 +132,7 @@
           "content-type": "application/json",
           authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          installationId: state.installationId,
-          token: state.pushToken || ""
-        })
+        body: JSON.stringify({ installationId: state.installationId })
       });
     } catch {
       // no-op
@@ -167,14 +166,16 @@
     const state = androidShellState || refreshAndroidShellState(opts);
     const currentUserId = getCurrentUserId(opts);
     if (!state || state.platform !== "android" || !currentUserId) return;
-    if (!state.pushSupported) return;
     if (!state.installationId) return;
     if (androidPushSyncInFlight) return;
 
-    const notificationsEnabled = state.notificationPermission === "granted" && Boolean(state.pushToken);
+    const notificationsEnabled = state.pushSupported
+      && state.pushActiveForCurrentServer
+      && state.notificationPermission === "granted"
+      && Boolean(state.pushToken);
     const nextFingerprint = notificationsEnabled
-      ? [currentUserId, state.installationId, state.pushToken, state.notificationPermission, state.appVersion].join("|")
-      : `${currentUserId}|${state.installationId}|disabled`;
+      ? [currentUserId, state.installationId, state.pushToken, state.notificationPermission, state.appVersion, state.pushSourceUrl].join("|")
+      : `${currentUserId}|${state.installationId}|disabled|${state.pushSourceUrl}`;
 
     if (!force && nextFingerprint === androidPushSyncFingerprint) return;
 
@@ -197,10 +198,7 @@
             "content-type": "application/json",
             authorization: `Bearer ${token}`
           },
-          body: JSON.stringify({
-            installationId: state.installationId,
-            token: state.pushToken || ""
-          })
+          body: JSON.stringify({ installationId: state.installationId })
         });
         if (res.ok) {
           clearAndroidPushRetryTimer(opts);
@@ -220,10 +218,7 @@
             "content-type": "application/json",
             authorization: `Bearer ${token}`
           },
-          body: JSON.stringify({
-            installationId: state.installationId,
-            token: state.pushToken || ""
-          })
+          body: JSON.stringify({ installationId: state.installationId })
         });
         if (res.ok) {
           clearAndroidPushRetryTimer(opts);

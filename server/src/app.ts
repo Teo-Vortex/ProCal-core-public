@@ -27,12 +27,13 @@ import { compensationRouter } from "./routes/compensationRoutes";
 import { leaveRouter } from "./routes/leaveRoutes";
 import { holidayRouter } from "./routes/holidayRoutes";
 import { notificationRouter } from "./routes/notificationRoutes";
-import { pushRouter } from "./routes/pushRoutes";
+import { publicPushRouter, pushRouter } from "./routes/pushRoutes";
 import { bugRouter } from "./routes/bugRoutes";
 import { mediaRouter } from "./routes/mediaRoutes";
 import { chatRouter } from "./routes/chatRoutes";
 import { backupRouter } from "./routes/backupRoutes";
 import { filesRouter } from "./routes/filesRoutes";
+import { systemUpdateRouter } from "./routes/systemUpdateRoutes";
 import { isInstalled } from "./db/installState";
 import { getRuntimeConfig } from "./config/env";
 import { buildBasePathUrl, getRequestBasePath, getStorageScope } from "./utils/publicBasePath";
@@ -207,6 +208,13 @@ function renderHtmlDocument(req: any, filePath: string): string {
   return injectRuntimeIntoHtml(req, raw);
 }
 
+const PROCAL_BRAND_MARK = '<img src="favicon.ico" alt="" width="46" height="46">';
+const PROCAL_BRAND_CSS = '.procal-brand{display:flex;align-items:center;gap:.65rem;margin-bottom:.85rem;font-weight:800;color:#0f766e}.procal-brand img{width:46px;height:46px;flex:0 0 auto}.procal-brand span{font-size:1.15rem}';
+
+function renderProCalBrand(): string {
+  return `<div class="procal-brand">${PROCAL_BRAND_MARK}<span>ProCal</span></div>`;
+}
+
 function buildHostedAuthHtml(req: any, title: string, description: string): string {
   const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>
 <style>body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0;padding:1rem}main{width:min(460px,92vw);padding:1rem;border:1px solid #ddd;border-radius:10px}a{display:block;margin-top:1rem;text-align:center;text-decoration:none;color:#0b6}</style></head>
@@ -223,21 +231,64 @@ function buildHostedRegisterHtml(req: any): string {
 }
 
 const setupHtml = `<!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ProCal Setup</title>
-<style>body{font-family:system-ui;margin:2rem;max-width:820px}label{display:block;margin-top:.7rem}input,select,button{padding:.5rem;width:100%}button{margin-top:.8rem}pre{background:#f3f3f3;padding:.8rem;overflow:auto}.hide{display:none}</style></head>
-<body><h1>ProCal Setup</h1><p id="desc">Internal database mode is enabled. Create the first admin account.</p>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ProCal Setup</title><link rel="icon" type="image/x-icon" href="favicon.ico">
+<style>
+${PROCAL_BRAND_CSS}
+:root{color-scheme:light;--bg-1:#f4efe4;--bg-2:#e7f3ee;--ink:#1f2a2e;--muted:#64727a;--card:rgba(255,255,255,.9);--surface:#f8fafc;--line:rgba(31,42,46,.14);--accent:#0f766e;--accent-ink:#fff;--shadow:0 20px 50px rgba(31,42,46,.12)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:clamp(20px,5vw,56px) 18px;font-family:"Segoe UI","Trebuchet MS",sans-serif;color:var(--ink);background:linear-gradient(135deg,var(--bg-1) 0%,#f7f8f6 48%,var(--bg-2) 100%)}
+.setup-shell{width:min(760px,100%);margin:0 auto}
+.setup-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+.procal-brand{margin:0;color:var(--ink)}
+.procal-brand img{width:48px;height:48px}
+.procal-brand span{font-size:1.45rem}
+.setup-badge{padding:7px 11px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.62);color:var(--muted);font-size:.78rem;font-weight:700}
+.setup-card{padding:clamp(22px,5vw,40px);border:1px solid var(--line);border-radius:8px;background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(14px)}
+.eyebrow{margin:0 0 7px;color:var(--accent);font-size:.75rem;font-weight:800;text-transform:uppercase}
+h1{margin:0;font-size:clamp(1.75rem,5vw,2.35rem);line-height:1.1}
+#desc{margin:10px 0 26px;color:var(--muted);line-height:1.55}
+.section-title{margin:24px 0 12px;padding-top:22px;border-top:1px solid var(--line);font-size:.82rem;font-weight:800;text-transform:uppercase;color:var(--muted)}
+.section-title.first{margin-top:0;padding-top:0;border-top:0}
+.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px 16px}
+label{display:grid;gap:7px;min-width:0;font-size:.88rem;font-weight:700}
+label.full{grid-column:1/-1}
+.optional{margin-left:4px;color:var(--muted);font-size:.74rem;font-weight:600}
+input{width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink);font:inherit;outline:none;transition:border-color .16s ease,box-shadow .16s ease,background .16s ease}
+input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(15,118,110,.13)}
+input[readonly]{color:var(--muted);background:#eef2f3}
+.admin-note{display:flex;align-items:flex-start;gap:10px;margin:20px 0 0;padding:12px 14px;border-left:3px solid var(--accent);background:rgba(15,118,110,.07);color:var(--muted);font-size:.88rem;line-height:1.45}
+.admin-note strong{color:var(--ink);white-space:nowrap}
+button{width:100%;min-height:46px;margin-top:20px;padding:10px 16px;border:0;border-radius:7px;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:800;cursor:pointer;box-shadow:0 12px 28px rgba(15,118,110,.18)}
+button:hover{filter:brightness(1.05)}
+button:focus-visible{outline:3px solid rgba(15,118,110,.25);outline-offset:2px}
+button:disabled{cursor:not-allowed;opacity:.55;box-shadow:none}
+pre{margin:18px 0 0;padding:13px 14px;overflow:auto;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink);font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+pre:empty{display:none}
+.hide{display:none!important}
+@media(max-width:620px){body{padding:18px 12px}.setup-head{align-items:flex-start}.setup-badge{margin-top:6px}.setup-card{padding:20px 16px}.field-grid{grid-template-columns:1fr}.field-grid label{grid-column:1}.admin-note{display:block}.admin-note strong{display:block;margin-bottom:3px}}
+@media(prefers-color-scheme:dark){:root{color-scheme:dark;--bg-1:#07141b;--bg-2:#10241f;--ink:#e6edf0;--muted:#a5b6bf;--card:rgba(15,29,38,.94);--surface:rgba(8,18,25,.92);--line:rgba(176,200,210,.22);--accent:#2dd4bf;--accent-ink:#03201c;--shadow:0 20px 50px rgba(0,0,0,.42)}body{background:linear-gradient(145deg,#071017 0%,#0b151d 52%,#10241f 100%)}input:focus{background:#0b1821;box-shadow:0 0 0 3px rgba(45,212,191,.15)}input[readonly]{background:#132630}.setup-badge{background:rgba(15,29,38,.72)}.admin-note{background:rgba(45,212,191,.08)}button{box-shadow:0 12px 28px rgba(45,212,191,.18)}}
+</style></head>
+<body><main class="setup-shell">
+<header class="setup-head">${renderProCalBrand()}<span class="setup-badge">Initial setup</span></header>
+<section class="setup-card">
+<p class="eyebrow">Self-hosted server</p><h1>Set up ProCal</h1><p id="desc">Create the first administrator account for this server.</p>
 <form id="f">
-<label>Setup token<input name="setupToken" type="password" required autocomplete="off"></label>
-<label>First admin username<input name="adminUsername" required></label>
-<label>First admin nickname<input name="adminNickname" required></label>
-<label>Full name<input name="adminFullName" required></label>
-<label>Workplace<input name="adminWorkplace" required></label>
-<label>Job title<input name="adminJobTitle" required></label>
-<label>First admin password<input name="adminPassword" type="password" required></label>
-<label>Confirm admin password<input name="adminPassword2" type="password" required></label>
-<label>First user role<select name="adminRole"><option value="system_admin">system_admin</option><option value="boss">boss</option></select></label>
-<button type="submit" id="submitBtn">Create admin</button>
-</form><pre id="out"></pre>
+<p class="section-title first">Server authorization</p>
+<div class="field-grid"><label class="full">Setup token<input name="setupToken" type="password" required autocomplete="off"></label></div>
+<p class="section-title">Administrator profile</p>
+<div class="field-grid">
+<label>Username<input name="adminUsername" required autocomplete="username"></label>
+<label><span>Nickname <span class="optional">Optional</span></span><input name="adminNickname"></label>
+<label class="full"><span>Full name <span class="optional">Optional</span></span><input name="adminFullName" autocomplete="name"></label>
+<label><span>Workplace <span class="optional">Optional</span></span><input name="adminWorkplace"></label>
+<label><span>Job title <span class="optional">Optional</span></span><input name="adminJobTitle"></label>
+<label id="adminPasswordLabel">Password<input name="adminPassword" type="password" required autocomplete="new-password"></label>
+<label id="adminPassword2Label">Confirm password<input name="adminPassword2" type="password" required autocomplete="new-password"></label>
+</div>
+<p class="admin-note"><strong>System administrator</strong><span>The first account always receives full system administration access.</span></p>
+<button type="submit" id="submitBtn">Create administrator</button>
+</form><pre id="out" role="status" aria-live="polite"></pre>
+</section></main>
 <script>
 const f=document.getElementById('f');
 const out=document.getElementById('out');
@@ -285,8 +336,7 @@ f.onsubmit=async(e)=>{
     adminFullName:f.adminFullName.value,
     adminWorkplace:f.adminWorkplace.value,
     adminJobTitle:f.adminJobTitle.value,
-    adminPassword:f.adminPassword.value,
-    adminRole:f.adminRole.value
+    adminPassword:f.adminPassword.value
   };
 
   const r=await fetch('/api/setup/register-first-admin',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
@@ -312,8 +362,8 @@ f.onsubmit=async(e)=>{
 init();
 </script></body></html>`;
 const loginHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login</title>
-<style>body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0}form{width:min(420px,92vw);padding:1rem;border:1px solid #ddd;border-radius:10px}input,button,a{width:100%;padding:.6rem;margin-top:.6rem;box-sizing:border-box}a{text-align:center;display:block;text-decoration:none;color:#0b6}#m{min-height:1.2rem}</style></head>
-<body><form id="f"><h2>Sign in</h2><input name="username" placeholder="Username" required><input type="password" name="password" placeholder="Password" required><button>Login</button><a href="/register">Create account</a><p id="m"></p></form>
+<style>${PROCAL_BRAND_CSS}body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0}form{width:min(420px,92vw);padding:1rem;border:1px solid #ddd;border-radius:10px}input,button,a{width:100%;padding:.6rem;margin-top:.6rem;box-sizing:border-box}a{text-align:center;display:block;text-decoration:none;color:#0b6}#m{min-height:1.2rem}</style></head>
+<body><form id="f">${renderProCalBrand()}<h2>Sign in</h2><input name="username" placeholder="Username" required><input type="password" name="password" placeholder="Password" required><button>Login</button><a href="/register">Create account</a><p id="m"></p></form>
 <script>
 function toErrorText(err){
   if(!err) return 'Login failed';
@@ -339,8 +389,8 @@ const handoffHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name
 <style>body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0;padding:1rem}main{width:min(420px,92vw);padding:1rem;border:1px solid #ddd;border-radius:10px}a{display:block;margin-top:1rem;text-align:center;text-decoration:none;color:#0b6}#m{min-height:1.2rem}</style></head>
 <body><main><h2>Sign in unavailable</h2><p id="m">This self-hosted build uses local login.</p><a href="/login">Back to login</a></main></body></html>`;
 const registerHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Register</title>
-<style>body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0}form{width:min(420px,92vw);padding:1rem;border:1px solid #ddd;border-radius:10px}input,button,a{width:100%;padding:.6rem;margin-top:.6rem;box-sizing:border-box}a{text-align:center;display:block;text-decoration:none;color:#0b6}#m{min-height:1.2rem}</style></head>
-<body><form id="f"><h2>Create account</h2><input name="username" placeholder="Username" required><input name="nickname" placeholder="Nickname" required><input name="fullName" placeholder="Full name" required><input name="workplace" placeholder="Workplace" required><input name="jobTitle" placeholder="Job title" required><input type="password" name="password" placeholder="Password" required><input type="password" name="password2" placeholder="Confirm password" required><button>Register</button><a href="/login">Back to login</a><p id="m"></p></form>
+<style>${PROCAL_BRAND_CSS}body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0}form{width:min(420px,92vw);padding:1rem;border:1px solid #ddd;border-radius:10px}input,button,a{width:100%;padding:.6rem;margin-top:.6rem;box-sizing:border-box}a{text-align:center;display:block;text-decoration:none;color:#0b6}#m{min-height:1.2rem}</style></head>
+<body><form id="f">${renderProCalBrand()}<h2>Create account</h2><input name="username" placeholder="Username" required><input name="nickname" placeholder="Nickname" required><input name="fullName" placeholder="Full name" required><input name="workplace" placeholder="Workplace" required><input name="jobTitle" placeholder="Job title" required><input type="password" name="password" placeholder="Password" required><input type="password" name="password2" placeholder="Confirm password" required><button>Register</button><a href="/login">Back to login</a><p id="m"></p></form>
 <script>
 function toErrorText(err){
   if(!err) return 'Register failed';
@@ -364,8 +414,8 @@ document.getElementById('f').onsubmit=async(e)=>{
 </script></body></html>`;
 
 const internalAutoLoginHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ProCal</title>
-<style>body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0;padding:1rem;background:#f8fafc}main{width:min(460px,92vw);padding:1rem;border:1px solid #d1d5db;border-radius:12px;background:#fff}h2{margin:.2rem 0 .5rem}p{margin:.2rem 0;color:#475569}button{margin-top:.8rem;padding:.55rem .9rem;border:1px solid #cbd5e1;border-radius:10px;background:#fff;cursor:pointer}</style></head>
-<body><main><h2>Opening ProCal</h2><p id="m">Signing in automatically...</p><button id="retryBtn" type="button" hidden>Retry</button></main>
+<style>${PROCAL_BRAND_CSS}body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0;padding:1rem;background:#f8fafc}main{width:min(460px,92vw);padding:1rem;border:1px solid #d1d5db;border-radius:12px;background:#fff}h2{margin:.2rem 0 .5rem}p{margin:.2rem 0;color:#475569}button{margin-top:.8rem;padding:.55rem .9rem;border:1px solid #cbd5e1;border-radius:10px;background:#fff;cursor:pointer}</style></head>
+<body><main>${renderProCalBrand()}<h2>Opening ProCal</h2><p id="m">Signing in automatically...</p><button id="retryBtn" type="button" hidden>Retry</button></main>
 <script>
 const ACCESS_KEY='procal_access_token';
 const msg=document.getElementById('m');
@@ -436,6 +486,9 @@ export function createApp() {
       return;
     }
     res.type("html").send(injectRuntimeIntoHtml(req, setupHtml));
+  });
+  app.get("/favicon.ico", (_req, res) => {
+    res.sendFile(path.join(appPath, "favicon.ico"));
   });
   app.use(installationGate);
 
@@ -567,9 +620,11 @@ export function createApp() {
 
   app.use(backupRouter);
   app.use(authRouter);
+  app.use(publicPushRouter);
   app.use(requireAuth);
   app.use(hostedRealmReadOnlyGuard);
   app.use(adminRouter);
+  app.use(systemUpdateRouter);
   app.use(eventRouter);
   app.use(taskRouter);
   app.use(noteRouter);
