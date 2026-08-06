@@ -9,6 +9,8 @@ export type RuntimeConfig = {
   refreshTokenTtlSec: number;
   webhookUrl?: string;
   instanceSlug?: string;
+  mobileAppDownloadUrl?: string;
+  bugReportUrl?: string;
 };
 
 const fallbackSecrets = {
@@ -24,7 +26,9 @@ export function getRuntimeConfig(): RuntimeConfig {
     accessTokenTtlSec: Number(process.env.ACCESS_TTL_SEC || 900),
     refreshTokenTtlSec: Number(process.env.REFRESH_TTL_SEC || 1209600),
     webhookUrl: process.env.HA_WEBHOOK_URL || undefined,
-    instanceSlug: process.env.INSTANCE_SLUG || undefined
+    instanceSlug: process.env.INSTANCE_SLUG || undefined,
+    mobileAppDownloadUrl: process.env.MOBILE_APP_DOWNLOAD_URL || "https://github.com/Teo-Vortex/ProCal-core-public/releases/latest",
+    bugReportUrl: process.env.BUG_REPORT_URL || "https://github.com/Teo-Vortex/ProCal-core-public/issues/new?template=bug_report.yml"
   };
 }
 

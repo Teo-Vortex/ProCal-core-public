@@ -37,6 +37,8 @@ services:
       - PROCAL_RELEASE_CHANNEL=self
       - REALM_RELEASE_CHANNEL=self
       - PROCAL_APP_VERSION=${PROCAL_SELF_APP_VERSION:-0.9.9-community}
+      - MOBILE_APP_DOWNLOAD_URL=${PROCAL_MOBILE_APP_DOWNLOAD_URL:-https://github.com/Teo-Vortex/ProCal-core-public/releases/latest}
+      - BUG_REPORT_URL=${PROCAL_BUG_REPORT_URL:-https://github.com/Teo-Vortex/ProCal-core-public/issues/new?template=bug_report.yml}
       - PROCAL_UPDATER_URL=http://updater:7070
       - PROCAL_UPDATER_TOKEN=${PROCAL_UPDATER_TOKEN:?Set PROCAL_UPDATER_TOKEN in .env}
       - PROCAL_FCM_SERVICE_ACCOUNT_JSON_BASE64=${PROCAL_FCM_SERVICE_ACCOUNT_JSON_BASE64:-}

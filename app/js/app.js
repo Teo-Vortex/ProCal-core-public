@@ -1131,7 +1131,8 @@ const I18N = {
     currentPassword: "Current password",
     newPassword: "New password",
     confirmNewPassword: "Confirm new password",
-    changePassword: "Change password",    statusLabel: "Status",
+    changePassword: "Change password",
+    statusLabel: "Status",
     fullNameLabel: "Full name",
     workplaceLabel: "Workplace",
     jobTitleLabel: "Job title",
@@ -1413,7 +1414,7 @@ const I18N = {
     bugReportFieldTitle: "Title",
     bugReportFieldDescription: "Description",
     bugReportSubmit: "Send report",
-    bugReportSent: "Bug report sent.",
+    bugReportSent: "Bug report saved on this server for administrators.",
     bugReportFailed: "Failed to send bug report.",
     bugReportTitlePlaceholder: "Short bug title",
     bugReportDescPlaceholder: "What happened and steps to reproduce...",
@@ -1638,7 +1639,8 @@ const I18N = {
     currentPassword: "\u0422\u0435\u043A\u0443\u0449\u0430 \u043F\u0430\u0440\u043E\u043B\u0430",
     newPassword: "\u041D\u043E\u0432\u0430 \u043F\u0430\u0440\u043E\u043B\u0430",
     confirmNewPassword: "\u041F\u043E\u0442\u0432\u044A\u0440\u0434\u0438 \u043D\u043E\u0432\u0430 \u043F\u0430\u0440\u043E\u043B\u0430",
-    changePassword: "\u0421\u043C\u0435\u043D\u0438 \u043F\u0430\u0440\u043E\u043B\u0430\u0442\u0430",    statusLabel: "\u0421\u0442\u0430\u0442\u0443\u0441",
+    changePassword: "\u0421\u043C\u0435\u043D\u0438 \u043F\u0430\u0440\u043E\u043B\u0430\u0442\u0430",
+    statusLabel: "\u0421\u0442\u0430\u0442\u0443\u0441",
     fullNameLabel: "\u041F\u044A\u043B\u043D\u0438 \u0438\u043C\u0435\u043D\u0430",
     workplaceLabel: "\u0420\u0430\u0431\u043E\u0442\u043D\u043E \u043C\u044F\u0441\u0442\u043E",
     jobTitleLabel: "\u0414\u043B\u044A\u0436\u043D\u043E\u0441\u0442",
@@ -1920,7 +1922,7 @@ const I18N = {
     bugReportFieldTitle: "\u0417\u0430\u0433\u043B\u0430\u0432\u0438\u0435",
     bugReportFieldDescription: "\u041E\u043F\u0438\u0441\u0430\u043D\u0438\u0435",
     bugReportSubmit: "\u0418\u0437\u043F\u0440\u0430\u0442\u0438",
-    bugReportSent: "\u0414\u043E\u043A\u043B\u0430\u0434\u044A\u0442 \u0435 \u0438\u0437\u043F\u0440\u0430\u0442\u0435\u043D.",
+    bugReportSent: "\u0414\u043E\u043A\u043B\u0430\u0434\u044A\u0442 \u0435 \u0437\u0430\u043F\u0430\u0437\u0435\u043D \u043D\u0430 \u0442\u043E\u0437\u0438 \u0441\u044A\u0440\u0432\u044A\u0440 \u0437\u0430 \u0430\u0434\u043C\u0438\u043D\u0438\u0441\u0442\u0440\u0430\u0442\u043E\u0440\u0438\u0442\u0435.",
     bugReportFailed: "\u041D\u0435 \u0443\u0441\u043F\u044F \u0434\u0430 \u0438\u0437\u043F\u0440\u0430\u0442\u0438\u0448 \u0434\u043E\u043A\u043B\u0430\u0434\u0430.",
     bugReportTitlePlaceholder: "\u041A\u0440\u0430\u0442\u043A\u043E \u0437\u0430\u0433\u043B\u0430\u0432\u0438\u0435",
     bugReportDescPlaceholder: "\u041A\u0430\u043A\u0432\u043E \u0441\u0435 \u0441\u043B\u0443\u0447\u0438 \u0438 \u043A\u0430\u043A \u0434\u0430 \u0441\u0435 \u0432\u044A\u0437\u043F\u0440\u043E\u0438\u0437\u0432\u0435\u0434\u0435...",
@@ -2451,7 +2453,7 @@ if (notificationsClearBtn) {
 if (bugReportBtn) {
   bugReportBtn.addEventListener("click", () => {
     closeSettingsMenu();
-    openBugReportModal();
+    if (!openConfiguredBugReport()) openBugReportModal();
   });
 }
 if (closeBugReportBtn) {
@@ -3160,6 +3162,51 @@ function setMenuMessage(text, isError) {
   targets.forEach((target) => {
     target.textContent = text || "";
     target.style.color = isError ? "#b91c1c" : "#6b7280";
+  });
+}
+
+function getHostedPortalUrl() {
+  const mod = window.ProCalModules && window.ProCalModules.appHostedLinks;
+  if (!mod || typeof mod.getHostedPortalUrl !== "function") return "http://127.0.0.1:9088";
+  return mod.getHostedPortalUrl({ currentUserPublicPortalUrl });
+}
+
+function getHostedPortalChooserUrl() {
+  const mod = window.ProCalModules && window.ProCalModules.appHostedLinks;
+  if (!mod || typeof mod.getHostedPortalChooserUrl !== "function") return "";
+  return mod.getHostedPortalChooserUrl({ currentUserPublicPortalUrl });
+}
+
+function updateProfilePasswordControls() {
+  const mod = window.ProCalModules && window.ProCalModules.appHostedLinks;
+  if (!mod || typeof mod.updateProfilePasswordControls !== "function") return;
+  mod.updateProfilePasswordControls({
+    currentUserHostedIdentity,
+    currentUserPublicPortalUrl,
+    manageHostedPasswordBtn
+  });
+}
+
+function openHostedPasswordPortal() {
+  const mod = window.ProCalModules && window.ProCalModules.appHostedLinks;
+  if (!mod || typeof mod.openHostedPasswordPortal !== "function") return;
+  mod.openHostedPasswordPortal({ currentUserPublicPortalUrl });
+}
+
+function getMobileAppDownloadUrl() {
+  const mod = window.ProCalModules && window.ProCalModules.appHostedLinks;
+  if (!mod || typeof mod.getMobileAppDownloadUrl !== "function") return "";
+  return mod.getMobileAppDownloadUrl({ currentUserPublicPortalUrl });
+}
+
+function openMobileAppDownload() {
+  const mod = window.ProCalModules && window.ProCalModules.appHostedLinks;
+  if (!mod || typeof mod.openMobileAppDownload !== "function") return;
+  mod.openMobileAppDownload({
+    currentUserPublicPortalUrl,
+    menuMsg,
+    t,
+    documentRef: document
   });
 }
 
@@ -9244,6 +9291,32 @@ function setBugReportMessage(text, danger) {
   if (!bugReportMsg) return;
   bugReportMsg.textContent = String(text || "");
   bugReportMsg.style.color = danger ? "#b91c1c" : "#475569";
+}
+
+function getConfiguredBugReportUrl() {
+  const configured = String(
+    (window.PROCAL_RUNTIME && window.PROCAL_RUNTIME.bugReportUrl) || ""
+  ).trim();
+  if (!configured) return "";
+  try {
+    const resolved = new URL(configured, window.location.href);
+    return resolved.protocol === "http:" || resolved.protocol === "https:" ? resolved.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
+function openConfiguredBugReport() {
+  const reportUrl = getConfiguredBugReportUrl();
+  if (!reportUrl) return false;
+  const link = document.createElement("a");
+  link.href = reportUrl;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  return true;
 }
 
 function openBugReportModal() {

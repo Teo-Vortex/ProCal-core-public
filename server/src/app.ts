@@ -362,8 +362,8 @@ f.onsubmit=async(e)=>{
 init();
 </script></body></html>`;
 const loginHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login</title>
-<style>${PROCAL_BRAND_CSS}body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0}form{width:min(420px,92vw);padding:1rem;border:1px solid #ddd;border-radius:10px}input,button,a{width:100%;padding:.6rem;margin-top:.6rem;box-sizing:border-box}a{text-align:center;display:block;text-decoration:none;color:#0b6}#m{min-height:1.2rem}</style></head>
-<body><form id="f">${renderProCalBrand()}<h2>Sign in</h2><input name="username" placeholder="Username" required><input type="password" name="password" placeholder="Password" required><button>Login</button><a href="/register">Create account</a><p id="m"></p></form>
+<style>${PROCAL_BRAND_CSS}body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0}form{width:min(420px,92vw);padding:1rem;border:1px solid #ddd;border-radius:10px}input,button,a{width:100%;padding:.6rem;margin-top:.6rem;box-sizing:border-box}a{text-align:center;display:block;text-decoration:none;color:#0b6}#changeServerBtn{background:transparent;border:1px solid #8aa;color:inherit;border-radius:6px}#m{min-height:1.2rem}</style></head>
+<body><form id="f">${renderProCalBrand()}<h2>Sign in</h2><input name="username" placeholder="Username" required><input type="password" name="password" placeholder="Password" required><button>Login</button><button id="changeServerBtn" type="button" hidden>Change server</button><a href="/register">Create account</a><p id="m"></p></form>
 <script>
 function toErrorText(err){
   if(!err) return 'Login failed';
@@ -373,6 +373,12 @@ function toErrorText(err){
     if(err.error.fieldErrors) return JSON.stringify(err.error.fieldErrors);
   }
   return JSON.stringify(err);
+}
+const changeServerBtn=document.getElementById('changeServerBtn');
+const androidShell=window.ProCalAndroidShell;
+if(changeServerBtn&&androidShell&&typeof androidShell.openServerManager==='function'){
+  changeServerBtn.hidden=false;
+  changeServerBtn.addEventListener('click',()=>androidShell.openServerManager());
 }
 document.getElementById('f').onsubmit=async(e)=>{
   e.preventDefault();
@@ -528,6 +534,8 @@ export function createApp() {
       `  runtime.releaseChannel = ${JSON.stringify(uiReleaseChannel)};`,
       `  runtime.basePath = ${JSON.stringify(basePath)};`,
       `  runtime.rootPath = ${JSON.stringify(rootPath)};`,
+      `  runtime.mobileAppDownloadUrl = ${JSON.stringify(runtime.mobileAppDownloadUrl || "")};`,
+      `  runtime.bugReportUrl = ${JSON.stringify(runtime.bugReportUrl || "")};`,
       `  runtime.instanceSlug = ${JSON.stringify(instanceSlug)};`,
       `  runtime.storagePrefix = ${JSON.stringify(`procal:${storageScope}:`)};`,
       "  runtime.resolvePath = function(value){",
