@@ -35,7 +35,8 @@ jobs:
 
       - name: Verify release assets
         shell: bash
-        run: sha256sum --check release-assets/SHA256SUMS.txt
+        working-directory: release-assets
+        run: sha256sum --check SHA256SUMS.txt
 
       - name: Create or update GitHub release
         shell: bash
