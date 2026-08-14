@@ -127,6 +127,17 @@
     return group;
   }
 
+  function formatDateKey(value, locale) {
+    const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return String(value || "");
+    const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    return date.toLocaleDateString(locale || "en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+    });
+  }
+
   function renderPreview(options) {
     const opts = options || {};
     const doc = opts.documentRef || root.document;
@@ -134,6 +145,7 @@
     if (!evt || !doc || !opts.eventPreviewModal || !opts.eventPreviewBody) return;
 
     const t = typeof opts.t === "function" ? opts.t : ((key) => key);
+    const getLocale = typeof opts.getLocale === "function" ? opts.getLocale : (() => "en-US");
     const people = Array.isArray(opts.people) ? opts.people : [];
     const getCategoryById = typeof opts.getCategoryById === "function" ? opts.getCategoryById : (() => null);
     const describeEventPeople = typeof opts.describeEventPeople === "function" ? opts.describeEventPeople : (() => "");
@@ -144,13 +156,24 @@
     opts.eventPreviewBody.innerHTML = "";
 
     const timeMeta = root.ProCalModules && root.ProCalModules.eventTimeMeta;
-    const whenText = timeMeta && typeof timeMeta.getEventTimeRangeLabel === "function"
-      ? timeMeta.getEventTimeRangeLabel(evt, { t })
-      : (evt.startDate && evt.endDate
-        ? (evt.startDate === evt.endDate
-          ? `${evt.startDate}${evt.time ? ` ${evt.time}` : ""}`
-          : `${evt.startDate} ${t("to")} ${evt.endDate}${evt.time ? ` ${evt.time}` : ""}`)
-        : "");
+    const timing = timeMeta && typeof timeMeta.resolveEventTimeMeta === "function"
+      ? timeMeta.resolveEventTimeMeta(evt)
+      : {
+          isAllDay: !String(evt.time || "").trim(),
+          startTime: String(evt.time || "").trim(),
+          endTime: ""
+        };
+    const startDate = String(evt.startDate || "");
+    const endDate = String(evt.endDate || startDate || "");
+    const startDateText = formatDateKey(startDate, getLocale());
+    const endDateText = formatDateKey(endDate, getLocale());
+    const dateText = startDate && endDate && startDate !== endDate
+      ? `${startDateText} ${t("to")} ${endDateText}`
+      : startDateText;
+    const timeText = timing.isAllDay
+      ? t("allDay")
+      : [timing.startTime, timing.endTime].filter(Boolean).join(" - ");
+    const whenText = [dateText, timeText].filter(Boolean).join(" \u2022 ");
 
     const cat = getCategoryById(evt.categoryId);
     const participantsText = describeEventPeople(evt);
@@ -206,7 +229,7 @@
       badgeRow.appendChild(categoryBadge);
     }
 
-    if (!String(evt.time || "").trim()) {
+    if (timing.isAllDay) {
       const allDayBadge = doc.createElement("span");
       allDayBadge.className = "event-preview-badge";
       allDayBadge.textContent = t("allDay");
@@ -231,7 +254,8 @@
     const detailsList = doc.createElement("div");
     detailsList.className = "event-preview-list";
 
-    if (whenText) detailsList.appendChild(createDetailRow(doc, t("time"), whenText));
+    if (dateText) detailsList.appendChild(createDetailRow(doc, t("date"), dateText));
+    if (timeText) detailsList.appendChild(createDetailRow(doc, t("time"), timeText));
     if (cat && cat.name) detailsList.appendChild(createDetailRow(doc, t("category"), cat.name));
     if (evt.description) detailsList.appendChild(createDetailRow(doc, t("description"), String(evt.description)));
 

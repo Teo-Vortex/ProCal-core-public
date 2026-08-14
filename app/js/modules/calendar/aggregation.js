@@ -115,16 +115,39 @@
     const isLinkedStandaloneTask = typeof o.isLinkedStandaloneTask === "function" ? o.isLinkedStandaloneTask : () => false;
     const getTaskAssigneeIds = typeof o.getTaskAssigneeIds === "function" ? o.getTaskAssigneeIds : (() => []);
 
+    const formatDateKey = (value) => {
+      const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!match) return String(value || "");
+      const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+      return date.toLocaleDateString(getLocale(), {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+      });
+    };
+    const formatDateRange = (startDate, endDate) => {
+      const startLabel = formatDateKey(startDate);
+      const endLabel = formatDateKey(endDate || startDate);
+      return String(startDate || "") === String(endDate || startDate || "")
+        ? startLabel
+        : `${startLabel} ${t("to")} ${endLabel}`;
+    };
+
     const timeMeta = root.ProCalModules && root.ProCalModules.eventTimeMeta;
     getEventsInRange(todayKey, end).filter(matchesEventFilters).forEach((evt) => {
       const meta = timeMeta && typeof timeMeta.resolveEventTimeMeta === "function"
         ? timeMeta.resolveEventTimeMeta(evt)
-        : { startMinutes: 24 * 60 };
-      const when = timeMeta && typeof timeMeta.getEventTimeRangeLabel === "function"
-        ? timeMeta.getEventTimeRangeLabel(evt, { t })
-        : (evt.startDate === evt.endDate
-          ? (evt.time ? `${evt.startDate} ${evt.time}` : evt.startDate)
-          : `${evt.startDate} ${t("to")} ${evt.endDate}`);
+        : {
+            isAllDay: !String(evt.time || "").trim(),
+            startMinutes: 24 * 60,
+            startTime: String(evt.time || "").trim(),
+            endTime: ""
+          };
+      const dateLabel = formatDateRange(evt.startDate, evt.endDate);
+      const timeLabel = meta.isAllDay
+        ? t("allDay")
+        : [meta.startTime, meta.endTime].filter(Boolean).join(" - ");
+      const when = [dateLabel, timeLabel].filter(Boolean).join(" \u2022 ");
       rows.push({
         type: "event",
         key: evt.occurrenceId || evt.id,
@@ -143,7 +166,7 @@
         dateKey: absence.startDate,
         personId: absence.personId,
         title: t("openAbsence"),
-        when: `${absence.startDate} ${t("to")} ${absence.endDate}`,
+        when: formatDateRange(absence.startDate, absence.endDate),
         time: "00:00"
       });
     });
@@ -159,7 +182,7 @@
           categoryId: task.categoryId || "",
           peopleIds: getTaskAssigneeIds(task),
           title: task.title,
-          when: dateKey,
+          when: formatDateKey(dateKey),
           time: "99:99"
         };
         if (task.done) doneTaskRows.push(row);

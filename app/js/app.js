@@ -12021,6 +12021,7 @@ function openEventPreview(evt, dateKey) {
     isSharedEventReadOnlyInPersonalMode,
     eventsFormPreviewModule: previewMod,
     t,
+    getLocale,
     people,
     getCategoryById,
     describeEventPeople,

@@ -97,6 +97,7 @@
       allowEdit,
       allowDelete,
       t: o.t,
+      getLocale: o.getLocale,
       people: o.people,
       getCategoryById: o.getCategoryById,
       describeEventPeople: o.describeEventPeople,
