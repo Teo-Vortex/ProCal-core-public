@@ -11,6 +11,8 @@ export type NotificationInput = {
   entityType?: string | null;
   entityId?: string | null;
   metaJson?: unknown;
+  persist?: boolean;
+  sendPush?: boolean;
 };
 
 const DEDUPE_WINDOW_MS = 5000;
@@ -107,6 +109,18 @@ export async function filterNotificationsByPreference(inputs: NotificationInput[
 
 async function createNotificationUnchecked(input: NotificationInput) {
   const row = { ...input, type: normalizeNotificationType(input.type || "system") || "system" };
+  if (row.persist === false) {
+    if (row.sendPush !== false) {
+      await sendNotificationPush(row.userId, {
+        title: row.title,
+        body: row.body || null,
+        type: row.type,
+        entityType: row.entityType || null,
+        entityId: row.entityId || null
+      }).catch(() => {});
+    }
+    return null;
+  }
   const prisma = getPrisma();
   const dedupeSince = new Date(Date.now() - DEDUPE_WINDOW_MS);
   const duplicate = await prisma.notification.findFirst({
@@ -150,13 +164,15 @@ async function createNotificationUnchecked(input: NotificationInput) {
     unreadCount
   });
 
-  void sendNotificationPush(created.userId, {
-    title: created.title,
-    body: created.body || null,
-    type: created.type,
-    entityType: created.entityType || null,
-    entityId: created.entityId || null
-  }).catch(() => {});
+  if (row.sendPush !== false) {
+    void sendNotificationPush(created.userId, {
+      title: created.title,
+      body: created.body || null,
+      type: created.type,
+      entityType: created.entityType || null,
+      entityId: created.entityId || null
+    }).catch(() => {});
+  }
 
   return created;
 }

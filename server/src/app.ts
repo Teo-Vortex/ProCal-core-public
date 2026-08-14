@@ -25,6 +25,8 @@ import { stateRouter } from "./routes/stateRoutes";
 import { syncRouter } from "./routes/syncRoutes";
 import { compensationRouter } from "./routes/compensationRoutes";
 import { leaveRouter } from "./routes/leaveRoutes";
+import { attendanceRouter } from "./routes/attendanceRoutes";
+import { inventoryRouter } from "./routes/inventoryRoutes";
 import { holidayRouter } from "./routes/holidayRoutes";
 import { notificationRouter } from "./routes/notificationRoutes";
 import { publicPushRouter, pushRouter } from "./routes/pushRoutes";
@@ -619,6 +621,10 @@ export function createApp() {
   app.get("/admin.html", (req, res) => res.type("html").send(renderHtmlDocument(req, path.join(appPath, "admin.html"))));
   app.get("/leave", (req, res) => res.type("html").send(renderHtmlDocument(req, path.join(appPath, "leave.html"))));
   app.get("/leave.html", (req, res) => res.type("html").send(renderHtmlDocument(req, path.join(appPath, "leave.html"))));
+  app.get("/attendance", (req, res) => res.type("html").send(renderHtmlDocument(req, path.join(appPath, "attendance.html"))));
+  app.get("/attendance.html", (req, res) => res.type("html").send(renderHtmlDocument(req, path.join(appPath, "attendance.html"))));
+  app.get("/inventory", (req, res) => res.type("html").send(renderHtmlDocument(req, path.join(appPath, "inventory.html"))));
+  app.get("/inventory.html", (req, res) => res.type("html").send(renderHtmlDocument(req, path.join(appPath, "inventory.html"))));
   app.get("/media-monitoring", (req, res) => res.type("html").send(renderHtmlDocument(req, path.join(appPath, "media-monitoring.html"))));
   app.get("/media-monitoring.html", (req, res) => res.type("html").send(renderHtmlDocument(req, path.join(appPath, "media-monitoring.html"))));
   app.get("/USER_GUIDE.html", (req, res) => res.type("html").send(renderHtmlDocument(req, path.join(projectRootPath, "USER_GUIDE.html"))));
@@ -641,6 +647,8 @@ export function createApp() {
   app.use(syncRouter);
   app.use(compensationRouter);
   app.use(leaveRouter);
+  app.use(attendanceRouter);
+  app.use(inventoryRouter);
   app.use(holidayRouter);
   app.use(notificationRouter);
   app.use(pushRouter);

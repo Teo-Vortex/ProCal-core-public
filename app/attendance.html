@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ProCal Attendance</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    try {
+      if (localStorage.getItem("procal_theme") === "dark") document.documentElement.setAttribute("data-theme", "dark");
+    } catch (_) {}
+  </script>
+  <style>
+    :root { --bg:#f3f5f8; --surface:#fff; --surface-2:#f8fafc; --ink:#172033; --muted:#667085; --line:#d8e1ea; --accent:#0f766e; --good:#15803d; --warn:#b45309; --danger:#b42318; color-scheme:light; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font-family:"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); }
+    button,input,select { font:inherit; }
+    .wrap { width:min(1180px,100%); margin:0 auto; padding:16px; }
+    .head,.row,.status-actions,.entry-main,.station-main { display:flex; align-items:center; gap:10px; }
+    .head { justify-content:space-between; flex-wrap:wrap; margin-bottom:14px; }
+    .brand { display:flex; align-items:center; gap:11px; min-width:0; }
+    .brand img { width:44px; height:44px; }
+    h1,h2,h3,p { margin:0; }
+    h1 { font-size:24px; }
+    h2 { font-size:17px; }
+    .muted { color:var(--muted); font-size:13px; }
+    .btn { min-height:38px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); padding:7px 12px; cursor:pointer; }
+    .btn:hover { border-color:var(--accent); }
+    .btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:700; }
+    .btn.danger { color:var(--danger); border-color:color-mix(in srgb,var(--danger) 38%,var(--line)); }
+    .btn:disabled { opacity:.52; cursor:not-allowed; }
+    .card { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:14px; margin-top:12px; }
+    .status-card { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px; align-items:center; }
+    .status-title { display:flex; align-items:center; gap:9px; margin-bottom:6px; }
+    .status-dot { width:11px; height:11px; border-radius:50%; background:var(--muted); }
+    .status-dot.in { background:var(--good); box-shadow:0 0 0 4px color-mix(in srgb,var(--good) 15%,transparent); }
+    .status-dot.out { background:var(--warn); }
+    .status-time { margin-top:4px; font-size:13px; color:var(--muted); }
+    .status-actions { justify-content:flex-end; flex-wrap:wrap; }
+    .filters { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)) auto; gap:10px; align-items:end; }
+    label { display:grid; gap:5px; color:var(--muted); font-size:13px; }
+    input,select { width:100%; min-height:38px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); padding:7px 9px; }
+    .section-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .entries,.stations { display:grid; gap:7px; }
+    .entry,.station { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; border:1px solid var(--line); border-radius:8px; padding:10px; background:var(--surface-2); }
+    .entry-main,.station-main { min-width:0; }
+    .entry-icon { width:32px; height:32px; display:grid; place-items:center; border-radius:7px; flex:0 0 auto; font-weight:800; background:#dcfce7; color:#166534; }
+    .entry-icon.out { background:#ffedd5; color:#9a3412; }
+    .entry-icon.void { background:#fee2e2; color:#991b1b; }
+    .entry-title { font-weight:700; }
+    .entry-meta { margin-top:2px; font-size:12px; color:var(--muted); overflow-wrap:anywhere; }
+    .entry-actions { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+    .entry.superseded { opacity:.58; }
+    .empty { padding:24px 10px; text-align:center; color:var(--muted); }
+    .admin-grid { display:grid; grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr); gap:14px; }
+    .station-form { display:grid; gap:10px; align-content:start; }
+    .tag-code { width:100%; min-height:80px; resize:none; border:1px solid var(--line); border-radius:8px; padding:9px; background:var(--surface-2); color:var(--ink); overflow-wrap:anywhere; }
+    .qr-preview { display:block; width:min(320px,100%); aspect-ratio:1; object-fit:contain; margin:0 auto 12px; border:1px solid var(--line); border-radius:8px; background:#fff; padding:8px; }
+    .hidden { display:none !important; }
+    .modal { position:fixed; inset:0; z-index:50; display:grid; place-items:center; padding:14px; background:rgba(7,16,23,.62); }
+    .modal-card { width:min(560px,100%); max-height:92vh; overflow:auto; border:1px solid var(--line); border-radius:8px; background:var(--surface); padding:14px; }
+    .modal-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+    .modal-form { display:grid; gap:10px; }
+    #pageStatus { min-height:20px; margin-top:10px; }
+    :root[data-theme="dark"] { --bg:#071017; --surface:#102531; --surface-2:#0b1b25; --ink:#e6edf0; --muted:#a6bac3; --line:rgba(184,208,216,.24); --accent:#31c9b4; --good:#4ade80; --warn:#fbbf24; --danger:#fb7185; color-scheme:dark; }
+    :root[data-theme="dark"] body { background:linear-gradient(180deg,#071017,#0a1720); }
+    :root[data-theme="dark"] .btn.primary { color:#05231e; }
+    :root[data-theme="dark"] .entry-icon { background:rgba(74,222,128,.16); color:#bbf7d0; }
+    :root[data-theme="dark"] .entry-icon.out { background:rgba(251,191,36,.16); color:#fde68a; }
+    :root[data-theme="dark"] .entry-icon.void { background:rgba(251,113,133,.16); color:#fecdd3; }
+    @media (max-width:820px) {
+      .wrap { padding:10px; }
+      .status-card { grid-template-columns:1fr; }
+      .status-actions { justify-content:stretch; }
+      .status-actions .btn { flex:1 1 145px; }
+      .filters { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .filters .btn { width:100%; }
+      .admin-grid { grid-template-columns:1fr; }
+    }
+    @media (max-width:520px) {
+      .filters { grid-template-columns:1fr; }
+      .entry,.station { grid-template-columns:1fr; }
+      .entry-actions { justify-content:flex-start; }
+      .head .row { width:100%; }
+      .head .row .btn { flex:1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="head">
+      <div class="brand">
+        <img src="favicon.ico" alt="" width="44" height="44">
+        <div><h1 id="pageTitle">Attendance</h1><div id="pageSubtitle" class="muted">Workday log</div></div>
+      </div>
+      <div class="row"><button id="langBtn" class="btn" type="button">BG</button><a id="backBtn" class="btn" href="/">Back</a></div>
+    </header>
+
+    <section class="card status-card">
+      <div>
+        <div class="status-title"><span id="statusDot" class="status-dot out"></span><h2 id="attendanceState">Not checked in</h2></div>
+        <div id="statusTime" class="status-time">-</div>
+        <div id="statusStation" class="status-time"></div>
+      </div>
+      <div class="status-actions">
+        <button id="nfcBtn" class="btn hidden" type="button">Scan NFC</button>
+        <button id="qrBtn" class="btn hidden" type="button">Scan QR</button>
+        <button id="punchBtn" class="btn primary" type="button">Check in</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="filters">
+        <label id="userFilterWrap" class="hidden"><span id="userLabel">Employee</span><select id="userFilter"></select></label>
+        <label><span id="fromLabel">From</span><input id="fromInput" type="date"></label>
+        <label><span id="toLabel">To</span><input id="toInput" type="date"></label>
+        <button id="applyBtn" class="btn" type="button">Apply</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head"><h2 id="logTitle">Attendance log</h2><span id="entryCount" class="muted"></span></div>
+      <div id="entries" class="entries"></div>
+    </section>
+
+    <section id="adminSection" class="card hidden">
+      <div class="section-head"><h2 id="stationsTitle">NFC / QR stations</h2></div>
+      <div class="admin-grid">
+        <form id="stationForm" class="station-form">
+          <label><span id="stationNameLabel">Name</span><input id="stationName" maxlength="191" required></label>
+          <label><span id="stationLocationLabel">Location</span><input id="stationLocation" maxlength="191"></label>
+          <button id="createStationBtn" class="btn primary" type="submit">Create station</button>
+        </form>
+        <div id="stations" class="stations"></div>
+      </div>
+    </section>
+    <p id="pageStatus" class="muted" role="status"></p>
+  </main>
+
+  <div id="correctionModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="correctionTitle">Correct entry</h2><button id="closeCorrectionBtn" class="btn" type="button">Close</button></div>
+      <form id="correctionForm" class="modal-form">
+        <label><span id="actionLabel">Action</span><select id="correctionAction"><option value="check_in">Check in</option><option value="check_out">Check out</option></select></label>
+        <label><span id="timeLabel">Date and time</span><input id="correctionTime" type="datetime-local" required></label>
+        <label><span id="reasonLabel">Reason</span><input id="correctionReason" maxlength="512" minlength="3" required></label>
+        <button id="saveCorrectionBtn" class="btn primary" type="submit">Save correction</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="payloadModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="payloadTitle">NFC tag payload</h2><button id="closePayloadBtn" class="btn" type="button">Close</button></div>
+      <img id="qrImage" class="qr-preview hidden" alt="QR code">
+      <textarea id="payloadValue" class="tag-code" readonly></textarea>
+      <div class="row" style="margin-top:10px;justify-content:flex-end;">
+        <button id="newPayloadBtn" class="btn danger" type="button">Create new code</button>
+        <button id="downloadQrBtn" class="btn" type="button">Download QR</button>
+        <button id="copyPayloadBtn" class="btn primary" type="button">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="voidModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="voidTitle">Void entry</h2><button id="closeVoidBtn" class="btn" type="button">Close</button></div>
+      <form id="voidForm" class="modal-form">
+        <label><span id="voidReasonLabel">Reason</span><input id="voidReason" maxlength="512" minlength="3" required></label>
+        <button id="confirmVoidBtn" class="btn danger" type="submit">Void entry</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/attendance.js"></script>
+</body>
+</html>

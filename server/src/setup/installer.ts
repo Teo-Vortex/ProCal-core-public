@@ -243,6 +243,7 @@ export async function bootstrapDatabaseFromEnvIfNeeded(): Promise<void> {
   const existing = loadStoredConfig();
   if (existing) {
     const databaseUrl = buildDatabaseUrl(existing);
+    runMigrations(databaseUrl);
     const internalAutoAdmin = readInternalAutoAdminInput();
     if (internalAutoAdmin) {
       const prisma = new PrismaClient({ datasourceUrl: databaseUrl });
@@ -295,15 +296,5 @@ export async function bootstrapDatabaseFromEnvIfNeeded(): Promise<void> {
     await prisma.$disconnect();
   }
 }
-
-export function migrateSchemaIfConfigured(): void {
-  const cfg = loadStoredConfig();
-  if (!cfg) return;
-  const databaseUrl = buildDatabaseUrl(cfg);
-  runMigrations(databaseUrl);
-}
-
-
-
 
 

@@ -2,17 +2,12 @@
 import { createApp } from "./app";
 import { getRuntimeConfig } from "./config/env";
 import { logger } from "./utils/logger";
-import { bootstrapDatabaseFromEnvIfNeeded, migrateSchemaIfConfigured } from "./setup/installer";
+import { bootstrapDatabaseFromEnvIfNeeded } from "./setup/installer";
 import { startBackupScheduler } from "./services/backupSchedulerService";
 import { startEventReminderScheduler } from "./services/eventReminderSchedulerService";
 
 async function start(): Promise<void> {
-  try {
-    await bootstrapDatabaseFromEnvIfNeeded();
-    migrateSchemaIfConfigured();
-  } catch (error) {
-    logger.error({ err: error }, "Database bootstrap from env failed");
-  }
+  await bootstrapDatabaseFromEnvIfNeeded();
 
   const runtime = getRuntimeConfig();
   const app = createApp();
@@ -24,4 +19,7 @@ async function start(): Promise<void> {
   });
 }
 
-void start();
+void start().catch((error) => {
+  logger.fatal({ err: error }, "Database bootstrap failed; server will not start");
+  process.exit(1);
+});

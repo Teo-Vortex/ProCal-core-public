@@ -120,9 +120,11 @@
         <a href="USER_GUIDE_EN.html#files">7. Files</a>
         <a href="USER_GUIDE_EN.html#chat">8. Chat and notifications</a>
         <a href="USER_GUIDE_EN.html#leave">9. Leave and absences</a>
-        <a href="USER_GUIDE_EN.html#profile">10. Profile and password</a>
-        <a href="USER_GUIDE_EN.html#admin">11. Admin panel</a>
-        <a href="USER_GUIDE_EN.html#support">12. Bugs, backups, and support</a>
+        <a href="USER_GUIDE_EN.html#attendance">10. Attendance</a>
+        <a href="USER_GUIDE_EN.html#inventory">11. Inventory</a>
+        <a href="USER_GUIDE_EN.html#profile">12. Profile and password</a>
+        <a href="USER_GUIDE_EN.html#admin">13. Admin panel</a>
+        <a href="USER_GUIDE_EN.html#support">14. Bugs, backups, and support</a>
       </nav>
 
       <main class="content">
@@ -278,8 +280,30 @@
           </ul>
         </section>
 
+        <section id="attendance">
+          <h2>10. Attendance</h2>
+          <ul>
+            <li>Open <b>Attendance</b> from the main menu to record check-in and check-out and review your workday log.</li>
+            <li>In the Android app, <b>Scan NFC</b> and <b>Scan QR</b> read a ProCal attendance station configured by an administrator.</li>
+            <li>Users with attendance management permissions can review all employees, correct entries with a required reason, void invalid entries, and manage NFC/QR stations.</li>
+            <li>Corrections and voids are added to the journal without overwriting the original entry.</li>
+          </ul>
+        </section>
+
+        <section id="inventory">
+          <h2>11. Inventory</h2>
+          <ul>
+            <li>The <b>Inventory</b> module shows the item catalog, total stock, and stock by storage location.</li>
+            <li>Each item has a unique SKU/code, unit, category, and its own low and critical stock thresholds.</li>
+            <li>Depending on assigned permissions, a user can receive, issue, transfer, or adjust stock. Negative stock is rejected.</li>
+            <li>Movements form an audit ledger. An incorrect movement is reversed with a new corrective entry and a required reason.</li>
+            <li>The QR code opens the exact item after scanning in a browser or the Android app. Generating a new QR invalidates the previous code.</li>
+            <li>A user with <b>Inventory: settings</b> permission selects notification channels and recipients. Permissions for each stock operation are assigned under <b>Admin panel</b> &gt; <b>Roles</b> or as an individual permission override.</li>
+          </ul>
+        </section>
+
         <section id="profile">
-          <h2>10. Profile and password</h2>
+          <h2>12. Profile and password</h2>
           <ul>
             <li>The profile dialog stores:
               <ul>
@@ -296,7 +320,7 @@
         </section>
 
         <section id="admin">
-          <h2>11. Admin panel</h2>
+          <h2>13. Admin panel</h2>
           <p>The local admin panel is the primary management surface for this self-hosted ProCal Core installation.</p>
           <ul>
             <li><b>Personnel</b> - users, approvals, roles, password resets, and permission overrides.</li>            <li><b>Roles</b>, <b>Categories</b>, <b>Holidays</b>, <b>Leave Form</b>.</li>
@@ -307,7 +331,7 @@
         </section>
 
         <section id="support">
-          <h2>12. Bugs, backups, and support</h2>
+          <h2>14. Bugs, backups, and support</h2>
           <ul>
             <li><b>Report bug</b> records a local issue report for the installation owner/admin to review.</li>
             <li>For self-hosted deployments, support and update decisions are handled by the installation owner.</li>

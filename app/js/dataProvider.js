@@ -44,6 +44,16 @@
     return `mode=${calendarMode}`;
   }
 
+  function stateSaveError(body, fallback) {
+    if (body && body.code === "TEXT_ENCODING_CORRUPTION_DETECTED") {
+      const language = String(document.documentElement.lang || "").toLowerCase();
+      return language.startsWith("bg")
+        ? "Засечена е повредена текстова кодировка. Промените не са записани; презареди страницата и опитай отново."
+        : "Damaged text encoding was detected. Changes were not saved; reload the page and try again.";
+    }
+    return body && body.error ? body.error : fallback;
+  }
+
   function stopRealtime() {
     emitRealtimeStatus("disconnected");
     clearRealtimeWatchdog();
@@ -218,7 +228,7 @@
       ...options,
       credentials: "include",
       headers: {
-        "content-type": "application/json",
+        "content-type": "application/json; charset=utf-8",
         ...(options && options.headers ? options.headers : {}),
         authorization: `Bearer ${bearer}`
       }
@@ -371,7 +381,7 @@
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new Error(body.error || "Failed to save");
+      throw new Error(stateSaveError(body, "Failed to save"));
     }
 
     const body = await res.json();
@@ -418,7 +428,7 @@
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new Error(body.error || "Failed to save shared state");
+      throw new Error(stateSaveError(body, "Failed to save shared state"));
     }
 
     const body = await res.json();

@@ -138,6 +138,24 @@ async function hardDeleteUserCompletely(userId: string): Promise<void> {
     await tx.leaveRecord.updateMany({ where: { substituteUserId: userId }, data: { substituteUserId: null } });
     await tx.leaveAllowance.deleteMany({ where: { userId } });
     await tx.leaveAllowance.updateMany({ where: { createdById: userId }, data: { createdById: null } });
+    const attendancePunches = await tx.attendancePunch.findMany({ where: { userId }, select: { id: true } });
+    const attendancePunchIds = attendancePunches.map((item) => item.id);
+    await tx.attendancePunch.updateMany({ where: { createdById: userId }, data: { createdById: null } });
+    if (attendancePunchIds.length) {
+      await tx.attendancePunch.deleteMany({ where: { targetPunchId: { in: attendancePunchIds } } });
+      await tx.attendancePunch.deleteMany({ where: { id: { in: attendancePunchIds } } });
+    }
+    await tx.attendanceStation.updateMany({ where: { createdById: userId }, data: { createdById: null } });
+    await tx.inventoryMovement.updateMany({ where: { createdById: userId }, data: { createdById: null } });
+    await tx.inventoryItem.updateMany({ where: { createdById: userId }, data: { createdById: null } });
+    await tx.inventoryLocation.updateMany({ where: { createdById: userId }, data: { createdById: null } });
+    const inventorySettings = await tx.inventorySettings.findUnique({ where: { id: 1 }, select: { recipientUserIds: true } });
+    if (Array.isArray(inventorySettings?.recipientUserIds)) {
+      const recipientUserIds = inventorySettings.recipientUserIds.map(String).filter((id) => id !== userId);
+      if (recipientUserIds.length !== inventorySettings.recipientUserIds.length) {
+        await tx.inventorySettings.update({ where: { id: 1 }, data: { recipientUserIds } });
+      }
+    }
     await tx.eventReminderDelivery.deleteMany({ where: { userId } });
     await tx.pushDevice.deleteMany({ where: { userId } });
     await tx.notification.deleteMany({ where: { userId } });

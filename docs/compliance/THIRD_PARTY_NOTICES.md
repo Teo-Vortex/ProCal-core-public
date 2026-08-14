@@ -9,9 +9,9 @@ The Docker image also contains Node.js, Debian packages, and the MariaDB service
 
 | License | Count |
 | --- | ---: |
-| MIT | 186 |
+| MIT | 200 |
 | Apache-2.0 | 36 |
-| ISC | 15 |
+| ISC | 21 |
 | BlueOak-1.0.0 | 5 |
 | BSD-3-Clause | 3 |
 | 0BSD | 1 |
@@ -48,9 +48,9 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | abort-controller@3.0.0 | MIT | [source](git+https://github.com/mysticatea/abort-controller.git) | apps/procal-core/server/node_modules/abort-controller/LICENSE |
 | accepts@1.3.8 | MIT | [source](jshttp/accepts) | apps/procal-core/server/node_modules/accepts/LICENSE |
 | agent-base@7.1.4 | MIT | [source](https://github.com/TooTallNate/proxy-agents.git) | apps/procal-core/server/node_modules/firebase-admin/node_modules/agent-base/LICENSE |
-| ansi-regex@5.0.1 | MIT | [source](chalk/ansi-regex) | apps/procal-core/server/node_modules/string-width-cjs/node_modules/ansi-regex/LICENSE |
+| ansi-regex@5.0.1 | MIT | [source](chalk/ansi-regex) | apps/procal-core/server/node_modules/qrcode/node_modules/ansi-regex/LICENSE |
 | ansi-regex@6.2.2 | MIT | [source](chalk/ansi-regex) | apps/procal-core/server/node_modules/ansi-regex/LICENSE |
-| ansi-styles@4.3.0 | MIT | [source](chalk/ansi-styles) | apps/procal-core/server/node_modules/wrap-ansi-cjs/node_modules/ansi-styles/LICENSE |
+| ansi-styles@4.3.0 | MIT | [source](chalk/ansi-styles) | apps/procal-core/server/node_modules/qrcode/node_modules/ansi-styles/LICENSE |
 | ansi-styles@6.2.3 | MIT | [source](chalk/ansi-styles) | apps/procal-core/server/node_modules/ansi-styles/LICENSE |
 | append-field@1.0.0 | MIT | [source](http://github.com/LinusU/node-append-field.git) | apps/procal-core/server/node_modules/append-field/LICENSE |
 | archiver-utils@5.0.2 | MIT | [source](https://github.com/archiverjs/archiver-utils.git) | apps/procal-core/server/node_modules/archiver-utils/LICENSE |
@@ -79,6 +79,8 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | bytes@3.1.2 | MIT | [source](visionmedia/bytes.js) | apps/procal-core/server/node_modules/bytes/LICENSE |
 | call-bind-apply-helpers@1.0.2 | MIT | [source](git+https://github.com/ljharb/call-bind-apply-helpers.git) | apps/procal-core/server/node_modules/call-bind-apply-helpers/LICENSE |
 | call-bound@1.0.4 | MIT | [source](git+https://github.com/ljharb/call-bound.git) | apps/procal-core/server/node_modules/call-bound/LICENSE |
+| camelcase@5.3.1 | MIT | [source](sindresorhus/camelcase) | apps/procal-core/server/node_modules/camelcase/LICENSE |
+| cliui@6.0.0 | ISC | [source](http://github.com/yargs/cliui.git) | apps/procal-core/server/node_modules/qrcode/node_modules/cliui/LICENSE.txt |
 | color-convert@2.0.1 | MIT | [source](Qix-/color-convert) | apps/procal-core/server/node_modules/color-convert/LICENSE |
 | color-name@1.1.4 | MIT | [source](git@github.com:colorjs/color-name.git) | apps/procal-core/server/node_modules/color-name/LICENSE |
 | compress-commons@6.0.2 | MIT | [source](https://github.com/archiverjs/node-compress-commons.git) | apps/procal-core/server/node_modules/compress-commons/LICENSE |
@@ -96,8 +98,10 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | data-uri-to-buffer@4.0.1 | MIT | [source](git://github.com/TooTallNate/node-data-uri-to-buffer.git) |  |
 | debug@2.6.9 | MIT | [source](git://github.com/visionmedia/debug.git) | apps/procal-core/server/node_modules/debug/LICENSE |
 | debug@4.4.3 | MIT | [source](git://github.com/debug-js/debug.git) | apps/procal-core/server/node_modules/firebase-admin/node_modules/debug/LICENSE |
+| decamelize@1.2.0 | MIT | [source](sindresorhus/decamelize) | apps/procal-core/server/node_modules/decamelize/LICENSE |
 | depd@2.0.0 | MIT | [source](dougwilson/nodejs-depd) | apps/procal-core/server/node_modules/depd/LICENSE |
 | destroy@1.2.0 | MIT | [source](stream-utils/destroy) | apps/procal-core/server/node_modules/destroy/LICENSE |
+| dijkstrajs@1.0.3 | MIT | [source](git://github.com/tcort/dijkstrajs) | apps/procal-core/server/node_modules/dijkstrajs/LICENSE.md |
 | dotenv@16.4.7 | BSD-2-Clause | [source](git://github.com/motdotla/dotenv.git) | apps/procal-core/server/node_modules/dotenv/LICENSE |
 | dunder-proto@1.0.1 | MIT | [source](git+https://github.com/es-shims/dunder-proto.git) | apps/procal-core/server/node_modules/dunder-proto/LICENSE |
 | eastasianwidth@0.2.0 | MIT | [source](git://github.com/komagata/eastasianwidth.git) |  |
@@ -124,6 +128,7 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | faye-websocket@0.11.4 | Apache-2.0 | [source](git://github.com/faye/faye-websocket-node.git) | apps/procal-core/server/node_modules/faye-websocket/LICENSE.md |
 | fetch-blob@3.2.0 | MIT | [source](https://github.com/node-fetch/fetch-blob.git) | apps/procal-core/server/node_modules/fetch-blob/LICENSE |
 | finalhandler@1.3.1 | MIT | [source](pillarjs/finalhandler) | apps/procal-core/server/node_modules/finalhandler/LICENSE |
+| find-up@4.1.0 | MIT | [source](sindresorhus/find-up) | apps/procal-core/server/node_modules/find-up/LICENSE |
 | firebase-admin@14.2.0 | Apache-2.0 | [source](https://github.com/firebase/firebase-admin-node) | apps/procal-core/server/node_modules/firebase-admin/LICENSE |
 | foreground-child@3.3.1 | ISC | [source](git+https://github.com/tapjs/foreground-child.git) | apps/procal-core/server/node_modules/foreground-child/LICENSE |
 | formdata-polyfill@4.0.10 | MIT | [source](git+https://jimmywarting@github.com/jimmywarting/FormData.git) | apps/procal-core/server/node_modules/formdata-polyfill/LICENSE |
@@ -166,6 +171,7 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | jws@4.0.1 | MIT | [source](git://github.com/brianloveswords/node-jws.git) | apps/procal-core/server/node_modules/jws/LICENSE |
 | lazystream@1.0.1 | MIT | [source](https://github.com/jpommerening/node-lazystream.git) | apps/procal-core/server/node_modules/lazystream/LICENSE |
 | limiter@1.1.5 | MIT | [source](git://github.com/jhurliman/node-rate-limiter) | apps/procal-core/server/node_modules/limiter/LICENSE.txt |
+| locate-path@5.0.0 | MIT | [source](sindresorhus/locate-path) | apps/procal-core/server/node_modules/locate-path/LICENSE |
 | lodash.clonedeep@4.5.0 | MIT | [source](lodash/lodash) | apps/procal-core/server/node_modules/lodash.clonedeep/LICENSE |
 | lodash.includes@4.3.0 | MIT | [source](lodash/lodash) | apps/procal-core/server/node_modules/lodash.includes/LICENSE |
 | lodash.isboolean@3.0.3 | MIT | [source](lodash/lodash) | apps/procal-core/server/node_modules/lodash.isboolean/LICENSE |
@@ -201,8 +207,12 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | object-inspect@1.13.4 | MIT | [source](git://github.com/inspect-js/object-inspect.git) | apps/procal-core/server/node_modules/object-inspect/LICENSE |
 | on-exit-leak-free@2.1.2 | MIT | [source](git+https://github.com/mcollina/on-exit-or-gc.git) | apps/procal-core/server/node_modules/on-exit-leak-free/LICENSE |
 | on-finished@2.4.1 | MIT | [source](jshttp/on-finished) | apps/procal-core/server/node_modules/on-finished/LICENSE |
+| p-limit@2.3.0 | MIT | [source](sindresorhus/p-limit) | apps/procal-core/server/node_modules/p-locate/node_modules/p-limit/LICENSE |
+| p-locate@4.1.0 | MIT | [source](sindresorhus/p-locate) | apps/procal-core/server/node_modules/p-locate/LICENSE |
+| p-try@2.2.0 | MIT | [source](sindresorhus/p-try) | apps/procal-core/server/node_modules/p-try/LICENSE |
 | package-json-from-dist@1.0.1 | BlueOak-1.0.0 | [source](git+https://github.com/isaacs/package-json-from-dist.git) | apps/procal-core/server/node_modules/package-json-from-dist/LICENSE.md |
 | parseurl@1.3.3 | MIT | [source](pillarjs/parseurl) | apps/procal-core/server/node_modules/parseurl/LICENSE |
+| path-exists@4.0.0 | MIT | [source](sindresorhus/path-exists) | apps/procal-core/server/node_modules/path-exists/LICENSE |
 | path-key@3.1.1 | MIT | [source](sindresorhus/path-key) | apps/procal-core/server/node_modules/path-key/LICENSE |
 | path-scurry@1.11.1 | BlueOak-1.0.0 | [source](git+https://github.com/isaacs/path-scurry) | apps/procal-core/server/node_modules/path-scurry/LICENSE.md |
 | path-to-regexp@0.1.13 | MIT | [source](https://github.com/pillarjs/path-to-regexp.git) | apps/procal-core/server/node_modules/path-to-regexp/LICENSE |
@@ -210,11 +220,13 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | pino-http@10.4.0 | MIT | [source](git+https://github.com/pinojs/pino-http.git) | apps/procal-core/server/node_modules/pino-http/LICENSE |
 | pino-std-serializers@7.1.0 | MIT | [source](git+ssh://git@github.com/pinojs/pino-std-serializers.git) | apps/procal-core/server/node_modules/pino-std-serializers/LICENSE |
 | pino@9.6.0 | MIT | [source](git+https://github.com/pinojs/pino.git) | apps/procal-core/server/node_modules/pino/LICENSE |
+| pngjs@5.0.0 | MIT | [source](git://github.com/lukeapage/pngjs.git) | apps/procal-core/server/node_modules/pngjs/LICENSE |
 | prisma@5.22.0 | Apache-2.0 | [source](https://github.com/prisma/prisma.git) | apps/procal-core/server/node_modules/prisma/LICENSE |
 | process-nextick-args@2.0.1 | MIT | [source](https://github.com/calvinmetcalf/process-nextick-args.git) | apps/procal-core/server/node_modules/process-nextick-args/LICENSE.md |
 | process-warning@4.0.1 | MIT | [source](git+https://github.com/fastify/process-warning.git) | apps/procal-core/server/node_modules/process-warning/LICENSE |
 | process@0.11.10 | MIT | [source](git://github.com/shtylman/node-process.git) | apps/procal-core/server/node_modules/process/LICENSE |
 | proxy-addr@2.0.7 | MIT | [source](jshttp/proxy-addr) | apps/procal-core/server/node_modules/proxy-addr/LICENSE |
+| qrcode@1.5.4 | MIT | [source](git://github.com/soldair/node-qrcode.git) | apps/procal-core/server/node_modules/qrcode/LICENSE |
 | qs@6.15.2 | BSD-3-Clause | [source](https://github.com/ljharb/qs.git) | apps/procal-core/server/node_modules/qs/LICENSE.md |
 | quick-format-unescaped@4.0.4 | MIT | [source](git+https://github.com/davidmarkclements/quick-format.git) | apps/procal-core/server/node_modules/quick-format-unescaped/LICENSE |
 | range-parser@1.2.1 | MIT | [source](jshttp/range-parser) | apps/procal-core/server/node_modules/range-parser/LICENSE |
@@ -224,6 +236,8 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | readable-stream@4.7.0 | MIT | [source](git://github.com/nodejs/readable-stream) | apps/procal-core/server/node_modules/readable-stream/LICENSE |
 | readdir-glob@1.1.3 | Apache-2.0 | [source](git://github.com/Yqnn/node-readdir-glob.git) | apps/procal-core/server/node_modules/readdir-glob/LICENSE |
 | real-require@0.2.0 | MIT | [source](git+https://github.com/pinojs/real-require.git) | apps/procal-core/server/node_modules/real-require/LICENSE.md |
+| require-directory@2.1.1 | MIT | [source](git://github.com/troygoode/node-require-directory.git) | apps/procal-core/server/node_modules/require-directory/LICENSE |
+| require-main-filename@2.0.0 | ISC | [source](git+ssh://git@github.com/yargs/require-main-filename.git) | apps/procal-core/server/node_modules/require-main-filename/LICENSE.txt |
 | safe-buffer@5.1.2 | MIT | [source](git://github.com/feross/safe-buffer.git) | apps/procal-core/server/node_modules/lazystream/node_modules/safe-buffer/LICENSE |
 | safe-buffer@5.2.1 | MIT | [source](git://github.com/feross/safe-buffer.git) | apps/procal-core/server/node_modules/safe-buffer/LICENSE |
 | safe-stable-stringify@2.5.0 | MIT | [source](git+https://github.com/BridgeAR/safe-stable-stringify.git) | apps/procal-core/server/node_modules/safe-stable-stringify/LICENSE |
@@ -231,6 +245,7 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | semver@7.7.4 | ISC | [source](git+https://github.com/npm/node-semver.git) | apps/procal-core/server/node_modules/semver/LICENSE |
 | send@0.19.0 | MIT | [source](pillarjs/send) | apps/procal-core/server/node_modules/send/LICENSE |
 | serve-static@1.16.2 | MIT | [source](expressjs/serve-static) | apps/procal-core/server/node_modules/serve-static/LICENSE |
+| set-blocking@2.0.0 | ISC | [source](git+https://github.com/yargs/set-blocking.git) | apps/procal-core/server/node_modules/set-blocking/LICENSE.txt |
 | setprototypeof@1.2.0 | ISC | [source](https://github.com/wesleytodd/setprototypeof.git) | apps/procal-core/server/node_modules/setprototypeof/LICENSE |
 | shebang-command@2.0.0 | MIT | [source](kevva/shebang-command) | apps/procal-core/server/node_modules/shebang-command/LICENSE |
 | shebang-regex@3.0.0 | MIT | [source](sindresorhus/shebang-regex) | apps/procal-core/server/node_modules/shebang-regex/LICENSE |
@@ -247,9 +262,9 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | streamx@2.25.0 | MIT | [source](https://github.com/mafintosh/streamx.git) | apps/procal-core/server/node_modules/streamx/LICENSE |
 | string_decoder@1.1.1 | MIT | [source](git://github.com/nodejs/string_decoder.git) | apps/procal-core/server/node_modules/lazystream/node_modules/string_decoder/LICENSE |
 | string_decoder@1.3.0 | MIT | [source](git://github.com/nodejs/string_decoder.git) | apps/procal-core/server/node_modules/string_decoder/LICENSE |
-| string-width@4.2.3 | MIT | [source](sindresorhus/string-width) | apps/procal-core/server/node_modules/string-width-cjs/LICENSE |
+| string-width@4.2.3 | MIT | [source](sindresorhus/string-width) | apps/procal-core/server/node_modules/qrcode/node_modules/string-width/LICENSE |
 | string-width@5.1.2 | MIT | [source](sindresorhus/string-width) | apps/procal-core/server/node_modules/string-width/LICENSE |
-| strip-ansi@6.0.1 | MIT | [source](chalk/strip-ansi) | apps/procal-core/server/node_modules/string-width-cjs/node_modules/strip-ansi/LICENSE |
+| strip-ansi@6.0.1 | MIT | [source](chalk/strip-ansi) | apps/procal-core/server/node_modules/qrcode/node_modules/strip-ansi/LICENSE |
 | strip-ansi@7.2.0 | MIT | [source](chalk/strip-ansi) | apps/procal-core/server/node_modules/strip-ansi/LICENSE |
 | tar-stream@3.1.8 | MIT | [source](git+https://github.com/mafintosh/tar-stream.git) | apps/procal-core/server/node_modules/tar-stream/LICENSE |
 | teex@1.0.1 | MIT | [source](https://github.com/mafintosh/teex.git) | apps/procal-core/server/node_modules/teex/LICENSE |
@@ -267,9 +282,14 @@ No runtime Node.js package falls outside the current permissive allowlist.
 | web-streams-polyfill@3.3.3 | MIT | [source](git+https://github.com/MattiasBuelens/web-streams-polyfill.git) | apps/procal-core/server/node_modules/web-streams-polyfill/LICENSE |
 | websocket-driver@0.7.5 | Apache-2.0 | [source](git://github.com/faye/websocket-driver-node.git) | apps/procal-core/server/node_modules/websocket-driver/LICENSE.md |
 | websocket-extensions@0.1.4 | Apache-2.0 | [source](git://github.com/faye/websocket-extensions-node.git) | apps/procal-core/server/node_modules/websocket-extensions/LICENSE.md |
+| which-module@2.0.1 | ISC | [source](git+https://github.com/nexdrew/which-module.git) | apps/procal-core/server/node_modules/which-module/LICENSE |
 | which@2.0.2 | ISC | [source](git://github.com/isaacs/node-which.git) | apps/procal-core/server/node_modules/which/LICENSE |
+| wrap-ansi@6.2.0 | MIT | [source](chalk/wrap-ansi) | apps/procal-core/server/node_modules/qrcode/node_modules/wrap-ansi/LICENSE |
 | wrap-ansi@7.0.0 | MIT | [source](chalk/wrap-ansi) | apps/procal-core/server/node_modules/wrap-ansi-cjs/LICENSE |
 | wrap-ansi@8.1.0 | MIT | [source](chalk/wrap-ansi) | apps/procal-core/server/node_modules/wrap-ansi/LICENSE |
+| y18n@4.0.3 | ISC | [source](git@github.com:yargs/y18n.git) | apps/procal-core/server/node_modules/qrcode/node_modules/y18n/LICENSE |
+| yargs-parser@18.1.3 | ISC | [source](https://github.com/yargs/yargs-parser.git) | apps/procal-core/server/node_modules/qrcode/node_modules/yargs-parser/LICENSE.txt |
+| yargs@15.4.1 | MIT | [source](https://github.com/yargs/yargs.git) | apps/procal-core/server/node_modules/qrcode/node_modules/yargs/LICENSE |
 | zip-stream@6.0.1 | MIT | [source](https://github.com/archiverjs/node-zip-stream.git) | apps/procal-core/server/node_modules/zip-stream/LICENSE |
 | zod@3.24.1 | MIT | [source](git+https://github.com/colinhacks/zod.git) | apps/procal-core/server/node_modules/zod/LICENSE |
 

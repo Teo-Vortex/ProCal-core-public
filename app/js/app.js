@@ -302,6 +302,8 @@ const createDataFileBtn = document.getElementById("createDataFileBtn");
 const useLocalOnlyBtn = document.getElementById("useLocalOnlyBtn");
 const reportsBtn = document.getElementById("reportsBtn");
 const leaveBtn = document.getElementById("leaveBtn");
+const attendanceBtn = document.getElementById("attendanceBtn");
+const inventoryBtn = document.getElementById("inventoryBtn");
 const currentUserLeaveBtn = document.getElementById("currentUserLeaveBtn");
 const filesBtn = document.getElementById("filesBtn");
 const reportsMenu = document.getElementById("reportsMenu");
@@ -1081,6 +1083,8 @@ const I18N = {
     reports: "Reports",
     mediaMonitoring: "Media",
     leave: "Leave",
+    attendance: "Attendance",
+    inventory: "Inventory",
     leaveAvailableTitle: "My leave",
     leaveAvailablePaid: "Paid leave left",
     leaveAvailableStudy: "Study leave left",
@@ -1589,6 +1593,8 @@ const I18N = {
     reports: "\u041E\u0442\u0447\u0435\u0442\u0438",
     mediaMonitoring: "\u041C\u0435\u0434\u0438\u0438",
     leave: "\u041E\u0442\u0441\u044A\u0441\u0442\u0432\u0438\u044F",
+    attendance: "\u041F\u0440\u0438\u0441\u044A\u0441\u0442\u0432\u0438\u044F",
+    inventory: "\u0421\u043A\u043B\u0430\u0434",
     leaveAvailableTitle: "\u041C\u043E\u044F\u0442\u0430 \u043E\u0442\u043F\u0443\u0441\u043A\u0430",
     leaveAvailablePaid: "\u041E\u0441\u0442\u0430\u0432\u0430\u0449\u0430 \u043E\u0442\u043F\u0443\u0441\u043A\u0430",
     leaveAvailableStudy: "\u041E\u0441\u0442\u0430\u0432\u0430\u0449 \u0443\u0447\u0435\u0431\u0435\u043D \u043E\u0442\u043F\u0443\u0441\u043A",
@@ -3502,6 +3508,18 @@ if (leaveBtn) {
     window.location.href = resolveRuntimePath("/leave");
   });
 }
+if (attendanceBtn) {
+  attendanceBtn.addEventListener("click", () => {
+    closeSettingsMenu();
+    window.location.href = resolveRuntimePath("/attendance");
+  });
+}
+if (inventoryBtn) {
+  inventoryBtn.addEventListener("click", () => {
+    closeSettingsMenu();
+    window.location.href = resolveRuntimePath("/inventory");
+  });
+}
 if (currentUserLeaveBtn) {
   currentUserLeaveBtn.addEventListener("click", async () => {
     await openLeaveQuickModal();
@@ -4573,6 +4591,8 @@ renderMainPanelUI();
   setText("reportsBtn", t("reports"));
   setText("mediaMonitoringBtn", t("mediaMonitoring"));
   setText("leaveBtn", t("leave"));
+  setText("attendanceBtn", t("attendance"));
+  setText("inventoryBtn", t("inventory"));
   setText("currentUserLeaveBtn", t("leaveAvailableTitle"));
   setText("leaveQuickTitle", t("leaveAvailableTitle"));
   setText("leaveQuickPaidLabel", t("leaveAvailablePaid"));
@@ -10267,6 +10287,17 @@ function canLeaveSelfAccess() {
   return mod.canLeaveSelfAccess({ role: currentUserRole, permissions: currentUserPermissions, featureFlags: currentUserFeatureFlags });
 }
 
+function canAttendanceAccess() {
+  return currentUserHasPermission("attendance.read_self")
+    || currentUserHasPermission("attendance.punch")
+    || currentUserHasPermission("attendance.read_all")
+    || currentUserHasPermission("attendance.manage");
+}
+
+function canInventoryAccess() {
+  return currentUserHasPermission("inventory.read");
+}
+
 function canUseFilesModule() {
   return canUseFeature("files");
 }
@@ -10687,6 +10718,8 @@ function applyUserViewMode() {
   if (chatSendBtn) chatSendBtn.style.display = canChatWrite() ? "" : "none";
   if (chatInput) chatInput.disabled = !canChatWrite();
   if (leaveBtn) leaveBtn.style.display = canLeaveAccess() ? "" : "none";
+  if (attendanceBtn) attendanceBtn.style.display = canAttendanceAccess() ? "" : "none";
+  if (inventoryBtn) inventoryBtn.style.display = canInventoryAccess() ? "" : "none";
   if (currentUserLeaveBtn) currentUserLeaveBtn.style.display = canLeaveSelfAccess() ? "" : "none";
   if (compensationBtn) compensationBtn.style.display = canCompOverviewAccess() ? "" : "none";
   if (!canCompOverviewAccess()) closeCompensationMenu();

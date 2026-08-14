@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ProCal Inventory</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>try{if(localStorage.getItem("procal_theme")==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(_){}</script>
+  <style>
+    :root{--bg:#f3f5f8;--surface:#fff;--surface-2:#f8fafc;--ink:#172033;--muted:#667085;--line:#d8e1ea;--accent:#0f766e;--good:#15803d;--warn:#b45309;--danger:#b42318;color-scheme:light}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}button,input,select,textarea{font:inherit}h1,h2,h3,p{margin:0}.hidden{display:none!important}
+    .wrap{width:min(1280px,100%);margin:0 auto;padding:16px}.head,.row,.toolbar,.section-head,.item-title,.stock-head{display:flex;align-items:center;gap:10px}.head{justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}.brand{display:flex;align-items:center;gap:11px}.brand img{width:44px;height:44px}h1{font-size:24px}h2{font-size:17px}.muted{color:var(--muted);font-size:13px}
+    .btn{min-height:38px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);padding:7px 12px;cursor:pointer;text-decoration:none}.btn:hover{border-color:var(--accent)}.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}.btn.danger{color:var(--danger)}.btn:disabled{opacity:.5;cursor:not-allowed}.icon-btn{width:38px;padding:0;display:grid;place-items:center}
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px}.toolbar{flex-wrap:wrap;margin-bottom:12px}.search{flex:1 1 260px}.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}.metric{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px}.metric strong{display:block;font-size:23px}.workspace{display:grid;grid-template-columns:minmax(300px,.78fr) minmax(0,1.5fr);gap:12px}.section-head{justify-content:space-between;margin-bottom:10px}
+    .item-list{display:grid;gap:7px;max-height:68vh;overflow:auto;margin-top:10px}.item{width:100%;text-align:left;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);padding:10px;cursor:pointer}.item:hover,.item.selected{border-color:var(--accent)}.item.selected{box-shadow:inset 3px 0 var(--accent)}.item-title{justify-content:space-between;font-weight:700}.item-meta{margin-top:4px;color:var(--muted);font-size:12px}.item-quantity{font-size:19px;font-weight:800;margin-top:6px}.item-status{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.badge{display:inline-flex;align-items:center;min-height:22px;border:1px solid var(--line);border-radius:999px;padding:1px 7px;font-size:11px;font-weight:700}.badge.normal{color:var(--good);border-color:color-mix(in srgb,var(--good) 42%,var(--line))}.badge.low{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 42%,var(--line))}.badge.critical{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 42%,var(--line))}
+    .detail-empty{min-height:240px;display:grid;place-items:center;text-align:center;color:var(--muted)}.detail-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}.detail-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.sku{font-family:Consolas,monospace;font-size:13px;color:var(--muted);margin-top:3px}.stock-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px}.stock-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.stock{border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--surface-2)}.stock-head{justify-content:space-between}.stock-value{font-size:22px;font-weight:800;margin-top:5px}.history{display:grid;gap:7px;margin-top:10px;max-height:360px;overflow:auto}.movement{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:9px;border-bottom:1px solid var(--line)}.movement:last-child{border-bottom:0}.movement strong.in{color:var(--good)}.movement strong.out{color:var(--danger)}.movement strong.transfer{color:var(--accent)}.empty{padding:25px 10px;text-align:center;color:var(--muted)}
+    label{display:grid;gap:5px;color:var(--muted);font-size:13px}input,select,textarea{width:100%;min-height:38px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);padding:7px 9px}textarea{resize:vertical;min-height:72px}.check{display:flex;align-items:center;gap:8px;color:var(--ink)}.check input{width:17px;min-height:17px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.span-2{grid-column:1/-1}.modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:14px;background:rgba(7,16,23,.62)}.modal-card{width:min(660px,100%);max-height:92vh;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:14px}.modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;flex-wrap:wrap}.qr-preview{display:block;width:min(320px,100%);aspect-ratio:1;object-fit:contain;margin:0 auto 10px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px}.qr-item-code{text-align:center;font:700 18px Consolas,monospace;overflow-wrap:anywhere;margin:2px 0 10px}.recipient-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:190px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:9px}.location-list{display:grid;gap:7px;margin-top:10px}.location-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:9px}.scan-box{display:grid;gap:10px}.status{min-height:21px;margin:10px 0 0}.segmented{display:flex;gap:4px;overflow:auto;padding-bottom:2px}.segmented .btn{min-height:34px;white-space:nowrap;padding:5px 10px}.segmented .btn.active{background:var(--ink);border-color:var(--ink);color:var(--surface)}.movement-summary{border:1px solid var(--line);border-radius:8px;background:var(--surface-2);padding:10px;font-weight:700}.movement-availability{min-height:20px}.history-filters{display:grid;grid-template-columns:minmax(160px,1.4fr) repeat(3,minmax(120px,1fr));gap:8px}.scan-item{border:1px solid var(--line);border-radius:8px;background:var(--surface-2);padding:12px}.scan-item strong{display:block;font-size:18px}.scan-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}.scan-actions .btn{min-height:48px;font-weight:700}
+    :root[data-theme="dark"]{--bg:#071017;--surface:#102531;--surface-2:#0b1b25;--ink:#e6edf0;--muted:#a6bac3;--line:rgba(184,208,216,.24);--accent:#31c9b4;--good:#4ade80;--warn:#fbbf24;--danger:#fb7185;color-scheme:dark}:root[data-theme="dark"] .btn.primary{color:#05231e}
+    @media(max-width:860px){.wrap{padding:10px}.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.workspace{grid-template-columns:1fr}.item-list{max-height:310px}.detail-head{grid-template-columns:1fr}.detail-actions{justify-content:flex-start}.history-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:520px){.stock-grid,.form-grid,.recipient-list,.history-filters,.scan-actions{grid-template-columns:1fr}.span-2{grid-column:auto}.head .row{width:100%}.head .row .btn{flex:1}.toolbar .btn{flex:1 1 42%}.toolbar #scanBtn{order:-1;flex-basis:100%;min-height:50px;font-weight:800}.movement{grid-template-columns:1fr}.detail-actions .btn{flex:1 1 40%}.stock-toolbar{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="head">
+      <div class="brand"><img src="favicon.ico" alt=""><div><h1 id="pageTitle">Inventory</h1><div id="pageSubtitle" class="muted">Stock and movements</div></div></div>
+      <div class="row"><button id="langBtn" class="btn" type="button">BG</button><a id="backBtn" class="btn" href="/">Back</a></div>
+    </header>
+    <div class="toolbar">
+      <input id="searchInput" class="search" type="search" placeholder="Search by name, SKU or category">
+      <button id="scanBtn" class="btn" type="button">Scan QR</button>
+      <button id="newItemBtn" class="btn primary hidden" type="button">New item</button>
+      <button id="locationsBtn" class="btn hidden" type="button">Locations</button>
+      <button id="settingsBtn" class="btn hidden" type="button">Notifications</button>
+    </div>
+    <section class="summary">
+      <div class="metric"><span id="itemsMetricLabel" class="muted">Items</span><strong id="itemsMetric">0</strong></div>
+      <div class="metric"><span id="unitsMetricLabel" class="muted">Total quantity</span><strong id="unitsMetric">0</strong></div>
+      <div class="metric"><span id="lowMetricLabel" class="muted">Low stock</span><strong id="lowMetric">0</strong></div>
+      <div class="metric"><span id="criticalMetricLabel" class="muted">Critical</span><strong id="criticalMetric">0</strong></div>
+    </section>
+    <section class="workspace">
+      <div class="card">
+        <div class="section-head"><h2 id="catalogTitle">Catalog</h2><span id="itemCount" class="muted"></span></div>
+        <div id="catalogFilters" class="segmented" aria-label="Catalog filters">
+          <button class="btn active" type="button" data-catalog-filter="all">All</button>
+          <button class="btn" type="button" data-catalog-filter="low">Low</button>
+          <button class="btn" type="button" data-catalog-filter="critical">Critical</button>
+          <button class="btn" type="button" data-catalog-filter="empty">Out of stock</button>
+        </div>
+        <div id="itemList" class="item-list"></div>
+      </div>
+      <div id="detailCard" class="card"><div id="detailEmpty" class="detail-empty">Select an item.</div><div id="detailContent" class="hidden"></div></div>
+    </section>
+    <p id="pageStatus" class="muted status" role="status"></p>
+  </main>
+
+  <div id="itemModal" class="modal hidden" aria-hidden="true"><div class="modal-card">
+    <div class="modal-head"><h2 id="itemModalTitle">New item</h2><button class="btn" data-close="itemModal" type="button">Close</button></div>
+    <form id="itemForm" class="form-grid">
+      <label><span id="skuLabel">SKU / code</span><input id="itemSku" maxlength="191" required></label>
+      <label><span id="nameLabel">Name</span><input id="itemName" maxlength="300" required></label>
+      <label><span id="categoryLabel">Category</span><input id="itemCategory" maxlength="191"></label>
+      <label><span id="unitLabel">Unit</span><input id="itemUnit" maxlength="32" value="pcs" required></label>
+      <label><span id="lowLabel">Low-stock threshold</span><input id="itemLow" type="number" min="0" step="any"></label>
+      <label><span id="criticalLabel">Critical threshold</span><input id="itemCritical" type="number" min="0" step="any"></label>
+      <label><span id="restockLabel">Restock target</span><input id="itemRestock" type="number" min="0" step="any"></label>
+      <label id="initialLocationWrap"><span id="initialLocationLabel">Initial location</span><select id="itemInitialLocation"></select></label>
+      <label id="initialQuantityWrap"><span id="initialQuantityLabel">Initial quantity</span><input id="itemInitialQuantity" type="number" min="0" step="any" value="0"></label>
+      <label class="check"><input id="itemNotifications" type="checkbox" checked><span id="itemNotificationsLabel">Stock notifications</span></label>
+      <label id="activeWrap" class="check hidden"><input id="itemActive" type="checkbox" checked><span id="activeLabel">Active</span></label>
+      <label class="span-2"><span id="descriptionLabel">Description</span><textarea id="itemDescription" maxlength="2000"></textarea></label>
+      <div class="modal-actions span-2"><button id="saveItemBtn" class="btn primary" type="submit">Save</button></div>
+    </form>
+  </div></div>
+
+  <div id="movementModal" class="modal hidden" aria-hidden="true"><div class="modal-card">
+    <div class="modal-head"><h2 id="movementTitle">Stock movement</h2><button class="btn" data-close="movementModal" type="button">Close</button></div>
+    <form id="movementForm" class="form-grid">
+      <label><span id="movementTypeLabel">Operation</span><select id="movementType"><option value="receive">Receive</option><option value="issue">Issue</option><option value="transfer">Transfer</option><option value="adjustment">Adjustment</option></select></label>
+      <label><span id="quantityLabel">Quantity</span><input id="movementQuantity" type="number" min="0" step="any" required></label>
+      <label id="adjustmentModeWrap" class="hidden"><span id="adjustmentModeLabel">Adjustment method</span><select id="adjustmentMode"><option value="delta">Change by quantity</option><option value="absolute">Set absolute stock</option></select></label>
+      <label id="sourceWrap"><span id="sourceLabel">From</span><select id="movementSource"></select></label>
+      <label id="destinationWrap"><span id="destinationLabel">To</span><select id="movementDestination"></select></label>
+      <label id="directionWrap" class="hidden"><span id="directionLabel">Direction</span><select id="movementDirection"><option value="in">Add</option><option value="out">Remove</option></select></label>
+      <label class="span-2"><span id="reasonLabel">Reason</span><input id="movementReason" minlength="3" maxlength="512"></label>
+      <label class="span-2"><span id="noteLabel">Note</span><textarea id="movementNote" maxlength="1000"></textarea></label>
+      <div id="movementAvailability" class="muted movement-availability span-2" aria-live="polite"></div>
+      <div id="movementSummary" class="movement-summary span-2" aria-live="polite"></div>
+      <div class="modal-actions span-2"><button id="saveMovementBtn" class="btn primary" type="submit">Save movement</button></div>
+      <p id="movementStatus" class="muted status span-2" role="status"></p>
+    </form>
+  </div></div>
+
+  <div id="locationsModal" class="modal hidden" aria-hidden="true"><div class="modal-card">
+    <div class="modal-head"><h2 id="locationsTitle">Locations</h2><button class="btn" data-close="locationsModal" type="button">Close</button></div>
+    <form id="locationForm" class="form-grid"><label><span id="locationNameLabel">Name</span><input id="locationName" required maxlength="191"></label><label><span id="locationDescriptionLabel">Description</span><input id="locationDescription" maxlength="512"></label><div class="modal-actions span-2"><button id="addLocationBtn" class="btn primary" type="submit">Add location</button></div></form>
+    <div id="locationList" class="location-list"></div>
+  </div></div>
+
+  <div id="settingsModal" class="modal hidden" aria-hidden="true"><div class="modal-card">
+    <div class="modal-head"><h2 id="settingsTitle">Inventory notifications</h2><button class="btn" data-close="settingsModal" type="button">Close</button></div>
+    <form id="settingsForm" class="form-grid">
+      <label class="check"><input id="notificationsEnabled" type="checkbox"><span id="notificationsEnabledLabel">Enable notifications</span></label>
+      <label class="check"><input id="inAppEnabled" type="checkbox"><span id="inAppEnabledLabel">In-app notifications</span></label>
+      <label class="check"><input id="pushEnabled" type="checkbox"><span id="pushEnabledLabel">Push notifications</span></label>
+      <label class="check"><input id="notifyManagers" type="checkbox"><span id="notifyManagersLabel">Notify inventory managers</span></label>
+      <label class="check"><input id="notifyOnRestored" type="checkbox"><span id="notifyOnRestoredLabel">Notify when stock is restored</span></label>
+      <label><span id="repeatHoursLabel">Repeat active alert after hours (0 = never)</span><input id="repeatHours" type="number" min="0" max="8760" step="1"></label>
+      <div class="span-2"><div id="recipientsLabel" class="muted" style="margin-bottom:6px">Additional recipients</div><div id="recipientList" class="recipient-list"></div></div>
+      <div class="modal-actions span-2"><button id="saveSettingsBtn" class="btn primary" type="submit">Save settings</button></div>
+    </form>
+  </div></div>
+
+  <div id="qrModal" class="modal hidden" aria-hidden="true"><div class="modal-card">
+    <div class="modal-head"><h2 id="qrTitle">Item QR code</h2><button class="btn" data-close="qrModal" type="button">Close</button></div>
+    <img id="qrImage" class="qr-preview" alt="QR code"><div id="qrItemCode" class="qr-item-code"></div><textarea id="qrPayload" readonly></textarea>
+    <div class="modal-actions"><button id="newQrBtn" class="btn danger" type="button">Create new code</button><button id="downloadQrBtn" class="btn" type="button">Download QR</button><button id="copyQrBtn" class="btn primary" type="button">Copy code</button></div>
+  </div></div>
+
+  <div id="scanModal" class="modal hidden" aria-hidden="true"><div class="modal-card">
+    <div class="modal-head"><h2 id="scanTitle">Scan item</h2><button class="btn" data-close="scanModal" type="button">Close</button></div>
+    <div class="scan-box"><p id="scanHelp" class="muted">Scan with the Android app or paste the item code.</p><textarea id="scanPayload" placeholder="procal://inventory/..."></textarea><button id="submitScanBtn" class="btn primary" type="button">Open item</button></div>
+  </div></div>
+
+  <div id="historyModal" class="modal hidden" aria-hidden="true"><div class="modal-card">
+    <div class="modal-head"><h2 id="historyTitle">Recent movements</h2><button class="btn" data-close="historyModal" type="button">Close</button></div>
+    <p id="historyHelp" class="muted">A reverse movement keeps the original record and adds an opposite correction.</p>
+    <div class="history-filters" style="margin-top:10px">
+      <input id="historySearch" type="search" placeholder="Search movements">
+      <select id="historyTypeFilter" aria-label="Movement type"><option value="all">All operations</option><option value="receive">Receive</option><option value="issue">Issue</option><option value="transfer">Transfer</option><option value="adjustment">Adjustment</option></select>
+      <select id="historyLocationFilter" aria-label="Location"></select>
+      <select id="historyPeriodFilter" aria-label="Period"><option value="all">All time</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option></select>
+    </div>
+    <div id="historyList" class="history"></div>
+  </div></div>
+
+  <div id="scanActionModal" class="modal hidden" aria-hidden="true"><div class="modal-card">
+    <div class="modal-head"><h2 id="scanActionTitle">Choose operation</h2><button class="btn" data-close="scanActionModal" type="button">Close</button></div>
+    <div id="scanActionItem" class="scan-item"></div>
+    <div class="scan-actions">
+      <button id="scanReceiveBtn" class="btn primary" type="button">Receive</button>
+      <button id="scanIssueBtn" class="btn" type="button">Issue</button>
+      <button id="scanTransferBtn" class="btn" type="button">Transfer</button>
+    </div>
+  </div></div>
+
+  <div id="reverseModal" class="modal hidden" aria-hidden="true"><div class="modal-card">
+    <div class="modal-head"><h2 id="reverseTitle">Opposite movement</h2><button class="btn" data-close="reverseModal" type="button">Close</button></div>
+    <form id="reverseForm" class="form-grid">
+      <label class="span-2"><span id="reverseReasonLabel">Reason</span><input id="reverseReasonInput" minlength="3" maxlength="512" required></label>
+      <div class="modal-actions span-2"><button id="saveReverseBtn" class="btn primary" type="submit">Create opposite movement</button></div>
+    </form>
+  </div></div>
+  <script src="js/inventory.js"></script>
+</body>
+</html>

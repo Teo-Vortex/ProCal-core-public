@@ -59,6 +59,31 @@ enum ChatMessageScope {
   direct
 }
 
+enum AttendancePunchKind {
+  check_in
+  check_out
+  void
+}
+
+enum AttendancePunchSource {
+  web
+  nfc
+  admin
+}
+
+enum InventoryMovementType {
+  receive
+  issue
+  transfer
+  adjustment
+}
+
+enum InventoryStockStatus {
+  normal
+  low
+  critical
+}
+
 model AppMeta {
   id            Int      @id @default(1)
   installed     Boolean  @default(false)
@@ -110,6 +135,12 @@ model User {
   chatThreadReads ChatThreadRead[]
   pushDevices   PushDevice[]
   eventReminderDeliveries EventReminderDelivery[]
+  attendancePunches AttendancePunch[] @relation("AttendancePunchTarget")
+  attendanceActions AttendancePunch[] @relation("AttendancePunchActor")
+  attendanceStationsCreated AttendanceStation[] @relation("AttendanceStationCreator")
+  inventoryItemsCreated InventoryItem[] @relation("InventoryItemCreator")
+  inventoryLocationsCreated InventoryLocation[] @relation("InventoryLocationCreator")
+  inventoryMovementsCreated InventoryMovement[] @relation("InventoryMovementCreator")
 }
 
 model Event {
@@ -503,5 +534,156 @@ model ChatThreadRead {
 
   @@id([userId, threadKey])
   @@index([userId, updatedAt])
+}
+
+model AttendanceStation {
+  id          String   @id @default(cuid())
+  name        String   @db.VarChar(191)
+  location    String?  @db.VarChar(191)
+  tokenHash   String   @unique @db.VarChar(64)
+  active      Boolean  @default(true)
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   User?    @relation("AttendanceStationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  punches     AttendancePunch[]
+
+  @@index([active, name])
+  @@index([createdById])
+}
+
+model AttendancePunch {
+  id            String                @id @default(cuid())
+  userId        String
+  kind          AttendancePunchKind
+  occurredAt    DateTime
+  source        AttendancePunchSource @default(web)
+  stationId     String?
+  note          String?               @db.VarChar(512)
+  reason        String?               @db.VarChar(512)
+  createdById   String?
+  targetPunchId String?               @unique
+  createdAt     DateTime              @default(now())
+  user          User                  @relation("AttendancePunchTarget", fields: [userId], references: [id])
+  createdBy     User?                 @relation("AttendancePunchActor", fields: [createdById], references: [id], onDelete: SetNull)
+  station       AttendanceStation?    @relation(fields: [stationId], references: [id], onDelete: SetNull)
+  targetPunch   AttendancePunch?      @relation("AttendancePunchCorrection", fields: [targetPunchId], references: [id])
+  supersededBy  AttendancePunch[]     @relation("AttendancePunchCorrection")
+
+  @@index([userId, occurredAt])
+  @@index([stationId, occurredAt])
+  @@index([createdById, createdAt])
+  @@index([kind, occurredAt])
+}
+
+model InventoryLocation {
+  id                   String                  @id @default(cuid())
+  name                 String                  @unique @db.VarChar(191)
+  description          String?                 @db.VarChar(512)
+  active               Boolean                 @default(true)
+  createdById          String?
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  createdBy            User?                   @relation("InventoryLocationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  sourceMovements      InventoryMovement[]     @relation("InventoryMovementSource")
+  destinationMovements InventoryMovement[]     @relation("InventoryMovementDestination")
+  itemSettings         InventoryItemLocation[]
+  alertStates          InventoryStockAlertState[]
+
+  @@index([active, name])
+  @@index([createdById])
+}
+
+model InventoryItem {
+  id                     String                  @id @default(cuid())
+  sku                    String                  @unique @db.VarChar(191)
+  name                   String                  @db.VarChar(300)
+  description            String?                 @db.VarChar(2000)
+  category               String?                 @db.VarChar(191)
+  unit                   String                  @default("pcs") @db.VarChar(32)
+  lowStockThreshold      Decimal?                @db.Decimal(14, 3)
+  criticalStockThreshold Decimal?                @db.Decimal(14, 3)
+  restockTarget          Decimal?                @db.Decimal(14, 3)
+  notificationsEnabled   Boolean                 @default(true)
+  qrTokenHash            String                  @unique @db.VarChar(64)
+  active                 Boolean                 @default(true)
+  createdById            String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  createdBy              User?                   @relation("InventoryItemCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  movements              InventoryMovement[]
+  locationSettings       InventoryItemLocation[]
+  alertStates            InventoryStockAlertState[]
+
+  @@index([active, name])
+  @@index([category, name])
+  @@index([createdById])
+}
+
+model InventoryItemLocation {
+  itemId                 String
+  locationId             String
+  lowStockThreshold      Decimal?          @db.Decimal(14, 3)
+  criticalStockThreshold Decimal?          @db.Decimal(14, 3)
+  restockTarget          Decimal?          @db.Decimal(14, 3)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  item                   InventoryItem     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  location               InventoryLocation @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, locationId])
+  @@index([locationId])
+}
+
+model InventoryMovement {
+  id                    String                @id @default(cuid())
+  itemId                String
+  type                  InventoryMovementType
+  quantity              Decimal               @db.Decimal(14, 3)
+  sourceLocationId      String?
+  destinationLocationId String?
+  reason                String?               @db.VarChar(512)
+  note                  String?               @db.VarChar(1000)
+  createdById           String?
+  reversesMovementId    String?               @unique
+  createdAt             DateTime              @default(now())
+  item                  InventoryItem         @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  sourceLocation        InventoryLocation?    @relation("InventoryMovementSource", fields: [sourceLocationId], references: [id], onDelete: SetNull)
+  destinationLocation   InventoryLocation?    @relation("InventoryMovementDestination", fields: [destinationLocationId], references: [id], onDelete: SetNull)
+  createdBy             User?                 @relation("InventoryMovementCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  reverses              InventoryMovement?    @relation("InventoryMovementReversal", fields: [reversesMovementId], references: [id], onDelete: SetNull)
+  reversedBy            InventoryMovement[]   @relation("InventoryMovementReversal")
+
+  @@index([itemId, createdAt])
+  @@index([sourceLocationId, createdAt])
+  @@index([destinationLocationId, createdAt])
+  @@index([createdById, createdAt])
+  @@index([type, createdAt])
+}
+
+model InventoryStockAlertState {
+  itemId         String
+  locationId     String
+  status         InventoryStockStatus @default(normal)
+  lastNotifiedAt DateTime?
+  updatedAt      DateTime               @updatedAt
+  item           InventoryItem         @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  location       InventoryLocation     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, locationId])
+  @@index([status, updatedAt])
+}
+
+model InventorySettings {
+  id                   Int      @id @default(1)
+  notificationsEnabled Boolean  @default(true)
+  inAppEnabled         Boolean  @default(true)
+  pushEnabled          Boolean  @default(true)
+  notifyManagers       Boolean  @default(true)
+  notifyOnRestored     Boolean  @default(true)
+  repeatHours          Int      @default(24)
+  recipientUserIds     Json?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 

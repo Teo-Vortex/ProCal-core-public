@@ -6,6 +6,7 @@ import { writeAudit } from "../services/auditService";
 import { publishLegacyStateChange } from "../services/realtimeSyncService";
 import { createNotifications, NotificationInput } from "../services/notificationService";
 import { syncEventFoldersFromCalendarEvents } from "../services/filesService";
+import { findNewTextEncodingCorruption } from "../services/textEncodingGuard";
 
 const stateSchema = z.object({
   state: z.record(z.any()),
@@ -1419,6 +1420,15 @@ stateRouter.put("/api/legacy/state", async (req, res) => {
     });
 
     const nextStateWithPeople = mergeUsersIntoSharedPeople(asRecord(nextState), usersForPeople);
+    const encodingCorruption = findNewTextEncodingCorruption(existing?.dataJson, nextStateWithPeople);
+    if (encodingCorruption) {
+      res.status(422).json({
+        error: "Text encoding corruption detected. The update was not saved.",
+        code: "TEXT_ENCODING_CORRUPTION_DETECTED",
+        path: encodingCorruption.path
+      });
+      return;
+    }
     const knownUserIds = new Set(usersForPeople.map((user) => String(user.id)));
     const pendingNotifications = buildLegacySharedNotifications(
       asRecord(existing?.dataJson),
@@ -1464,6 +1474,15 @@ stateRouter.put("/api/legacy/state", async (req, res) => {
   }
 
   const normalizedPersonalState = normalizePersonalCollaborativeTasksState(asRecord(parsed.data.state), req.auth!.userId, asRecord(existing?.dataJson));
+  const encodingCorruption = findNewTextEncodingCorruption(existing?.dataJson, normalizedPersonalState);
+  if (encodingCorruption) {
+    res.status(422).json({
+      error: "Text encoding corruption detected. The update was not saved.",
+      code: "TEXT_ENCODING_CORRUPTION_DETECTED",
+      path: encodingCorruption.path
+    });
+    return;
+  }
   const membershipNotificationsRaw = buildPersonalCollabMembershipNotifications(
     asRecord(existing?.dataJson),
     normalizedPersonalState,
