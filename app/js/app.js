@@ -154,6 +154,8 @@ const notificationsList = document.getElementById("notificationsList");
 const chatBtn = document.getElementById("chatBtn");
 const chatBtnLabel = document.getElementById("chatBtnLabel");
 const chatUnreadBadge = document.getElementById("chatUnreadBadge");
+const globalQrBtn = document.getElementById("globalQrBtn");
+const globalQrLabel = document.getElementById("globalQrLabel");
 const chatModal = document.getElementById("chatModal");
 const chatTitle = document.getElementById("chatTitle");
 const closeChatBtn = document.getElementById("closeChatBtn");
@@ -1085,6 +1087,7 @@ const I18N = {
     leave: "Leave",
     attendance: "Attendance",
     inventory: "Inventory",
+    scanQr: "Scan QR",
     leaveAvailableTitle: "My leave",
     leaveAvailablePaid: "Paid leave left",
     leaveAvailableStudy: "Study leave left",
@@ -1595,6 +1598,7 @@ const I18N = {
     leave: "\u041E\u0442\u0441\u044A\u0441\u0442\u0432\u0438\u044F",
     attendance: "\u041F\u0440\u0438\u0441\u044A\u0441\u0442\u0432\u0438\u044F",
     inventory: "\u0421\u043A\u043B\u0430\u0434",
+    scanQr: "\u0421\u043A\u0430\u043D\u0438\u0440\u0430\u0439 QR",
     leaveAvailableTitle: "\u041C\u043E\u044F\u0442\u0430 \u043E\u0442\u043F\u0443\u0441\u043A\u0430",
     leaveAvailablePaid: "\u041E\u0441\u0442\u0430\u0432\u0430\u0449\u0430 \u043E\u0442\u043F\u0443\u0441\u043A\u0430",
     leaveAvailableStudy: "\u041E\u0441\u0442\u0430\u0432\u0430\u0449 \u0443\u0447\u0435\u0431\u0435\u043D \u043E\u0442\u043F\u0443\u0441\u043A",
@@ -2363,6 +2367,15 @@ if (chatBtn) {
   chatBtn.addEventListener("click", () => {
     closeSettingsMenu();
     openChatModal();
+  });
+}
+if (globalQrBtn) {
+  const bridge = window.ProCalAndroidShell;
+  const scannerAvailable = Boolean(bridge && typeof bridge.startUniversalQrScan === "function");
+  globalQrBtn.classList.toggle("hidden-section", !scannerAvailable);
+  document.body.classList.toggle("android-shell", scannerAvailable);
+  globalQrBtn.addEventListener("click", () => {
+    if (scannerAvailable) bridge.startUniversalQrScan();
   });
 }
 if (closeChatBtn) {
@@ -4593,6 +4606,8 @@ renderMainPanelUI();
   setText("leaveBtn", t("leave"));
   setText("attendanceBtn", t("attendance"));
   setText("inventoryBtn", t("inventory"));
+  setText("globalQrLabel", t("scanQr"));
+  setTitle("globalQrBtn", t("scanQr"));
   setText("currentUserLeaveBtn", t("leaveAvailableTitle"));
   setText("leaveQuickTitle", t("leaveAvailableTitle"));
   setText("leaveQuickPaidLabel", t("leaveAvailablePaid"));

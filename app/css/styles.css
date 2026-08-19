@@ -511,6 +511,11 @@ body {
   line-height: 1;
 }
 
+.topbar-qr-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -5463,6 +5468,10 @@ button {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.4rem;
+  }
+
+  body.android-shell .topbar-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .topbar-actions .ghost-btn {

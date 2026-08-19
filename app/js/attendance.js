@@ -15,7 +15,7 @@
 
   const el = Object.fromEntries([
     "pageTitle", "pageSubtitle", "langBtn", "backBtn", "statusDot", "attendanceState", "statusTime", "statusStation",
-    "nfcBtn", "qrBtn", "punchBtn", "userFilterWrap", "userLabel", "userFilter", "fromLabel", "fromInput", "toLabel", "toInput",
+    "qrBtn", "punchBtn", "userFilterWrap", "userLabel", "userFilter", "fromLabel", "fromInput", "toLabel", "toInput",
     "applyBtn", "logTitle", "entryCount", "entries", "adminSection", "stationsTitle", "stationForm", "stationNameLabel",
     "stationName", "stationLocationLabel", "stationLocation", "createStationBtn", "stations", "pageStatus", "correctionModal",
     "correctionTitle", "closeCorrectionBtn", "correctionForm", "actionLabel", "correctionAction", "timeLabel", "correctionTime",
@@ -135,7 +135,6 @@
     };
     Object.entries(map).forEach(([id, key]) => { if (el[id]) el[id].textContent = t(key); });
     el.langBtn.textContent = state.lang === "bg" ? "EN" : "BG";
-    el.nfcBtn.textContent = t("scanNfc");
     el.qrBtn.textContent = t("scanQr");
     const actionOptions = el.correctionAction.options;
     actionOptions[0].textContent = t("checkIn");
@@ -408,12 +407,6 @@
     el.applyBtn.addEventListener("click", () => loadEntries().catch((error) => setPageStatus(error.message, true)));
     el.userFilter.addEventListener("change", () => loadEntries().catch((error) => setPageStatus(error.message, true)));
     el.punchBtn.addEventListener("click", () => punch({ action:el.punchBtn.dataset.action }, false));
-    el.nfcBtn.addEventListener("click", () => {
-      try {
-        window.ProCalAndroidShell.startAttendanceNfcScan();
-        setPageStatus(t("nfcWaiting"), false);
-      } catch (_) { setPageStatus(t("nfcUnsupported"), true); }
-    });
     el.qrBtn.addEventListener("click", () => {
       try {
         window.ProCalAndroidShell.startAttendanceQrScan();
@@ -503,10 +496,6 @@
       el.userFilterWrap.classList.toggle("hidden", !canReadAll());
       el.adminSection.classList.toggle("hidden", !canManage());
       const bridge = window.ProCalAndroidShell;
-      const nfcAvailable = bridge
-        && typeof bridge.startAttendanceNfcScan === "function"
-        && (typeof bridge.isNfcAvailable !== "function" || bridge.isNfcAvailable());
-      el.nfcBtn.classList.toggle("hidden", !nfcAvailable);
       const qrAvailable = bridge
         && typeof bridge.startAttendanceQrScan === "function"
         && (typeof bridge.isQrScannerAvailable !== "function" || bridge.isQrScannerAvailable());
