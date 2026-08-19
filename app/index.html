@@ -103,7 +103,12 @@
             </div>
           </div>
         </div>
-        <ul id="sideDayList" class="event-list"></ul>
+        <div id="sideDayViewTabs" class="side-day-view-tabs" role="tablist" aria-label="Selected day view">
+          <button id="sideDayPlanTabBtn" class="ghost-btn side-day-view-tab active" type="button" role="tab" aria-selected="true" aria-controls="sideDayList">Plan</button>
+          <button id="sideDayAttendanceTabBtn" class="ghost-btn side-day-view-tab" type="button" role="tab" aria-selected="false" aria-controls="sideDayAttendancePanel">Attendance</button>
+        </div>
+        <ul id="sideDayList" class="event-list" role="tabpanel"></ul>
+        <div id="sideDayAttendancePanel" class="side-day-attendance hidden-section" role="tabpanel" aria-live="polite"></div>
       </aside>
 
       <section class="calendar-panel card">

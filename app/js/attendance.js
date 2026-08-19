@@ -16,7 +16,9 @@
   const el = Object.fromEntries([
     "pageTitle", "pageSubtitle", "langBtn", "backBtn", "statusDot", "attendanceState", "statusTime", "statusStation",
     "qrBtn", "punchBtn", "userFilterWrap", "userLabel", "userFilter", "fromLabel", "fromInput", "toLabel", "toInput",
-    "applyBtn", "logTitle", "entryCount", "entries", "adminSection", "stationsTitle", "stationForm", "stationNameLabel",
+    "applyBtn", "overviewSection", "overviewTitle", "overviewRange", "overviewPeopleLabel", "overviewPeople", "overviewDaysLabel", "overviewDays",
+    "overviewTimeLabel", "overviewTime", "historyEmployeeHead", "historyDateHead", "historyArrivalHead", "historyDepartureHead", "historyTimeHead",
+    "historyStatusHead", "historyRows", "historyEmpty", "logTitle", "entryCount", "entries", "adminSection", "stationsTitle", "stationForm", "stationNameLabel",
     "stationName", "stationLocationLabel", "stationLocation", "createStationBtn", "stations", "pageStatus", "correctionModal",
     "correctionTitle", "closeCorrectionBtn", "correctionForm", "actionLabel", "correctionAction", "timeLabel", "correctionTime",
     "reasonLabel", "correctionReason", "saveCorrectionBtn", "payloadModal", "payloadTitle", "closePayloadBtn", "payloadValue",
@@ -36,7 +38,10 @@
       loading: "Loading...", saved: "Saved.", failed: "Operation failed.", nfcWaiting: "Hold the phone near the NFC tag.",
       nfcUnsupported: "NFC scanning is available in the Android app.", voidTitle: "Void entry", confirmVoid: "Void entry", count: "entries",
       rotateConfirm: "Creating a new station code invalidates the previous one. Continue?",
-      legacyCode: "This older station code cannot be shown again. Create a new reusable code now?"
+      legacyCode: "This older station code cannot be shown again. Create a new reusable code now?",
+      overview: "Team overview", peopleWithRecords: "People with records", attendanceDays: "Attendance days", recordedTime: "Recorded time",
+      date: "Date", arrival: "Arrival", departure: "Departure", status: "Status", completed: "Completed", openShift: "At work",
+      noHistory: "No attendance records for this period.", hoursShort: "h", minutesShort: "m"
     },
     bg: {
       title: "Присъствия", subtitle: "Дневник на работното време", back: "Назад", checkedIn: "На работа", checkedOut: "Не е на работа",
@@ -50,7 +55,10 @@
       loading: "Зареждане...", saved: "Запазено.", failed: "Операцията не бе успешна.", nfcWaiting: "Доближете телефона до NFC тага.",
       nfcUnsupported: "NFC сканирането е достъпно в Android приложението.", voidTitle: "Анулиране на запис", confirmVoid: "Анулирай записа", count: "записа",
       rotateConfirm: "Създаването на нов код ще направи предишния невалиден. Да продължа ли?",
-      legacyCode: "Този по-стар код не може да бъде показан отново. Да създам ли нов постоянен код сега?"
+      legacyCode: "Този по-стар код не може да бъде показан отново. Да създам ли нов постоянен код сега?",
+      overview: "Обзор на присъствията", peopleWithRecords: "Хора със записи", attendanceDays: "Дни с присъствие", recordedTime: "Отчетено време",
+      date: "Дата", arrival: "Пристигане", departure: "Тръгване", status: "Статус", completed: "Завършен", openShift: "На работа",
+      noHistory: "Няма записи за присъствие за този период.", hoursShort: "ч", minutesShort: "м"
     }
   };
 
@@ -129,6 +137,9 @@
     const map = {
       pageTitle:"title", pageSubtitle:"subtitle", backBtn:"back", userLabel:"employee", fromLabel:"from", toLabel:"to", applyBtn:"apply",
       logTitle:"log", stationsTitle:"stations", stationNameLabel:"name", stationLocationLabel:"location", createStationBtn:"createStation",
+      overviewTitle:"overview", overviewPeopleLabel:"peopleWithRecords", overviewDaysLabel:"attendanceDays", overviewTimeLabel:"recordedTime",
+      historyEmployeeHead:"employee", historyDateHead:"date", historyArrivalHead:"arrival", historyDepartureHead:"departure",
+      historyTimeHead:"recordedTime", historyStatusHead:"status", historyEmpty:"noHistory",
       correctionTitle:"correction", closeCorrectionBtn:"close", actionLabel:"action", timeLabel:"dateTime", reasonLabel:"reason",
       saveCorrectionBtn:"saveCorrection", payloadTitle:"payload", closePayloadBtn:"close", copyPayloadBtn:"copy", downloadQrBtn:"downloadQr", newPayloadBtn:"rotate",
       voidTitle:"voidTitle", closeVoidBtn:"close", voidReasonLabel:"reason", confirmVoidBtn:"confirmVoid"
@@ -141,6 +152,7 @@
     actionOptions[1].textContent = t("checkOut");
     renderStatus();
     renderEntries();
+    renderOverview();
     renderStations();
     renderUserFilter();
   }
@@ -232,6 +244,113 @@
     });
   }
 
+  function localDateKey(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    const pad = (part) => String(part).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  }
+
+  function formatTime(value) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "-" : date.toLocaleTimeString(locale(), { hour:"2-digit", minute:"2-digit", hour12:false });
+  }
+
+  function formatDate(value) {
+    const date = new Date(`${value}T12:00:00`);
+    return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(locale(), { year:"numeric", month:"short", day:"numeric" });
+  }
+
+  function formatDuration(milliseconds) {
+    const totalMinutes = Math.max(0, Math.round(Number(milliseconds || 0) / 60000));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours}${t("hoursShort")} ${String(minutes).padStart(2, "0")}${t("minutesShort")}`;
+  }
+
+  function buildHistoryRows() {
+    const grouped = new Map();
+    state.entries
+      .filter((entry) => entry && entry.effective !== false && (entry.kind === "check_in" || entry.kind === "check_out"))
+      .sort((a, b) => new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime())
+      .forEach((entry) => {
+        const user = entry.user || {};
+        const userId = String(user.id || entry.userId || "unknown");
+        const dateKey = localDateKey(entry.occurredAt);
+        const key = `${userId}:${dateKey}`;
+        if (!grouped.has(key)) {
+          grouped.set(key, {
+            userId,
+            name: displayName(user),
+            color: /^#[0-9a-fA-F]{6}$/.test(String(user.displayColor || "")) ? String(user.displayColor) : "#64748b",
+            dateKey,
+            entries: [],
+            firstIn: null,
+            lastOut: null,
+            openAt: null,
+            totalMs: 0
+          });
+        }
+        const row = grouped.get(key);
+        row.entries.push(entry);
+        if (entry.kind === "check_in") {
+          if (!row.firstIn) row.firstIn = entry.occurredAt;
+          row.openAt = new Date(entry.occurredAt);
+        } else {
+          row.lastOut = entry.occurredAt;
+          if (row.openAt) {
+            const end = new Date(entry.occurredAt);
+            if (!Number.isNaN(end.getTime()) && end >= row.openAt) row.totalMs += end.getTime() - row.openAt.getTime();
+            row.openAt = null;
+          }
+        }
+      });
+    return Array.from(grouped.values()).sort((a, b) => b.dateKey.localeCompare(a.dateKey) || a.name.localeCompare(b.name, locale()));
+  }
+
+  function renderOverview() {
+    if (!canReadAll() || !el.overviewSection) return;
+    const rows = buildHistoryRows();
+    const people = new Set(rows.map((row) => row.userId));
+    const totalMs = rows.reduce((sum, row) => sum + row.totalMs, 0);
+    el.overviewPeople.textContent = String(people.size);
+    el.overviewDays.textContent = String(rows.length);
+    el.overviewTime.textContent = formatDuration(totalMs);
+    el.overviewRange.textContent = `${formatDate(el.fromInput.value)} - ${formatDate(el.toInput.value)}`;
+    el.historyRows.replaceChildren();
+    el.historyEmpty.classList.toggle("hidden", rows.length > 0);
+    el.historyRows.closest(".history-wrap").classList.toggle("hidden", rows.length === 0);
+
+    rows.forEach((row) => {
+      const tr = document.createElement("tr");
+      const personCell = document.createElement("td");
+      const person = document.createElement("span");
+      person.className = "history-person";
+      const dot = document.createElement("span");
+      dot.className = "history-person-dot";
+      dot.style.background = row.color;
+      const name = document.createElement("span");
+      name.textContent = row.name;
+      person.append(dot, name);
+      personCell.append(person);
+
+      const values = [formatDate(row.dateKey), row.firstIn ? formatTime(row.firstIn) : "-", row.openAt ? t("openShift") : (row.lastOut ? formatTime(row.lastOut) : "-"), formatDuration(row.totalMs)];
+      tr.append(personCell);
+      values.forEach((value) => {
+        const td = document.createElement("td");
+        td.textContent = value;
+        tr.append(td);
+      });
+      const statusCell = document.createElement("td");
+      const status = document.createElement("span");
+      status.className = `history-status${row.openAt ? " open" : ""}`;
+      status.textContent = row.openAt ? t("openShift") : t("completed");
+      statusCell.append(status);
+      tr.append(statusCell);
+      el.historyRows.append(tr);
+    });
+  }
+
   function renderStations() {
     if (!canManage()) return;
     el.stations.replaceChildren();
@@ -280,6 +399,7 @@
     const body = await bodyOrError(await api(`/api/attendance/entries?${params}`));
     state.entries = body.items || [];
     renderEntries();
+    renderOverview();
   }
 
   async function loadStations() {
@@ -494,6 +614,7 @@
       state.me = await bodyOrError(await api("/api/me"));
       if (!hasPermission("attendance.read_self")) throw new Error("Forbidden");
       el.userFilterWrap.classList.toggle("hidden", !canReadAll());
+      el.overviewSection.classList.toggle("hidden", !canReadAll());
       el.adminSection.classList.toggle("hidden", !canManage());
       const bridge = window.ProCalAndroidShell;
       const qrAvailable = bridge

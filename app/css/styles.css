@@ -5138,6 +5138,153 @@ button {
   min-width: 0;
 }
 
+.side-day-view-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-bottom: 0.45rem;
+}
+
+.side-day-view-tab {
+  width: 100%;
+  min-width: 0;
+  min-height: 2rem;
+  justify-content: center;
+  padding: 0.3rem 0.45rem;
+  font-size: 0.8rem;
+}
+
+.side-day-view-tab.active {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  background: color-mix(in srgb, var(--accent) 13%, white);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.side-day-attendance {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.2rem;
+}
+
+.day-panel .event-list.hidden-section,
+.side-day-attendance.hidden-section {
+  display: none;
+}
+
+.side-attendance-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 94%, var(--accent) 6%);
+}
+
+.side-attendance-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.42rem;
+  min-width: 0;
+}
+
+.side-attendance-head strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-attendance-person-dot {
+  width: 0.62rem;
+  height: 0.62rem;
+  border-radius: 50%;
+}
+
+.side-attendance-state {
+  padding: 0.12rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 38%, var(--line));
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.side-attendance-state.active {
+  border-color: color-mix(in srgb, #16a34a 48%, var(--line));
+  background: color-mix(in srgb, #16a34a 12%, var(--card));
+  color: #15803d;
+}
+
+.side-attendance-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.32rem;
+}
+
+.side-attendance-facts > span {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+  padding: 0.35rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--card) 86%, var(--line) 14%);
+}
+
+.side-attendance-facts small {
+  color: var(--muted);
+  font-size: 0.61rem;
+  line-height: 1.15;
+}
+
+.side-attendance-facts b {
+  overflow: hidden;
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-attendance-details summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.side-attendance-timeline {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.4rem;
+}
+
+.side-attendance-timeline > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.side-attendance-timeline strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.side-attendance-empty {
+  margin: 0;
+  padding: 1rem 0.55rem;
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.8rem;
+}
+
 .side-caption {
   margin: 0;
   font-size: 0.72rem;
@@ -5633,8 +5780,16 @@ button {
     transform: translateX(-50%);
   }
 
-  .day-panel.mobile-sheet-open #sideDayList {
+  .day-panel.mobile-sheet-open #sideDayList:not(.hidden-section) {
     display: block !important;
+  }
+
+  .day-panel.mobile-sheet-open #sideDayViewTabs:not(.hidden-section) {
+    display: grid !important;
+  }
+
+  .day-panel.mobile-sheet-open #sideDayAttendancePanel:not(.hidden-section) {
+    display: grid !important;
   }
 
   .day-panel.mobile-sheet-open .side-date {

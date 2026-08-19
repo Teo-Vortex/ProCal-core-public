@@ -100,11 +100,12 @@
   <div class="wrap">
     <header class="hero">
       <h1>ProCal - User Guide</h1>
-      <p>Updated guide for the self-hosted ProCal Core workspace, including daily usage, local accounts, and admin tasks.</p>
+      <p>Updated guide for self-hosted ProCal Core, including daily work, modules, the Android app, and administration.</p>
       <div class="meta">
         <span class="chip">Version: 0.9.9</span>
         <span class="chip">Language: EN</span>
-        <span class="chip">Coverage: daily usage + local admin panel</span>
+        <span class="chip">Reviewed: 2026-08-19</span>
+        <span class="chip">Coverage: Core + Android + local admin panel</span>
       </div>
     </header>
 
@@ -122,9 +123,10 @@
         <a href="USER_GUIDE_EN.html#leave">9. Leave and absences</a>
         <a href="USER_GUIDE_EN.html#attendance">10. Attendance</a>
         <a href="USER_GUIDE_EN.html#inventory">11. Inventory</a>
-        <a href="USER_GUIDE_EN.html#profile">12. Profile and password</a>
-        <a href="USER_GUIDE_EN.html#admin">13. Admin panel</a>
-        <a href="USER_GUIDE_EN.html#support">14. Bugs, backups, and support</a>
+        <a href="USER_GUIDE_EN.html#mobile">12. Mobile app</a>
+        <a href="USER_GUIDE_EN.html#profile">13. Profile and password</a>
+        <a href="USER_GUIDE_EN.html#admin">14. Admin panel</a>
+        <a href="USER_GUIDE_EN.html#support">15. Updates, backups, and support</a>
       </nav>
 
       <main class="content">
@@ -132,12 +134,15 @@
           <h2>1. Access and sign-in</h2>
           <ol>
             <li>Open the ProCal Core address provided by the installation owner, for example <code>http://server-ip:8080</code>.</li>
-            <li>On a new installation, open <code>/setup</code> and create the first local admin account.</li>
+            <li>On a new installation, open <code>/setup</code>. Enter the <b>setup token</b> stored as <code>PROCAL_SELF_SETUP_TOKEN</code> in the local <code>.env</code> file.</li>
+            <li>The first account requires a username and a password of at least 8 characters. Nickname, full name, workplace, and job title are optional.</li>
+            <li>The first account is always created as <code>system_admin</code>; the setup screen does not offer a role selector.</li>
+            <li>If setup displays a service token after account creation, store it securely at once: it is shown only once and is not the sign-in password.</li>
             <li>After setup, users sign in with local username and password at the ProCal Core login page.</li>
             <li>New users can use <b>Create account</b> on the login page. Their account remains pending until an admin approves it.</li>
             <li>Admins approve, suspend, reset, or remove users from <b>Admin panel</b> &gt; <b>Personnel</b>.</li>
           </ol>
-          <div class="hint warn">Use the same server address consistently. If you put ProCal behind a reverse proxy or domain, configure the proxy and allowed origins before inviting users.</div>
+          <div class="hint warn">The setup token and passwords in <code>.env</code> are secrets for that installation. Do not publish them in GitHub, screenshots, chat, or bug reports. If ProCal is behind a reverse proxy or domain, configure the proxy, HTTPS, and allowed origins before inviting users.</div>
         </section>
 
         <section id="workspace">
@@ -152,7 +157,7 @@
                 <li>personal compensation balance</li>
               </ul>
             </li>
-            <li>The main workspace has two primary modes: <b>Calendar</b> and <b>Notes</b>.</li>
+            <li>The main workspace has three primary modes: <b>Calendar</b>, <b>Events</b>, and <b>Notes</b>.</li>
             <li>The calendar itself has two data views:
               <ul>
                 <li><b>Personal</b> - personal records plus shared records visible to you</li>
@@ -167,6 +172,8 @@
           <ul>
             <li><b>Profile</b> - opens the current user's profile details.</li>
             <li><b>User guide</b> - opens this guide in a new tab.</li>
+            <li><b>Mobile app</b> - opens the configured Android download page or file.</li>
+            <li><b>Report bug</b> - opens the configured issue channel. In the public self-hosted build, this is GitHub Issues.</li>
             <li><b>Open admin panel</b> - visible only when the role allows it.</li>
             <li><b>Logout</b> - signs out of the realm.</li>
           </ul>
@@ -186,7 +193,9 @@
                 <li>red - overdue</li>
               </ul>
             </li>
-            <li>Clicking a day opens the day panel and quick-add actions.</li>
+            <li>Clicking a day opens the <b>Selected day</b> panel and quick-add actions.</li>
+            <li>Inside <b>Selected day</b>, the <b>Plan</b> tab shows events and tasks, while <b>Attendance</b> shows arrival, departure, and recorded time according to your permissions.</li>
+            <li><b>Next 10 entries</b> shows the event date and time, or the date together with <b>All day</b>.</li>
           </ul>
         </section>
 
@@ -194,7 +203,9 @@
           <h2>5. Events and tasks</h2>
           <h3>Events</h3>
           <ul>
-            <li>Events can be single-day or multi-day.</li>
+            <li>Events can have a time, be all-day, span multiple days, or repeat. The event preview also shows its date and time.</li>
+            <li>The <b>Reminders</b> tab enables reminders and controls when and to whom they are sent. A repeating event can apply reminders to every occurrence.</li>
+            <li>Recipients can include event participants, people assigned to tasks, all users, or a manually selected group.</li>
             <li>The event preview includes buttons for:
               <ul>
                 <li><b>Files</b></li>
@@ -209,7 +220,7 @@
           </ul>
           <h3>Tasks</h3>
           <ul>
-            <li>Tasks can be personal or shared depending on the current calendar mode.</li>
+            <li>Tasks can be personal or shared depending on the current calendar mode and can have assigned people.</li>
             <li>Events can also carry linked event tasks.</li>
             <li>In personal mode, a user can add a personal task linked to a shared event without changing the shared event itself.</li>
           </ul>
@@ -243,7 +254,7 @@
             </li>
             <li>Event folders are created automatically when files are attached to an event.</li>
             <li>Inside <b>Chat</b>, each user sees the system folder for files received through chat.</li>
-            <li>The module shows current realm storage usage.</li>
+            <li>The module shows current storage usage. Self-hosted ProCal can run without an application hard limit, but available disk space and the Docker volume still impose the real limit.</li>
             <li>It supports:
               <ul>
                 <li>upload</li>
@@ -267,6 +278,8 @@
           <ul>
             <li>Opened from the bell icon.</li>
             <li>Shows system and user-facing notifications based on realm configuration.</li>
+            <li>In-app Core notifications work without Firebase. Android push requires Firebase configuration by a system administrator.</li>
+            <li><b>Generic</b> sends privacy-preserving text through Firebase; <b>Detailed</b> may include the notification title and body.</li>
           </ul>
         </section>
 
@@ -276,16 +289,19 @@
             <li>The menu opens the personal leave popup for the current user.</li>
             <li>That panel shows leave balances, used days, and the personal absence calendar.</li>
             <li>The user can submit leave/absence requests depending on permissions.</li>
-            <li>Approved absences appear in the main calendar.</li>
+            <li>Approved absences appear in the main calendar. A request can be approved without a substitute when none is required.</li>
           </ul>
         </section>
 
         <section id="attendance">
           <h2>10. Attendance</h2>
           <ul>
-            <li>Open <b>Attendance</b> from the main menu to record check-in and check-out and review your workday log.</li>
-            <li>In the Android app, <b>Scan NFC</b> and <b>Scan QR</b> read a ProCal attendance station configured by an administrator.</li>
-            <li>Users with attendance management permissions can review all employees, correct entries with a required reason, void invalid entries, and manage NFC/QR stations.</li>
+            <li>Open <b>Attendance</b> from the main menu to record check-in and check-out and review your personal workday log.</li>
+            <li>A scan records attendance for the user currently signed in to ProCal. An unauthenticated visitor cannot create an entry.</li>
+            <li>In the Android app, NFC is read automatically while the app is open. Scan a QR station from the global QR button in the top bar or from the module.</li>
+            <li>A station keeps its current code. Opening it does not rotate it; the separate new-code action invalidates the previous QR/NFC payload.</li>
+            <li>In the calendar, select a day and open <b>Attendance</b> to see arrival, departure, and recorded time for that day.</li>
+            <li>Users with all-attendance access see a team overview and history by person and date. Management permission additionally allows corrections, voids, and station administration.</li>
             <li>Corrections and voids are added to the journal without overwriting the original entry.</li>
           </ul>
         </section>
@@ -295,15 +311,31 @@
           <ul>
             <li>The <b>Inventory</b> module shows the item catalog, total stock, and stock by storage location.</li>
             <li>Each item has a unique SKU/code, unit, category, and its own low and critical stock thresholds.</li>
-            <li>Depending on assigned permissions, a user can receive, issue, transfer, or adjust stock. Negative stock is rejected.</li>
-            <li>Movements form an audit ledger. An incorrect movement is reversed with a new corrective entry and a required reason.</li>
-            <li>The QR code opens the exact item after scanning in a browser or the Android app. Generating a new QR invalidates the previous code.</li>
-            <li>A user with <b>Inventory: settings</b> permission selects notification channels and recipients. Permissions for each stock operation are assigned under <b>Admin panel</b> &gt; <b>Roles</b> or as an individual permission override.</li>
+            <li>Depending on permissions, a user can receive, issue, transfer, or adjust stock. A stocktake adjustment can also set an absolute quantity. Negative results are rejected.</li>
+            <li><b>Recent movements</b> opens a ledger with search and filters for operation, location, and period. <b>Correct</b> keeps the original movement and adds an opposite entry with a required reason.</li>
+            <li>The current QR opens the exact item, and the label includes its name and SKU. Opening the QR does not rotate it; the separate new-code button invalidates the previous code.</li>
+            <li>After scanning, ProCal opens the item and offers the permitted actions: receive, issue, or transfer.</li>
+            <li>Android uses its built-in scanner. Browser camera access depends on device support and a secure context; when unavailable, enter the payload manually.</li>
+            <li>A user with <b>Inventory: settings</b> permission selects global channels, recipients, and reminder frequency. Each item has separate thresholds and can disable its own alerts.</li>
+            <li>Permissions for viewing, items, receiving, issuing, transferring, stocktake, locations, and settings are assigned under <b>Admin panel</b> &gt; <b>Roles</b> or as an individual permission override.</li>
           </ul>
         </section>
 
+        <section id="mobile">
+          <h2>12. Mobile app</h2>
+          <ul>
+            <li>The Android app is a secured shell around the same ProCal Core interface and does not keep a separate copy of calendar data.</li>
+            <li>On first launch, enter the Core address. You can save multiple servers and switch between them from server management.</li>
+            <li>The active browsing server and the <b>notification source</b> are separate. Only one saved server can deliver push notifications to the app at a time.</li>
+            <li>Public addresses must use HTTPS. HTTP is accepted only for localhost, private IP addresses, and local network hostnames.</li>
+            <li>The <b>Mobile app</b> button opens the APK or release page configured by the installation owner. Android may ask for permission to install from that source.</li>
+            <li>NFC is available only in the Android app. QR scanning works in Android and supported browsers.</li>
+          </ul>
+          <div class="hint">An APK update must be signed with the same persistent key as the installed version. Do not install APKs from unknown or unverified sources.</div>
+        </section>
+
         <section id="profile">
-          <h2>12. Profile and password</h2>
+          <h2>13. Profile and password</h2>
           <ul>
             <li>The profile dialog stores:
               <ul>
@@ -320,22 +352,27 @@
         </section>
 
         <section id="admin">
-          <h2>13. Admin panel</h2>
+          <h2>14. Admin panel</h2>
           <p>The local admin panel is the primary management surface for this self-hosted ProCal Core installation.</p>
           <ul>
             <li><b>Personnel</b> - users, approvals, roles, password resets, and permission overrides.</li>            <li><b>Roles</b>, <b>Categories</b>, <b>Holidays</b>, <b>Leave Form</b>.</li>
-            <li><b>Notifications</b> and <b>Audit</b>.</li>
+            <li><b>Notifications</b> - local rules, records, and Android push. For Firebase, upload both the service account JSON and Android <code>google-services.json</code>, then select Generic or Detailed payload.</li>
+            <li><b>Audit</b> - records administrative and sensitive actions.</li>
             <li><b>Files</b> - storage monitoring and chat file retention.</li>
             <li><b>Backups</b> - encrypted full/working exports and temporary upload validate/restore; no server-side realm backup catalog.</li>
+            <li><b>Updates</b> - version checks, one-button update, and rollback when the installation includes the updater container.</li>
           </ul>
+          <div class="hint warn">The Firebase service account is a secret. ProCal encrypts it on the server and never returns it to the browser, Android app, or backup export. Do not send its contents through chat or support requests.</div>
         </section>
 
         <section id="support">
-          <h2>14. Bugs, backups, and support</h2>
+          <h2>15. Updates, backups, and support</h2>
           <ul>
-            <li><b>Report bug</b> records a local issue report for the installation owner/admin to review.</li>
-            <li>For self-hosted deployments, support and update decisions are handled by the installation owner.</li>
-            <li>Export an encrypted <b>full backup</b> and save its key PDF before major realm changes.</li>
+            <li><b>Report bug</b> opens the configured issue URL. The public build uses GitHub Issues by default; another installation may use its own URL or a local report.</li>
+            <li>For image-based installations with the updater, a system administrator can check versions and start an update from <b>Admin panel</b> &gt; <b>Updates</b>. Database and files remain in persistent Docker volumes.</li>
+            <li>The updater checks application health and automatically rolls the app image back after a failed start. A manual image rollback cannot reverse database migrations that already ran.</li>
+            <li>Before updates or major changes, export an encrypted <b>full backup</b> and store the backup file and its key PDF separately.</li>
+            <li>ProCal does not keep a server-side catalog of realm backups. A file uploaded for validation or restore is temporary and deleted after the operation.</li>
             <li>If the UI behaves strangely after an update, test with <code>Ctrl + F5</code> first.</li>
           </ul>
           <div class="hint danger">Restore is destructive for current data. Use your encrypted backup file and matching key; the uploaded restore copy is deleted after the operation.</div>

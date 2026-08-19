@@ -41,6 +41,19 @@
     label { display:grid; gap:5px; color:var(--muted); font-size:13px; }
     input,select { width:100%; min-height:38px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); padding:7px 9px; }
     .section-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .overview-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:12px; }
+    .overview-metric { display:grid; gap:3px; min-width:0; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--surface-2); }
+    .overview-metric span { color:var(--muted); font-size:12px; }
+    .overview-metric strong { font-size:20px; font-variant-numeric:tabular-nums; }
+    .history-wrap { overflow:auto; border:1px solid var(--line); border-radius:8px; }
+    .history-table { width:100%; min-width:700px; border-collapse:collapse; }
+    .history-table th,.history-table td { padding:9px 10px; border-bottom:1px solid var(--line); text-align:left; font-size:13px; white-space:nowrap; }
+    .history-table th { position:sticky; top:0; z-index:1; background:var(--surface-2); color:var(--muted); font-size:12px; }
+    .history-table tbody tr:last-child td { border-bottom:0; }
+    .history-person { display:flex; align-items:center; gap:7px; font-weight:700; }
+    .history-person-dot { width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+    .history-status { display:inline-flex; padding:2px 7px; border:1px solid var(--line); border-radius:999px; color:var(--muted); font-size:11px; font-weight:700; }
+    .history-status.open { border-color:color-mix(in srgb,var(--good) 45%,var(--line)); background:color-mix(in srgb,var(--good) 12%,var(--surface)); color:var(--good); }
     .entries,.stations { display:grid; gap:7px; }
     .entry,.station { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; border:1px solid var(--line); border-radius:8px; padding:10px; background:var(--surface-2); }
     .entry-main,.station-main { min-width:0; }
@@ -76,6 +89,7 @@
       .filters { grid-template-columns:repeat(2,minmax(0,1fr)); }
       .filters .btn { width:100%; }
       .admin-grid { grid-template-columns:1fr; }
+      .overview-metrics { grid-template-columns:1fr; }
     }
     @media (max-width:520px) {
       .filters { grid-template-columns:1fr; }
@@ -115,6 +129,22 @@
         <label><span id="toLabel">To</span><input id="toInput" type="date"></label>
         <button id="applyBtn" class="btn" type="button">Apply</button>
       </div>
+    </section>
+
+    <section id="overviewSection" class="card hidden">
+      <div class="section-head"><h2 id="overviewTitle">Team overview</h2><span id="overviewRange" class="muted"></span></div>
+      <div class="overview-metrics">
+        <div class="overview-metric"><span id="overviewPeopleLabel">People with records</span><strong id="overviewPeople">0</strong></div>
+        <div class="overview-metric"><span id="overviewDaysLabel">Attendance days</span><strong id="overviewDays">0</strong></div>
+        <div class="overview-metric"><span id="overviewTimeLabel">Recorded time</span><strong id="overviewTime">0h 00m</strong></div>
+      </div>
+      <div class="history-wrap">
+        <table class="history-table">
+          <thead><tr><th id="historyEmployeeHead">Employee</th><th id="historyDateHead">Date</th><th id="historyArrivalHead">Arrival</th><th id="historyDepartureHead">Departure</th><th id="historyTimeHead">Recorded time</th><th id="historyStatusHead">Status</th></tr></thead>
+          <tbody id="historyRows"></tbody>
+        </table>
+      </div>
+      <div id="historyEmpty" class="empty hidden">No attendance records for this period.</div>
     </section>
 
     <section class="card">

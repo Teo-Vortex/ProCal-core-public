@@ -347,6 +347,10 @@ const compLogSummary = document.getElementById("compLogSummary");
 const compLogEntries = document.getElementById("compLogEntries");
 const sideSelectedDateTitle = document.getElementById("sideSelectedDateTitle");
 const sideDayList = document.getElementById("sideDayList");
+const sideDayViewTabs = document.getElementById("sideDayViewTabs");
+const sideDayPlanTabBtn = document.getElementById("sideDayPlanTabBtn");
+const sideDayAttendanceTabBtn = document.getElementById("sideDayAttendanceTabBtn");
+const sideDayAttendancePanel = document.getElementById("sideDayAttendancePanel");
 const calendarModeSelect = document.getElementById("calendarModeSelect");
 const calendarModeBadge = document.getElementById("calendarModeBadge");
 const sideCalendarModeInfo = document.getElementById("sideCalendarModeInfo");
@@ -1086,6 +1090,19 @@ const I18N = {
     mediaMonitoring: "Media",
     leave: "Leave",
     attendance: "Attendance",
+    selectedDayView: "Selected day view",
+    selectedDayPlan: "Plan",
+    attendanceLoading: "Loading attendance...",
+    attendanceLoadFailed: "Attendance could not be loaded.",
+    attendanceNoRecordsDay: "No attendance records for this day.",
+    attendanceArrival: "Arrival",
+    attendanceDeparture: "Departure",
+    attendanceWorked: "Recorded time",
+    attendanceAtWork: "At work",
+    attendanceLeftWork: "Left",
+    attendanceEntriesForDay: "Day entries",
+    attendanceHoursShort: "h",
+    attendanceMinutesShort: "m",
     inventory: "Inventory",
     scanQr: "Scan QR",
     leaveAvailableTitle: "My leave",
@@ -1597,6 +1614,19 @@ const I18N = {
     mediaMonitoring: "\u041C\u0435\u0434\u0438\u0438",
     leave: "\u041E\u0442\u0441\u044A\u0441\u0442\u0432\u0438\u044F",
     attendance: "\u041F\u0440\u0438\u0441\u044A\u0441\u0442\u0432\u0438\u044F",
+    selectedDayView: "\u0418\u0437\u0433\u043B\u0435\u0434 \u0437\u0430 \u0438\u0437\u0431\u0440\u0430\u043D\u0438\u044F \u0434\u0435\u043D",
+    selectedDayPlan: "\u041F\u043B\u0430\u043D",
+    attendanceLoading: "\u0417\u0430\u0440\u0435\u0436\u0434\u0430\u043D\u0435 \u043D\u0430 \u043F\u0440\u0438\u0441\u044A\u0441\u0442\u0432\u0438\u044F\u0442\u0430...",
+    attendanceLoadFailed: "\u041F\u0440\u0438\u0441\u044A\u0441\u0442\u0432\u0438\u044F\u0442\u0430 \u043D\u0435 \u043C\u043E\u0436\u0430\u0445\u0430 \u0434\u0430 \u0441\u0435 \u0437\u0430\u0440\u0435\u0434\u044F\u0442.",
+    attendanceNoRecordsDay: "\u041D\u044F\u043C\u0430 \u0437\u0430\u043F\u0438\u0441\u0438 \u0437\u0430 \u043F\u0440\u0438\u0441\u044A\u0441\u0442\u0432\u0438\u0435 \u0437\u0430 \u0442\u043E\u0437\u0438 \u0434\u0435\u043D.",
+    attendanceArrival: "\u041F\u0440\u0438\u0441\u0442\u0438\u0433\u0430\u043D\u0435",
+    attendanceDeparture: "\u0422\u0440\u044A\u0433\u0432\u0430\u043D\u0435",
+    attendanceWorked: "\u041E\u0442\u0447\u0435\u0442\u0435\u043D\u043E \u0432\u0440\u0435\u043C\u0435",
+    attendanceAtWork: "\u041D\u0430 \u0440\u0430\u0431\u043E\u0442\u0430",
+    attendanceLeftWork: "\u0422\u0440\u044A\u0433\u043D\u0430\u043B",
+    attendanceEntriesForDay: "\u0417\u0430\u043F\u0438\u0441\u0438 \u0437\u0430 \u0434\u0435\u043D\u044F",
+    attendanceHoursShort: "\u0447",
+    attendanceMinutesShort: "\u043C",
     inventory: "\u0421\u043A\u043B\u0430\u0434",
     scanQr: "\u0421\u043A\u0430\u043D\u0438\u0440\u0430\u0439 QR",
     leaveAvailableTitle: "\u041C\u043E\u044F\u0442\u0430 \u043E\u0442\u043F\u0443\u0441\u043A\u0430",
@@ -1957,6 +1987,8 @@ let editingEventSeriesId = null;
 let editingAbsenceId = null;
 let currentView = "month";
 let currentMainPanel = "calendar";
+let selectedDayPanelTab = "plan";
+let selectedDayAttendanceRequestId = 0;
 let eventsRegistrySearch = "";
 let eventsRegistryFromDate = "";
 let eventsRegistryToDate = "";
@@ -2081,7 +2113,7 @@ window.addEventListener("resize", () => {
 });
 
 attachPanelWheelRouting(dayTimelinePanel, () => dayTimelineContent);
-attachPanelWheelRouting(dayPanelShell, () => sideDayList);
+attachPanelWheelRouting(dayPanelShell, () => selectedDayPanelTab === "attendance" ? sideDayAttendancePanel : sideDayList);
 attachPanelWheelRouting(upcomingPanel, () => upcomingList);
 
 if (calendarGrid) {
@@ -2118,6 +2150,12 @@ if (addEventBtn) {
   });
 }
 
+if (sideDayPlanTabBtn) {
+  sideDayPlanTabBtn.addEventListener("click", () => setSelectedDayPanelTab("plan"));
+}
+if (sideDayAttendanceTabBtn) {
+  sideDayAttendanceTabBtn.addEventListener("click", () => setSelectedDayPanelTab("attendance"));
+}
 if (sideDayQuickAddTrigger) {
   sideDayQuickAddTrigger.addEventListener("click", (event) => {
     event.preventDefault();
@@ -4808,6 +4846,9 @@ renderMainPanelUI();
   setText("menuLogoutBtn", t("logout"));
   setText("closeFiltersMenuBtn", t("close"));
   setText("sideDayTitle", t("selectedDay"));
+  if (sideDayViewTabs) sideDayViewTabs.setAttribute("aria-label", t("selectedDayView"));
+  setText("sideDayPlanTabBtn", t("selectedDayPlan"));
+  setText("sideDayAttendanceTabBtn", t("attendance"));
   setText("sideDayQuickAddTrigger", `+ ${t("add")}`);
   setText("sideAddEventBtn", t("addEvent"));
   setText("sideAddTaskBtn", t("addTask"));
@@ -11812,8 +11853,176 @@ function renderSelectedDayPanel() {
     renderStandaloneTaskRow
   });
   renderDayTimelinePanel();
+  syncSelectedDayPanelTab();
   syncDayTimelinePanelHeight();
   syncSidePanelHeights();
+}
+
+function setSelectedDayPanelTab(value) {
+  selectedDayPanelTab = value === "attendance" && currentUserHasPermission("attendance.read_self")
+    ? "attendance"
+    : "plan";
+  syncSelectedDayPanelTab();
+}
+
+function syncSelectedDayPanelTab() {
+  const canReadAttendance = currentUserHasPermission("attendance.read_self");
+  if (!canReadAttendance && selectedDayPanelTab === "attendance") selectedDayPanelTab = "plan";
+  if (sideDayViewTabs) sideDayViewTabs.classList.toggle("hidden-section", !canReadAttendance);
+  if (sideDayAttendanceTabBtn) sideDayAttendanceTabBtn.classList.toggle("hidden-section", !canReadAttendance);
+
+  const attendanceActive = canReadAttendance && selectedDayPanelTab === "attendance";
+  if (sideDayPlanTabBtn) {
+    sideDayPlanTabBtn.classList.toggle("active", !attendanceActive);
+    sideDayPlanTabBtn.setAttribute("aria-selected", attendanceActive ? "false" : "true");
+  }
+  if (sideDayAttendanceTabBtn) {
+    sideDayAttendanceTabBtn.classList.toggle("active", attendanceActive);
+    sideDayAttendanceTabBtn.setAttribute("aria-selected", attendanceActive ? "true" : "false");
+  }
+  if (sideDayList) sideDayList.classList.toggle("hidden-section", attendanceActive);
+  if (sideDayAttendancePanel) sideDayAttendancePanel.classList.toggle("hidden-section", !attendanceActive);
+  if (sideDayQuickAdd) sideDayQuickAdd.classList.toggle("hidden-section", attendanceActive);
+  if (attendanceActive) renderSelectedDayAttendance();
+}
+
+function formatAttendanceTime(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "-"
+    : date.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+function formatAttendanceDuration(milliseconds) {
+  const totalMinutes = Math.max(0, Math.round(Number(milliseconds || 0) / 60000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours}${t("attendanceHoursShort")} ${String(minutes).padStart(2, "0")}${t("attendanceMinutesShort")}`;
+}
+
+function summarizeAttendanceEntries(entries) {
+  const groups = new Map();
+  (Array.isArray(entries) ? entries : [])
+    .filter((entry) => entry && entry.effective !== false && (entry.kind === "check_in" || entry.kind === "check_out"))
+    .sort((a, b) => new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime())
+    .forEach((entry) => {
+      const user = entry.user || {};
+      const userId = String(user.id || entry.userId || currentUserId || "self");
+      if (!groups.has(userId)) {
+        groups.set(userId, {
+          name: String(user.nickname || user.username || (userId === String(currentUserId) ? currentUserName : "") || "-"),
+          color: /^#[0-9a-fA-F]{6}$/.test(String(user.displayColor || "")) ? String(user.displayColor) : "#64748b",
+          entries: [],
+          totalMs: 0,
+          openAt: null
+        });
+      }
+      const group = groups.get(userId);
+      group.entries.push(entry);
+      if (entry.kind === "check_in") {
+        group.openAt = new Date(entry.occurredAt);
+      } else if (group.openAt) {
+        const end = new Date(entry.occurredAt);
+        if (!Number.isNaN(end.getTime()) && end >= group.openAt) group.totalMs += end.getTime() - group.openAt.getTime();
+        group.openAt = null;
+      }
+    });
+  return Array.from(groups.values()).sort((a, b) => a.name.localeCompare(b.name, getLocale()));
+}
+
+function renderAttendanceEmpty(messageKey) {
+  if (!sideDayAttendancePanel) return;
+  sideDayAttendancePanel.replaceChildren();
+  const empty = document.createElement("p");
+  empty.className = "side-attendance-empty";
+  empty.textContent = t(messageKey);
+  sideDayAttendancePanel.append(empty);
+}
+
+async function renderSelectedDayAttendance() {
+  if (!sideDayAttendancePanel || selectedDayPanelTab !== "attendance") return;
+  if (!selectedDateKey) {
+    renderAttendanceEmpty("noDaySelected");
+    return;
+  }
+
+  const requestId = ++selectedDayAttendanceRequestId;
+  renderAttendanceEmpty("attendanceLoading");
+  try {
+    const token = await ensureAccessToken();
+    if (!token) throw new Error(t("attendanceLoadFailed"));
+    const date = parseDateKey(selectedDateKey);
+    const from = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0).toISOString();
+    const to = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999).toISOString();
+    const params = new URLSearchParams({ from, to, limit: "1000" });
+    const response = await fetch(`/api/attendance/entries?${params}`, {
+      headers: { authorization: `Bearer ${token}` },
+      credentials: "include",
+      cache: "no-store"
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(typeof body.error === "string" ? body.error : t("attendanceLoadFailed"));
+    if (requestId !== selectedDayAttendanceRequestId || selectedDayPanelTab !== "attendance") return;
+
+    const summaries = summarizeAttendanceEntries(body.items || []);
+    sideDayAttendancePanel.replaceChildren();
+    if (!summaries.length) {
+      renderAttendanceEmpty("attendanceNoRecordsDay");
+      return;
+    }
+
+    summaries.forEach((summary) => {
+      const card = document.createElement("article");
+      card.className = "side-attendance-card";
+      const head = document.createElement("div");
+      head.className = "side-attendance-head";
+      const dot = document.createElement("span");
+      dot.className = "side-attendance-person-dot";
+      dot.style.background = summary.color;
+      const name = document.createElement("strong");
+      name.textContent = summary.name;
+      const stateBadge = document.createElement("span");
+      stateBadge.className = `side-attendance-state${summary.openAt ? " active" : ""}`;
+      stateBadge.textContent = summary.openAt ? t("attendanceAtWork") : t("attendanceLeftWork");
+      head.append(dot, name, stateBadge);
+
+      const firstIn = summary.entries.find((entry) => entry.kind === "check_in");
+      const lastOut = summary.entries.slice().reverse().find((entry) => entry.kind === "check_out");
+      const facts = document.createElement("div");
+      facts.className = "side-attendance-facts";
+      [[t("attendanceArrival"), firstIn ? formatAttendanceTime(firstIn.occurredAt) : "-"],
+       [t("attendanceDeparture"), summary.openAt ? t("attendanceAtWork") : (lastOut ? formatAttendanceTime(lastOut.occurredAt) : "-")],
+       [t("attendanceWorked"), formatAttendanceDuration(summary.totalMs)]].forEach(([label, value]) => {
+        const fact = document.createElement("span");
+        fact.innerHTML = `<small></small><b></b>`;
+        fact.querySelector("small").textContent = label;
+        fact.querySelector("b").textContent = value;
+        facts.append(fact);
+      });
+
+      const details = document.createElement("details");
+      details.className = "side-attendance-details";
+      const detailsSummary = document.createElement("summary");
+      detailsSummary.textContent = `${t("attendanceEntriesForDay")} (${summary.entries.length})`;
+      const timeline = document.createElement("div");
+      timeline.className = "side-attendance-timeline";
+      summary.entries.forEach((entry) => {
+        const line = document.createElement("div");
+        const label = document.createElement("span");
+        label.textContent = entry.kind === "check_in" ? t("attendanceArrival") : t("attendanceDeparture");
+        const time = document.createElement("strong");
+        time.textContent = formatAttendanceTime(entry.occurredAt);
+        line.append(label, time);
+        timeline.append(line);
+      });
+      details.append(detailsSummary, timeline);
+      card.append(head, facts, details);
+      sideDayAttendancePanel.append(card);
+    });
+  } catch (error) {
+    if (requestId !== selectedDayAttendanceRequestId) return;
+    renderAttendanceEmpty("attendanceLoadFailed");
+  }
 }
 
 function shiftSelectedTimelineDay(days) {
