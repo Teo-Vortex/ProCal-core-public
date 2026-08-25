@@ -955,6 +955,8 @@ const I18N = {
     next: "Next",
     today: "Today",
     upcomingTitle: "Next 10 Items",
+    upcomingExpand: "Expand next items",
+    upcomingCollapse: "Collapse next items",
     exportJson: "Export JSON",
     importJson: "Import JSON",
     selectDay: "Select a day",
@@ -1146,7 +1148,7 @@ const I18N = {
     taskSummaryCompletedWork: "Completed work",
     taskSummaryOverdue: "Overdue",
     taskSummaryActive: "Active",
-    taskSummaryOpen: "Open tasks",
+    taskSummaryOpen: "Details",
     taskWorkStartedOn: "Started on",
     taskWorkCompletedOn: "completed on",
     taskWorkStillActive: "still in progress",
@@ -1521,6 +1523,8 @@ const I18N = {
     next: "\u041D\u0430\u043F\u0440\u0435\u0434",
     today: "\u0414\u043D\u0435\u0441",
     upcomingTitle: "\u0421\u043B\u0435\u0434\u0432\u0430\u0449\u0438 10 \u0437\u0430\u043F\u0438\u0441\u0430",
+    upcomingExpand: "\u0420\u0430\u0437\u0433\u044A\u043D\u0438 \u0441\u043B\u0435\u0434\u0432\u0430\u0449\u0438\u0442\u0435 \u0437\u0430\u043F\u0438\u0441\u0438",
+    upcomingCollapse: "\u041F\u0440\u0438\u0431\u0435\u0440\u0438 \u0441\u043B\u0435\u0434\u0432\u0430\u0449\u0438\u0442\u0435 \u0437\u0430\u043F\u0438\u0441\u0438",
     exportJson: "\u0415\u043A\u0441\u043F\u043E\u0440\u0442 JSON",
     importJson: "\u0418\u043C\u043F\u043E\u0440\u0442 JSON",
     selectDay: "\u0418\u0437\u0431\u0435\u0440\u0438 \u0434\u0435\u043D",
@@ -1712,7 +1716,7 @@ const I18N = {
     taskSummaryCompletedWork: "\u041F\u0440\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0430 \u0440\u0430\u0431\u043E\u0442\u0430",
     taskSummaryOverdue: "\u041F\u0440\u043E\u0441\u0440\u043E\u0447\u0435\u043D\u0438",
     taskSummaryActive: "\u0410\u043A\u0442\u0438\u0432\u043D\u0438",
-    taskSummaryOpen: "\u041E\u0442\u0432\u043E\u0440\u0438 \u0437\u0430\u0434\u0430\u0447\u0438\u0442\u0435",
+    taskSummaryOpen: "\u041F\u043E\u0434\u0440\u043E\u0431\u043D\u043E",
     taskWorkStartedOn: "\u0417\u0430\u043F\u043E\u0447\u043D\u0430\u0442\u0430 \u043D\u0430",
     taskWorkCompletedOn: "\u0437\u0430\u0432\u044A\u0440\u0448\u0435\u043D\u0430 \u043D\u0430",
     taskWorkStillActive: "\u0432\u0441\u0435 \u043E\u0449\u0435 \u0441\u0435 \u0440\u0430\u0431\u043E\u0442\u0438 \u043F\u043E \u043D\u0435\u044F",
@@ -2414,6 +2418,19 @@ if (eventsPanelTabBtn) {
 if (notesToggleBtn) {
   notesToggleBtn.addEventListener("click", () => {
     setMainPanel("notes");
+  });
+}
+if (upcomingPanel) {
+  upcomingPanel.addEventListener("click", (event) => {
+    if (!upcomingCollapsed || isMobileViewport()) return;
+    if (event.target && event.target.closest && event.target.closest("button, input, select, textarea, a")) return;
+    setUpcomingCollapsed(false);
+  });
+  upcomingPanel.addEventListener("keydown", (event) => {
+    if (!upcomingCollapsed || isMobileViewport()) return;
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    setUpcomingCollapsed(false);
   });
 }
 if (taskManagerPanelTabBtn) {
@@ -3888,6 +3905,19 @@ if (toggleDayTimelineBtn) {
     setDayTimelineCollapsed(!dayTimelineCollapsed);
   });
 }
+if (dayTimelinePanel) {
+  dayTimelinePanel.addEventListener("click", (event) => {
+    if (!dayTimelineCollapsed) return;
+    if (event.target && event.target.closest && event.target.closest("button, input, select, textarea, a")) return;
+    setDayTimelineCollapsed(false);
+  });
+  dayTimelinePanel.addEventListener("keydown", (event) => {
+    if (!dayTimelineCollapsed) return;
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    setDayTimelineCollapsed(false);
+  });
+}
 if (dayTimelinePrevBtn) {
   dayTimelinePrevBtn.addEventListener("click", () => {
     shiftSelectedTimelineDay(-1);
@@ -4265,7 +4295,8 @@ if (compensationForm) {
   });
 }
 if (currentCompBalanceCard) {
-  currentCompBalanceCard.addEventListener("click", () => {
+  currentCompBalanceCard.addEventListener("click", (event) => {
+    if (event.target && event.target.closest && event.target.closest(".user-quick-actions")) return;
     if (!currentUserId || !canReadOwnCompensations()) return;
     const me = (Array.isArray(people) ? people : []).find((p) => String(p.id || "") === String(currentUserId || ""));
     openCompLogModal(
@@ -4668,7 +4699,11 @@ function applyTranslations() {
   document.title = appBrandTitle;
   setText("appSubtitle", t("subtitle"));
   setText("appVersionLabel", `${t("versionLabel")}: ${APP_VERSION}`);
-  setText("settingsBtn", t("menuLabel"));
+  setText("settingsBtnLabel", t("menuLabel"));
+  if (settingsBtn) {
+    settingsBtn.title = t("menuLabel");
+    settingsBtn.setAttribute("aria-label", t("menuLabel"));
+  }
   setText("menuProfileBtn", t("profile"));
   setText("menuGuideBtn", t("userGuide"));
   setText("menuMobileAppBtn", t("mobileApp"));
@@ -4807,6 +4842,8 @@ renderMainPanelUI();
   setText("nextMonth", t("next"));
   setText("todayBtn", t("today"));
   setText("upcomingTitle", t("upcomingTitle"));
+  updateUpcomingToggleUI();
+  syncUpcomingCollapsedInteractionState();
   setText("mobileDayBtn", t("forDay"));
   setText("mobileUpcomingBtn", t("upcomingTitle"));
   setTitle("closeMobileDayBtn", t("close"));
@@ -4941,6 +4978,11 @@ renderMainPanelUI();
   setText("dayTimelineTitle", t("dayTimeline"));
   setText("openDayTimelineSettingsBtn", t("dayTimelineSettings"));
   updateDayTimelineCollapseUI();
+  if (dayTimelinePanel && dayTimelineCollapsed) {
+    const label = t("timelineExpand");
+    dayTimelinePanel.setAttribute("aria-label", label);
+    dayTimelinePanel.title = label;
+  }
   setText("dayTimelineSettingsTitle", t("dayTimelineSettingsTitle"));
   setText("timePickerTitle", t("timePickerTitle"));
   setText("timePickerListLabel", t("time"));
@@ -5377,6 +5419,7 @@ function updateMobileResponsivePanels() {
     updateUpcomingToggleUI,
     isMobileViewport
   });
+  syncUpcomingCollapsedInteractionState();
 }
 
 function openMobileUpcomingPanel() {
@@ -12011,14 +12054,43 @@ function setUpcomingCollapsed(next) {
     storageKey: UPCOMING_COLLAPSED_KEY,
     updateUpcomingToggleUI
   });
+  syncUpcomingCollapsedInteractionState();
+}
+
+function syncUpcomingCollapsedInteractionState() {
+  if (!upcomingPanel) return;
+  const interactiveRail = upcomingCollapsed && !isMobileViewport();
+  if (interactiveRail) {
+    const label = t("upcomingExpand");
+    upcomingPanel.setAttribute("role", "button");
+    upcomingPanel.setAttribute("tabindex", "0");
+    upcomingPanel.setAttribute("aria-expanded", "false");
+    upcomingPanel.setAttribute("aria-label", label);
+    upcomingPanel.title = label;
+    return;
+  }
+  upcomingPanel.removeAttribute("role");
+  upcomingPanel.removeAttribute("tabindex");
+  upcomingPanel.removeAttribute("aria-expanded");
+  upcomingPanel.removeAttribute("aria-label");
+  upcomingPanel.removeAttribute("title");
 }
 
 function updateUpcomingToggleUI() {
+  if (toggleUpcomingBtn && isMobileViewport()) {
+    const closeLabel = t("close");
+    toggleUpcomingBtn.textContent = "\u00D7";
+    toggleUpcomingBtn.setAttribute("aria-label", closeLabel);
+    toggleUpcomingBtn.title = closeLabel;
+    return;
+  }
   const mod = window.ProCalModules && window.ProCalModules.uiMenus;
   if (!mod || typeof mod.updateUpcomingToggleUI !== "function") return;
   mod.updateUpcomingToggleUI({
     toggleUpcomingBtn,
-    upcomingCollapsed
+    upcomingCollapsed,
+    expandLabel: t("upcomingExpand"),
+    collapseLabel: t("upcomingCollapse")
   });
 }
 
@@ -12823,6 +12895,22 @@ function setDayTimelineCollapsed(next) {
   dayTimelineCollapsed = Boolean(next);
   if (dayTimelinePanel) dayTimelinePanel.classList.toggle("collapsed", dayTimelineCollapsed);
   if (dayTimelineContent) dayTimelineContent.setAttribute("aria-hidden", dayTimelineCollapsed ? "true" : "false");
+  if (dayTimelinePanel) {
+    const label = t(dayTimelineCollapsed ? "timelineExpand" : "timelineCollapse");
+    if (dayTimelineCollapsed) {
+      dayTimelinePanel.setAttribute("role", "button");
+      dayTimelinePanel.setAttribute("tabindex", "0");
+      dayTimelinePanel.setAttribute("aria-expanded", "false");
+      dayTimelinePanel.setAttribute("aria-label", label);
+      dayTimelinePanel.title = label;
+    } else {
+      dayTimelinePanel.removeAttribute("role");
+      dayTimelinePanel.removeAttribute("tabindex");
+      dayTimelinePanel.removeAttribute("aria-expanded");
+      dayTimelinePanel.removeAttribute("aria-label");
+      dayTimelinePanel.removeAttribute("title");
+    }
+  }
   try {
     localStorage.setItem(DAY_TIMELINE_COLLAPSED_KEY, dayTimelineCollapsed ? "1" : "0");
   } catch {}
@@ -13081,6 +13169,16 @@ function openEventPreview(evt, dateKey) {
     getCategoryById,
     describeEventPeople,
     getLinkedStandaloneTaskRowsForEvent,
+    isTaskDone: (task) => getCurrentTaskMemberState(task).status === "done",
+    canToggleTask: canUpdateOwnTaskStatus,
+    getTaskAssigneeNames,
+    onToggleEventTask: (task, done) => toggleEventTaskDone(evt.seriesId || evt.id, task.id, done),
+    onToggleLinkedTask: (entry, done) => {
+      if (!entry || !entry.task) return false;
+      const storageDateKey = String(entry.storageDateKey || entry.dateKey || "");
+      if (!storageDateKey) return false;
+      return toggleStandaloneTaskDone(storageDateKey, entry.task.id, done);
+    },
     setSelectedDateKey: (value) => { selectedDateKey = String(value || ""); }
   });
 }
@@ -13215,7 +13313,7 @@ function renderStandaloneTaskRow(task, dateKey) {
 
 function toggleStandaloneTaskDone(dateKey, taskId, done) {
   const mod = window.ProCalModules && window.ProCalModules.taskMutations;
-  if (!mod || typeof mod.toggleStandaloneTaskDone !== "function") return;
+  if (!mod || typeof mod.toggleStandaloneTaskDone !== "function") return false;
   const task = (tasksByDate[dateKey] || []).find((row) => String((row && row.id) || "") === String(taskId || ""));
   const sharedOverlay = Boolean(task && isSharedStandaloneTaskInPersonalMode(task));
   const changed = mod.toggleStandaloneTaskDone({
@@ -13233,11 +13331,12 @@ function toggleStandaloneTaskDone(dateKey, taskId, done) {
     renderUpcomingList,
     renderCalendar
   });
+  return changed;
 }
 
 function toggleEventTaskDone(seriesId, taskId, done) {
   const mod = window.ProCalModules && window.ProCalModules.taskMutations;
-  if (!mod || typeof mod.toggleEventTaskDone !== "function") return;
+  if (!mod || typeof mod.toggleEventTaskDone !== "function") return false;
   const baseEvent = findBaseEventById(seriesId);
   const task = baseEvent && Array.isArray(baseEvent.tasks)
     ? baseEvent.tasks.find((row) => String((row && row.id) || "") === String(taskId || ""))
@@ -13257,6 +13356,8 @@ function toggleEventTaskDone(seriesId, taskId, done) {
     renderUpcomingList
   });
   if (changed && sharedOverlay && task) void saveSharedOverlayTaskState(task, String((baseEvent && baseEvent.id) || seriesId || ""));
+  if (changed) renderCalendar();
+  return changed;
 }
 
 function saveSharedOverlayTaskState(task, eventId) {

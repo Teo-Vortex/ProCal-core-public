@@ -127,6 +127,65 @@
     return group;
   }
 
+  function createTaskList(doc, options) {
+    const opts = options || {};
+    const eventTasks = Array.isArray(opts.eventTasks) ? opts.eventTasks : [];
+    const linkedRows = Array.isArray(opts.linkedRows) ? opts.linkedRows : [];
+    if (!eventTasks.length && !linkedRows.length) return null;
+
+    const isTaskDone = typeof opts.isTaskDone === "function" ? opts.isTaskDone : ((task) => Boolean(task && task.done));
+    const canToggleTask = typeof opts.canToggleTask === "function" ? opts.canToggleTask : (() => false);
+    const getTaskAssigneeNames = typeof opts.getTaskAssigneeNames === "function" ? opts.getTaskAssigneeNames : (() => []);
+    const list = doc.createElement("div");
+    list.className = "event-preview-task-list";
+
+    const appendTask = (task, source, entry) => {
+      if (!task || typeof task !== "object") return;
+      const done = isTaskDone(task);
+      const row = doc.createElement("label");
+      row.className = `event-preview-task-row${done ? " is-completed" : ""}`;
+
+      const checkbox = doc.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = done;
+      checkbox.disabled = !canToggleTask(task);
+
+      const copy = doc.createElement("span");
+      copy.className = "event-preview-task-copy";
+      const title = doc.createElement("span");
+      title.className = "event-preview-task-title";
+      title.textContent = String(task.title || "");
+      copy.appendChild(title);
+
+      const assigneeNames = getTaskAssigneeNames(task);
+      if (assigneeNames.length) {
+        const assignees = doc.createElement("span");
+        assignees.className = "event-preview-task-assignees";
+        assignees.textContent = assigneeNames.join(", ");
+        copy.appendChild(assignees);
+      }
+
+      checkbox.addEventListener("change", () => {
+        const nextDone = checkbox.checked;
+        const changed = source === "linked"
+          ? (typeof opts.onToggleLinkedTask === "function" ? opts.onToggleLinkedTask(entry, nextDone) : false)
+          : (typeof opts.onToggleEventTask === "function" ? opts.onToggleEventTask(task, nextDone) : false);
+        if (changed === false) {
+          checkbox.checked = !nextDone;
+          return;
+        }
+        row.classList.toggle("is-completed", nextDone);
+      });
+
+      row.append(checkbox, copy);
+      list.appendChild(row);
+    };
+
+    eventTasks.forEach((task) => appendTask(task, "event", null));
+    linkedRows.forEach((entry) => appendTask(entry && entry.task, "linked", entry));
+    return list;
+  }
+
   function formatDateKey(value, locale) {
     const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (!match) return String(value || "");
@@ -152,6 +211,9 @@
     const getLinkedStandaloneTaskRowsForEvent = typeof opts.getLinkedStandaloneTaskRowsForEvent === "function"
       ? opts.getLinkedStandaloneTaskRowsForEvent
       : (() => []);
+    const isTaskDone = typeof opts.isTaskDone === "function" ? opts.isTaskDone : ((task) => Boolean(task && task.done));
+    const canToggleTask = typeof opts.canToggleTask === "function" ? opts.canToggleTask : (() => false);
+    const getTaskAssigneeNames = typeof opts.getTaskAssigneeNames === "function" ? opts.getTaskAssigneeNames : (() => []);
 
     opts.eventPreviewBody.innerHTML = "";
 
@@ -192,11 +254,7 @@
 
     const previewDateKey = String(opts.previewDateKey || opts.dateKey || "");
     const previewLinkedTaskRows = getLinkedStandaloneTaskRowsForEvent(evt, previewDateKey);
-    const previewTaskTitles = Array.from(new Set(
-      []
-        .concat(Array.isArray(evt.tasks) ? evt.tasks.map((x) => String((x && x.title) || "").trim()).filter(Boolean) : [])
-        .concat(previewLinkedTaskRows.map((row) => String((row && row.task && row.task.title) || "").trim()).filter(Boolean))
-    ));
+    const previewEventTasks = Array.isArray(evt.tasks) ? evt.tasks.filter((task) => task && task.title) : [];
 
     const hero = doc.createElement("div");
     hero.className = "event-preview-hero";
@@ -269,7 +327,7 @@
     }
     layout.appendChild(detailsSection);
 
-    if (participantNames.length || absentNames.length || previewTaskTitles.length) {
+    if (participantNames.length || absentNames.length || previewEventTasks.length || previewLinkedTaskRows.length) {
       const side = doc.createElement("div");
       side.className = "event-preview-side";
 
@@ -282,10 +340,18 @@
         side.appendChild(peopleSection);
       }
 
-      if (previewTaskTitles.length) {
+      if (previewEventTasks.length || previewLinkedTaskRows.length) {
         const tasksSection = createSection(doc, t("eventTasks"));
-        const taskGroup = createTokenGroup(doc, t("task"), previewTaskTitles);
-        if (taskGroup) tasksSection.appendChild(taskGroup);
+        const taskList = createTaskList(doc, {
+          eventTasks: previewEventTasks,
+          linkedRows: previewLinkedTaskRows,
+          isTaskDone,
+          canToggleTask,
+          getTaskAssigneeNames,
+          onToggleEventTask: opts.onToggleEventTask,
+          onToggleLinkedTask: opts.onToggleLinkedTask
+        });
+        if (taskList) tasksSection.appendChild(taskList);
         side.appendChild(tasksSection);
       }
 

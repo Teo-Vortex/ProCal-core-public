@@ -212,6 +212,26 @@ function renderHtmlDocument(req: any, filePath: string): string {
 
 const PROCAL_BRAND_MARK = '<img src="favicon.ico" alt="" width="46" height="46">';
 const PROCAL_BRAND_CSS = '.procal-brand{display:flex;align-items:center;gap:.65rem;margin-bottom:.85rem;font-weight:800;color:#0f766e}.procal-brand img{width:46px;height:46px;flex:0 0 auto}.procal-brand span{font-size:1.15rem}';
+const PROCAL_AUTH_CSS = `
+:root{color-scheme:light;--auth-ink:#1f2a2e;--auth-muted:#64727a;--auth-surface:rgba(255,255,255,.94);--auth-input:#f8fafc;--auth-line:rgba(31,42,46,.14);--auth-accent:#0f766e;--auth-accent-ink:#fff;--auth-shadow:0 20px 50px rgba(31,42,46,.12)}
+*{box-sizing:border-box}
+body{font-family:"Segoe UI Variable Text","Segoe UI",Arial,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;padding:18px;color:var(--auth-ink);background:linear-gradient(135deg,#f4f7f6 0%,#f4f7f6 48%,#e7f3ee 100%);font-size:14px;line-height:1.45}
+main,form{width:min(440px,100%);margin:0;padding:28px;border:1px solid var(--auth-line);border-radius:8px;background:var(--auth-surface);box-shadow:var(--auth-shadow)}
+.procal-brand{margin:0 0 20px;color:var(--auth-ink)}
+.procal-brand span{font-size:1.25rem;line-height:1.2}
+h2{margin:0 0 8px;font-size:1.5rem;line-height:1.2}
+p{margin:8px 0;color:var(--auth-muted)}
+input,button{width:100%;min-height:42px;margin-top:10px;padding:9px 11px;border:1px solid var(--auth-line);border-radius:8px;font:inherit}
+input{background:var(--auth-input);color:var(--auth-ink);outline:0}
+input:focus{border-color:var(--auth-accent);box-shadow:0 0 0 3px rgba(15,118,110,.13)}
+button{background:var(--auth-accent);border-color:var(--auth-accent);color:var(--auth-accent-ink);font-weight:700;cursor:pointer}
+button:hover{filter:brightness(1.05)}
+button:focus-visible,a:focus-visible{outline:2px solid color-mix(in srgb,var(--auth-accent) 58%,white);outline-offset:2px}
+a{display:block;margin-top:14px;color:var(--auth-accent);font-weight:600;text-align:center;text-decoration:none}
+#changeServerBtn{background:transparent;border-color:var(--auth-line);color:var(--auth-ink)}
+#m{min-height:20px;margin-top:14px}
+@media(max-width:520px){main,form{padding:22px 18px}}
+@media(prefers-color-scheme:dark){:root{color-scheme:dark;--auth-ink:#e6edf0;--auth-muted:#a5b6bf;--auth-surface:rgba(15,29,38,.96);--auth-input:rgba(8,18,25,.92);--auth-line:rgba(176,200,210,.22);--auth-accent:#2dd4bf;--auth-accent-ink:#03201c;--auth-shadow:0 20px 50px rgba(0,0,0,.42)}body{background:linear-gradient(145deg,#071017 0%,#0b151d 52%,#10241f 100%)}input:focus{box-shadow:0 0 0 3px rgba(45,212,191,.15)}}`;
 
 function renderProCalBrand(): string {
   return `<div class="procal-brand">${PROCAL_BRAND_MARK}<span>ProCal</span></div>`;
@@ -236,9 +256,9 @@ const setupHtml = `<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ProCal Setup</title><link rel="icon" type="image/x-icon" href="favicon.ico">
 <style>
 ${PROCAL_BRAND_CSS}
-:root{color-scheme:light;--bg-1:#f4efe4;--bg-2:#e7f3ee;--ink:#1f2a2e;--muted:#64727a;--card:rgba(255,255,255,.9);--surface:#f8fafc;--line:rgba(31,42,46,.14);--accent:#0f766e;--accent-ink:#fff;--shadow:0 20px 50px rgba(31,42,46,.12)}
+:root{color-scheme:light;--bg-1:#f4f7f6;--bg-2:#e7f3ee;--ink:#1f2a2e;--muted:#64727a;--card:rgba(255,255,255,.9);--surface:#f3f7f6;--line:rgba(31,42,46,.14);--accent:#0f766e;--accent-ink:#fff;--shadow:0 20px 50px rgba(31,42,46,.12)}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;padding:clamp(20px,5vw,56px) 18px;font-family:"Segoe UI","Trebuchet MS",sans-serif;color:var(--ink);background:linear-gradient(135deg,var(--bg-1) 0%,#f7f8f6 48%,var(--bg-2) 100%)}
+body{margin:0;min-height:100vh;padding:clamp(20px,5vw,56px) 18px;font-family:"Segoe UI","Trebuchet MS",sans-serif;color:var(--ink);background:linear-gradient(135deg,var(--bg-1) 0%,#f4f7f6 48%,var(--bg-2) 100%)}
 .setup-shell{width:min(760px,100%);margin:0 auto}
 .setup-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
 .procal-brand{margin:0;color:var(--ink)}
@@ -269,7 +289,7 @@ pre:empty{display:none}
 .hide{display:none!important}
 @media(max-width:620px){body{padding:18px 12px}.setup-head{align-items:flex-start}.setup-badge{margin-top:6px}.setup-card{padding:20px 16px}.field-grid{grid-template-columns:1fr}.field-grid label{grid-column:1}.admin-note{display:block}.admin-note strong{display:block;margin-bottom:3px}}
 @media(prefers-color-scheme:dark){:root{color-scheme:dark;--bg-1:#07141b;--bg-2:#10241f;--ink:#e6edf0;--muted:#a5b6bf;--card:rgba(15,29,38,.94);--surface:rgba(8,18,25,.92);--line:rgba(176,200,210,.22);--accent:#2dd4bf;--accent-ink:#03201c;--shadow:0 20px 50px rgba(0,0,0,.42)}body{background:linear-gradient(145deg,#071017 0%,#0b151d 52%,#10241f 100%)}input:focus{background:#0b1821;box-shadow:0 0 0 3px rgba(45,212,191,.15)}input[readonly]{background:#132630}.setup-badge{background:rgba(15,29,38,.72)}.admin-note{background:rgba(45,212,191,.08)}button{box-shadow:0 12px 28px rgba(45,212,191,.18)}}
-</style></head>
+</style><link rel="stylesheet" href="css/ui-system.css"></head>
 <body><main class="setup-shell">
 <header class="setup-head">${renderProCalBrand()}<span class="setup-badge">Initial setup</span></header>
 <section class="setup-card">
@@ -364,7 +384,7 @@ f.onsubmit=async(e)=>{
 init();
 </script></body></html>`;
 const loginHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login</title>
-<style>${PROCAL_BRAND_CSS}body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0}form{width:min(420px,92vw);padding:1rem;border:1px solid #ddd;border-radius:10px}input,button,a{width:100%;padding:.6rem;margin-top:.6rem;box-sizing:border-box}a{text-align:center;display:block;text-decoration:none;color:#0b6}#changeServerBtn{background:transparent;border:1px solid #8aa;color:inherit;border-radius:6px}#m{min-height:1.2rem}</style></head>
+<style>${PROCAL_BRAND_CSS}${PROCAL_AUTH_CSS}</style></head>
 <body><form id="f">${renderProCalBrand()}<h2>Sign in</h2><input name="username" placeholder="Username" required><input type="password" name="password" placeholder="Password" required><button>Login</button><button id="changeServerBtn" type="button" hidden>Change server</button><a href="/register">Create account</a><p id="m"></p></form>
 <script>
 function toErrorText(err){
@@ -397,7 +417,7 @@ const handoffHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name
 <style>body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0;padding:1rem}main{width:min(420px,92vw);padding:1rem;border:1px solid #ddd;border-radius:10px}a{display:block;margin-top:1rem;text-align:center;text-decoration:none;color:#0b6}#m{min-height:1.2rem}</style></head>
 <body><main><h2>Sign in unavailable</h2><p id="m">This self-hosted build uses local login.</p><a href="/login">Back to login</a></main></body></html>`;
 const registerHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Register</title>
-<style>${PROCAL_BRAND_CSS}body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0}form{width:min(420px,92vw);padding:1rem;border:1px solid #ddd;border-radius:10px}input,button,a{width:100%;padding:.6rem;margin-top:.6rem;box-sizing:border-box}a{text-align:center;display:block;text-decoration:none;color:#0b6}#m{min-height:1.2rem}</style></head>
+<style>${PROCAL_BRAND_CSS}${PROCAL_AUTH_CSS}</style></head>
 <body><form id="f">${renderProCalBrand()}<h2>Create account</h2><input name="username" placeholder="Username" required><input name="nickname" placeholder="Nickname" required><input name="fullName" placeholder="Full name" required><input name="workplace" placeholder="Workplace" required><input name="jobTitle" placeholder="Job title" required><input type="password" name="password" placeholder="Password" required><input type="password" name="password2" placeholder="Confirm password" required><button>Register</button><a href="/login">Back to login</a><p id="m"></p></form>
 <script>
 function toErrorText(err){
@@ -422,7 +442,7 @@ document.getElementById('f').onsubmit=async(e)=>{
 </script></body></html>`;
 
 const internalAutoLoginHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ProCal</title>
-<style>${PROCAL_BRAND_CSS}body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0;padding:1rem;background:#f8fafc}main{width:min(460px,92vw);padding:1rem;border:1px solid #d1d5db;border-radius:12px;background:#fff}h2{margin:.2rem 0 .5rem}p{margin:.2rem 0;color:#475569}button{margin-top:.8rem;padding:.55rem .9rem;border:1px solid #cbd5e1;border-radius:10px;background:#fff;cursor:pointer}</style></head>
+<style>${PROCAL_BRAND_CSS}${PROCAL_AUTH_CSS}</style></head>
 <body><main>${renderProCalBrand()}<h2>Opening ProCal</h2><p id="m">Signing in automatically...</p><button id="retryBtn" type="button" hidden>Retry</button></main>
 <script>
 const ACCESS_KEY='procal_access_token';

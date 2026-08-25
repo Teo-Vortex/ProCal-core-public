@@ -19,6 +19,7 @@
       --danger-line: #f0c8c8;
     }
     * { box-sizing: border-box; }
+    html, body { max-width: 100%; overflow-x: hidden; }
     body {
       margin: 0;
       font-family: "Segoe UI", Tahoma, sans-serif;
@@ -61,8 +62,8 @@
       font-size: 14px;
     }
     .toc a:hover { background: #eef7f4; }
-    .content { display: grid; gap: 14px; }
-    section { padding: 16px; }
+    .content { display: grid; gap: 14px; min-width: 0; }
+    section { min-width: 0; padding: 16px; }
     h2 { margin: 0 0 10px; font-size: 18px; }
     h3 { margin: 14px 0 8px; font-size: 15px; }
     p { margin: 8px 0; }
@@ -73,6 +74,8 @@
       border: 1px solid #dce9e3;
       padding: 1px 6px;
       border-radius: 6px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
     .hint {
       margin-top: 10px;
@@ -94,6 +97,11 @@
       .layout { grid-template-columns: 1fr; }
       .toc { position: static; }
     }
+    @media (max-width: 520px) {
+      .wrap { padding: 0 10px; }
+      .hero { padding: 18px; }
+      ul, ol { margin-left: 16px; padding-left: 12px; }
+    }
   </style>
 </head>
 <body>
@@ -104,7 +112,7 @@
       <div class="meta">
         <span class="chip">Version: 0.9.9</span>
         <span class="chip">Language: EN</span>
-        <span class="chip">Reviewed: 2026-08-19</span>
+        <span class="chip">Reviewed: 2026-08-25</span>
         <span class="chip">Coverage: Core + Android + local admin panel</span>
       </div>
     </header>
@@ -148,7 +156,7 @@
         <section id="workspace">
           <h2>2. Workspace overview</h2>
           <ul>
-            <li>The top bar contains the <b>ProCal</b> logo, connection status, notifications, chat, and the <b>Menu</b> button.</li>
+            <li>The top area contains the <b>ProCal</b> logo, connection status, and a compact <b>Menu</b> button. Notifications and chat sit next to the current user's name.</li>
             <li>The left panel shows:
               <ul>
                 <li>clock</li>
@@ -157,13 +165,15 @@
                 <li>personal compensation balance</li>
               </ul>
             </li>
-            <li>The main workspace has three primary modes: <b>Calendar</b>, <b>Events</b>, and <b>Notes</b>.</li>
+            <li>The main workspace has four primary modes: <b>Calendar</b>, <b>Events</b>, <b>Notes</b>, and <b>Tasks</b>.</li>
             <li>The calendar itself has two data views:
               <ul>
                 <li><b>Personal</b> - personal records plus shared records visible to you</li>
                 <li><b>Shared</b> - the team calendar</li>
               </ul>
             </li>
+            <li><b>Day timeline</b> and <b>Next 10 entries</b> can be collapsed. Their compact state leaves more room for the calendar, and pressing the title expands the content again.</li>
+            <li>The interface is responsive: on narrow screens the main panels rearrange, and detailed calendar views open as touch-friendly dialogs.</li>
           </ul>
         </section>
 
@@ -186,14 +196,18 @@
             <li>The workspace supports month and year views.</li>
             <li><b>Prev</b>, <b>Next</b>, and <b>Today</b> control the visible period.</li>
             <li><b>Filters</b> opens the filtering panel.</li>
-            <li>Task dots indicate status:
+            <li>Compact <b>Tasks</b> indicators in each day summarize task status:
               <ul>
-                <li>orange - open</li>
-                <li>green - completed</li>
-                <li>red - overdue</li>
+                <li>orange - open task</li>
+                <li>teal - ongoing work</li>
+                <li>green - completed task</li>
+                <li>red - overdue task</li>
               </ul>
             </li>
-            <li>Clicking a day opens the <b>Selected day</b> panel and quick-add actions.</li>
+            <li>On desktop, hovering the indicator opens a compact preview that remains open while the pointer is over it. Pressing it opens a detailed dialog; touch screens use the dialog directly.</li>
+            <li>The compact preview includes dated tasks and a <b>Working on</b> section. Checkboxes complete or resume tasks you can manage, while <b>Details</b> opens the full task module.</li>
+            <li>Completed ongoing work remains visible in the calendar with a green indicator for the period from its start date through its completion date.</li>
+            <li>Clicking the free area of a day opens <b>Selected day</b> and its quick-add actions. The open button appears on hover without changing the cell height.</li>
             <li>Inside <b>Selected day</b>, the <b>Plan</b> tab shows events and tasks, while <b>Attendance</b> shows arrival, departure, and recorded time according to your permissions.</li>
             <li><b>Next 10 entries</b> shows the event date and time, or the date together with <b>All day</b>.</li>
           </ul>
@@ -215,14 +229,22 @@
                 <li><b>Delete</b></li>
               </ul>
             </li>
+            <li>Event tasks are shown as a checklist with their assignees. A user with permission can complete or resume them directly from the preview.</li>
             <li>An event can have a dedicated <b>Program</b> file, usually a PDF.</li>
             <li>The program opens in a new tab instead of forcing a download.</li>
           </ul>
           <h3>Tasks</h3>
           <ul>
-            <li>Tasks can be personal or shared depending on the current calendar mode and can have assigned people.</li>
-            <li>Events can also carry linked event tasks.</li>
-            <li>In personal mode, a user can add a personal task linked to a shared event without changing the shared event itself.</li>
+            <li>The <b>Tasks</b> tab has shared <b>All / Active / Completed</b> filters and two lists: <b>Ongoing work</b> and <b>Dated tasks</b>.</li>
+            <li>A <b>dated task</b> is a specific action for one day. It can be completed or resumed with its checkbox and edited from the same list.</li>
+            <li><b>Ongoing work</b> has a start date and remains active until it is finished. Its completion date can be corrected, and completed work stays in history and can be resumed.</li>
+            <li>Users allowed to read team tasks also receive a <b>Mine / All people</b> filter. Other users only see tasks in which they participate.</li>
+            <li>Every task in the <b>shared calendar</b> is visible to all users, including individually assigned tasks, team tasks, and event tasks, so the team can see who owns each responsibility.</li>
+            <li>Tasks created in a <b>personal calendar</b> are visible only to their owner and participants who accepted an invitation. They never appear in the shared calendar.</li>
+            <li>Assignment in a shared task is immediate. Adding someone to a personal task sends an invitation; the task enters their personal calendar only after acceptance. Declining does not change the owner's task.</li>
+            <li>Shared tasks and events also appear in the relevant users' personal calendars. Personal planning remains private from the rest of the team.</li>
+            <li>Event tasks remain visible in their event context and can have separate assignees.</li>
+            <li>A person's report uses the content of that person's personal calendar, whether generated by that person or by a manager with permission. Ongoing work is reported on its start date with either its completion date or an in-progress status.</li>
           </ul>
         </section>
 

@@ -101,7 +101,12 @@
       people: o.people,
       getCategoryById: o.getCategoryById,
       describeEventPeople: o.describeEventPeople,
-      getLinkedStandaloneTaskRowsForEvent: o.getLinkedStandaloneTaskRowsForEvent
+      getLinkedStandaloneTaskRowsForEvent: o.getLinkedStandaloneTaskRowsForEvent,
+      isTaskDone: o.isTaskDone,
+      canToggleTask: o.canToggleTask,
+      getTaskAssigneeNames: o.getTaskAssigneeNames,
+      onToggleEventTask: o.onToggleEventTask,
+      onToggleLinkedTask: o.onToggleLinkedTask
     });
 
     if (o.dateKey && typeof o.setSelectedDateKey === "function") {

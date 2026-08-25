@@ -31,6 +31,29 @@
   }
 
   let activeTaskSummaryModal = null;
+  let taskPopoverDismissBound = false;
+
+  function closeOpenTaskPopovers(doc, exceptWidget) {
+    if (!doc) return;
+    doc.querySelectorAll(".calendar-task-widget.is-open").forEach((widget) => {
+      if (widget === exceptWidget) return;
+      widget.classList.remove("is-open");
+      const trigger = widget.querySelector(".calendar-complex-task");
+      if (trigger) trigger.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  function ensureTaskPopoverDismiss(doc) {
+    if (!doc || taskPopoverDismissBound) return;
+    taskPopoverDismissBound = true;
+    doc.addEventListener("pointerdown", (event) => {
+      if (event.target && event.target.closest && event.target.closest(".calendar-task-widget")) return;
+      closeOpenTaskPopovers(doc);
+    });
+    doc.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeOpenTaskPopovers(doc);
+    });
+  }
 
   function closeTaskSummaryModal() {
     if (!activeTaskSummaryModal) return;
@@ -538,11 +561,15 @@
           }
         ]
       };
-      const chip = doc.createElement("span");
+      ensureTaskPopoverDismiss(doc);
+      const widget = doc.createElement("div");
+      widget.className = "calendar-task-widget";
+      if (dayOfWeek >= 4) widget.classList.add("popover-align-right");
+
+      const chip = doc.createElement("button");
+      chip.type = "button";
       chip.className = `calendar-complex-task${hasOpenTask ? " is-working" : " is-completed"}`;
-      if (dayOfWeek >= 4) chip.classList.add("popover-align-right");
-      chip.setAttribute("role", "button");
-      chip.setAttribute("tabindex", "0");
+      chip.setAttribute("aria-expanded", "false");
 
       const title = doc.createElement("span");
       title.className = "calendar-complex-task-title";
@@ -560,11 +587,29 @@
       });
       chip.appendChild(indexes);
 
-      const popover = doc.createElement("span");
+      const openDetailedTasks = () => {
+        closeOpenTaskPopovers(doc);
+        if (openWorkingTasksForDate) openWorkingTasksForDate(key);
+      };
+
+      const popover = doc.createElement("div");
       popover.className = "calendar-task-popover";
       popover.appendChild(buildTaskSummaryContent(doc, summary));
       popover.addEventListener("click", (event) => event.stopPropagation());
-      chip.appendChild(popover);
+
+      const popoverActions = doc.createElement("div");
+      popoverActions.className = "calendar-task-popover-actions";
+      const detailsButton = doc.createElement("button");
+      detailsButton.type = "button";
+      detailsButton.className = "ghost-btn calendar-task-details-btn";
+      detailsButton.textContent = String(opts.openTasksLabel || "Details");
+      detailsButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openDetailedTasks();
+      });
+      popoverActions.appendChild(detailsButton);
+      popover.appendChild(popoverActions);
 
       const ariaText = summary.sections
         .filter((section) => section.rows.length > 0)
@@ -572,7 +617,7 @@
         .join(". ");
       chip.setAttribute("aria-label", ariaText);
 
-      const openTasks = (event) => {
+      const openSummary = (event) => {
         event.preventDefault();
         event.stopPropagation();
         const compactMode = root.matchMedia
@@ -581,20 +626,18 @@
           openTaskSummaryModal(doc, summary, {
             title: String(opts.taskSummaryTitle || "Tasks for the day"),
             close: String(opts.closeLabel || "Close"),
-            openTasks: String(opts.openTasksLabel || "Open tasks")
-          }, () => {
-            if (openWorkingTasksForDate) openWorkingTasksForDate(key);
-          });
+            openTasks: String(opts.openTasksLabel || "Details")
+          }, openDetailedTasks);
           return;
         }
-        if (openWorkingTasksForDate) openWorkingTasksForDate(key);
+        const willOpen = !widget.classList.contains("is-open");
+        closeOpenTaskPopovers(doc, widget);
+        widget.classList.toggle("is-open", willOpen);
+        chip.setAttribute("aria-expanded", willOpen ? "true" : "false");
       };
-      chip.addEventListener("click", openTasks);
-      chip.addEventListener("keydown", (event) => {
-        if (event.key !== "Enter" && event.key !== " ") return;
-        openTasks(event);
-      });
-      day.appendChild(chip);
+      chip.addEventListener("click", openSummary);
+      widget.append(chip, popover);
+      day.appendChild(widget);
     }
 
     return day;

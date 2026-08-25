@@ -140,8 +140,11 @@
     if (!btn) return;
     const collapsed = Boolean(opts.upcomingCollapsed);
     btn.textContent = collapsed ? "<<" : ">>";
-    btn.setAttribute("aria-label", collapsed ? "Expand upcoming panel" : "Collapse upcoming panel");
-    btn.title = collapsed ? "Expand" : "Collapse";
+    const label = collapsed
+      ? String(opts.expandLabel || "Expand upcoming panel")
+      : String(opts.collapseLabel || "Collapse upcoming panel");
+    btn.setAttribute("aria-label", label);
+    btn.title = label;
   }
 
   root.ProCalModules.uiMenus = {
