@@ -69,12 +69,30 @@
         const rawIds = Array.isArray(item.personIds)
           ? item.personIds
           : (String(item.personId || "") ? [String(item.personId)] : []);
+        const memberStates = {};
+        const rawMemberStates = item.memberStates && typeof item.memberStates === "object" && !Array.isArray(item.memberStates)
+          ? item.memberStates
+          : {};
+        Object.entries(rawMemberStates).forEach(([rawId, rawState]) => {
+          const id = String(rawId || "").trim();
+          if (!id || !rawState || typeof rawState !== "object" || Array.isArray(rawState)) return;
+          if (knownPeople.size && !knownPeople.has(id)) return;
+          const status = rawState.status === "done" || rawState.status === "in_progress" ? rawState.status : "open";
+          memberStates[id] = {
+            status,
+            startedOn: isDateKey(String(rawState.startedOn || "")) ? String(rawState.startedOn) : "",
+            completedOn: isDateKey(String(rawState.completedOn || "")) ? String(rawState.completedOn) : ""
+          };
+        });
         return {
           id: typeof item.id === "string" ? item.id : createTaskId(),
           title: String(item.title || "").trim(),
           personIds: filterKnownIds(rawIds.map((v) => String(v)), knownPeople),
           categoryId: String(item.categoryId || ""),
           done: Boolean(item.done),
+          workStartedOn: isDateKey(String(item.workStartedOn || "")) ? String(item.workStartedOn) : "",
+          workCompletedOn: isDateKey(String(item.workCompletedOn || "")) ? String(item.workCompletedOn) : "",
+          memberStates,
           createdByUserId: String(item.createdByUserId || ""),
           collabGroupId: String(item.collabGroupId || ""),
           collabOwnerUserId: String(item.collabOwnerUserId || ""),

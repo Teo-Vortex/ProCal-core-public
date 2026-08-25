@@ -49,6 +49,40 @@ enum TaskStatus {
   archived
 }
 
+enum TaskScope {
+  personal
+  shared
+}
+
+enum TaskKind {
+  dated
+  ongoing
+}
+
+enum TaskSource {
+  standalone
+  event
+}
+
+enum TaskAssignmentMode {
+  direct
+  invite
+}
+
+enum TaskInvitationStatus {
+  not_required
+  pending
+  accepted
+  declined
+  removed
+}
+
+enum TaskMemberStatus {
+  open
+  in_progress
+  done
+}
+
 enum NoteVisibility {
   private
   team
@@ -110,6 +144,7 @@ model User {
   updatedAt      DateTime       @updatedAt
   eventsCreated  Event[]
   tasksOwned     Task[]         @relation("TaskOwner")
+  taskAssignmentsCreated TaskMember[] @relation("TaskMemberAssignedBy")
   notes          Note[]
   refreshTokens  RefreshToken[]
   serviceTokens  ServiceToken[]
@@ -164,10 +199,18 @@ model Event {
 
 model Task {
   id            String      @id @default(cuid())
-  eventId       String
+  eventId       String?
+  legacyKey     String?     @unique @db.VarChar(300)
+  legacyEventId String?     @db.VarChar(191)
+  legacyDateKey String?     @db.VarChar(10)
+  scope         TaskScope   @default(shared)
+  kind          TaskKind    @default(dated)
+  source        TaskSource  @default(event)
   title         String
   description   String?
+  categoryId    String?     @db.VarChar(191)
   status        TaskStatus  @default(open)
+  scheduledOn   DateTime?
   dueAt         DateTime?
   remindAt      DateTime?
   ownerId       String?
@@ -175,11 +218,15 @@ model Task {
   version       Int         @default(1)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
-  event         Event       @relation(fields: [eventId], references: [id])
+  event         Event?      @relation(fields: [eventId], references: [id], onDelete: SetNull)
   owner         User?       @relation("TaskOwner", fields: [ownerId], references: [id])
   members       TaskMember[]
 
   @@index([eventId])
+  @@index([scope, source, status])
+  @@index([legacyEventId])
+  @@index([scheduledOn])
+  @@index([ownerId, status])
   @@index([updatedAt])
   @@index([dueAt])
 }
@@ -187,11 +234,24 @@ model Task {
 model TaskMember {
   taskId        String
   userId        String
+  assignmentMode TaskAssignmentMode @default(direct)
+  invitationStatus TaskInvitationStatus @default(not_required)
+  status        TaskMemberStatus @default(open)
+  startedOn     DateTime?
+  completedOn   DateTime?
+  respondedAt   DateTime?
+  removedAt     DateTime?
+  assignedById  String?
+  version       Int      @default(1)
   createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
   task          Task     @relation(fields: [taskId], references: [id])
   user          User     @relation(fields: [userId], references: [id])
+  assignedBy    User?    @relation("TaskMemberAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
 
   @@id([taskId, userId])
+  @@index([userId, invitationStatus, status])
+  @@index([assignedById])
 }
 
 model Note {

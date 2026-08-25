@@ -85,6 +85,7 @@
               <button id="calendarPanelTabBtn" class="ghost-btn notes-switch-btn main-panel-tab" type="button" role="tab">Calendar</button>
               <button id="eventsPanelTabBtn" class="ghost-btn notes-switch-btn main-panel-tab" type="button" role="tab">Events</button>
               <button id="notesToggleBtn" class="ghost-btn notes-switch-btn main-panel-tab" type="button" role="tab">Notes</button>
+              <button id="taskManagerPanelTabBtn" class="ghost-btn notes-switch-btn main-panel-tab" type="button" role="tab">Tasks</button>
             </div>
           </div>
         </section>
@@ -188,6 +189,66 @@
         <p id="eventsRegistryEmpty" class="events-registry-empty muted hidden-section">No events found.</p>
       </section>
 
+      <section id="taskManagerPanel" class="task-manager-panel card hidden-section">
+        <header class="task-manager-panel-head">
+          <div>
+            <h2 id="taskManagerTitle">Tasks</h2>
+            <p id="taskManagerSubtitle" class="muted">Your assigned and active work.</p>
+          </div>
+        </header>
+
+        <div class="task-manager-toolbar">
+          <div id="taskManagerScope" class="task-manager-filter hidden-section" role="group" aria-label="Whose tasks">
+            <button id="taskManagerScopeMineBtn" class="task-manager-filter-btn active" type="button" data-task-manager-scope="mine" aria-pressed="true">Mine</button>
+            <button id="taskManagerScopeAllBtn" class="task-manager-filter-btn" type="button" data-task-manager-scope="all" aria-pressed="false">All people</button>
+          </div>
+          <div id="taskManagerFilter" class="task-manager-filter" role="group" aria-label="Task status">
+            <button id="taskManagerFilterAllBtn" class="task-manager-filter-btn active" type="button" data-task-manager-filter="all" aria-pressed="true">All</button>
+            <button id="taskManagerFilterActiveBtn" class="task-manager-filter-btn" type="button" data-task-manager-filter="active" aria-pressed="false">Active</button>
+            <button id="taskManagerFilterCompletedBtn" class="task-manager-filter-btn" type="button" data-task-manager-filter="completed" aria-pressed="false">Completed</button>
+          </div>
+        </div>
+
+        <div class="task-manager-tabs" role="tablist" aria-label="Task type">
+          <button id="taskManagerWorkingTab" class="task-manager-tab active" type="button" role="tab" aria-selected="true" aria-controls="taskManagerWorkingSection">
+            <span id="taskManagerWorkingTitle">Ongoing work</span>
+            <span id="taskManagerWorkingCount" class="task-manager-count">0</span>
+          </button>
+          <button id="taskManagerOrdinaryTab" class="task-manager-tab" type="button" role="tab" aria-selected="false" aria-controls="taskManagerOrdinarySection">
+            <span id="taskManagerListTitle">Dated tasks</span>
+            <span id="taskManagerCount" class="task-manager-count">0</span>
+          </button>
+        </div>
+
+        <section id="taskManagerWorkingSection" class="task-manager-section task-manager-working-section" role="tabpanel" aria-labelledby="taskManagerWorkingTab">
+          <form id="taskManagerCreateForm" class="task-manager-create">
+            <div class="task-manager-create-heading">
+              <strong id="taskManagerCreateHeading">Start new work</strong>
+            </div>
+            <label class="task-manager-title-field">
+              <span id="taskManagerNewTitleLabel">Task</span>
+              <input id="taskManagerNewTitle" maxlength="140" required placeholder="Task title">
+            </label>
+            <label>
+              <span id="taskManagerNewDateLabel">Start date</span>
+              <input id="taskManagerNewDate" type="date" required>
+            </label>
+            <label>
+              <span id="taskManagerNewCategoryLabel">Category</span>
+              <select id="taskManagerNewCategory"></select>
+            </label>
+            <button id="taskManagerCreateBtn" class="accent-btn" type="submit">Start work</button>
+          </form>
+          <div id="taskManagerWorkingList" class="task-manager-list"></div>
+          <p id="taskManagerWorkingEmpty" class="task-manager-empty muted hidden-section">No long-running tasks.</p>
+        </section>
+
+        <section id="taskManagerOrdinarySection" class="task-manager-section task-manager-ordinary-section hidden-section" role="tabpanel" aria-labelledby="taskManagerOrdinaryTab">
+          <div id="taskManagerList" class="task-manager-list"></div>
+          <p id="taskManagerEmpty" class="task-manager-empty muted hidden-section">No tasks here.</p>
+        </section>
+      </section>
+
       <div id="eventsExportMenu" class="modal hidden" aria-hidden="true">
         <div class="modal-card compact-modal-card events-export-card">
           <div class="modal-head">
@@ -232,6 +293,7 @@
         </div>
         <div class="day-timeline-actions">
           <button id="openDayTimelineSettingsBtn" class="ghost-btn" type="button">Settings</button>
+          <button id="toggleDayTimelineBtn" class="ghost-btn timeline-collapse-btn" type="button" aria-expanded="true" aria-controls="dayTimelineContent">⌃</button>
         </div>
         <button id="dayTimelineNextBtn" class="ghost-btn timeline-nav-btn" type="button" aria-label="Next day">›</button>
       </div>
@@ -1213,6 +1275,7 @@
   <script src="js/modules/tasks/standaloneUpdate.js"></script>
   <script src="js/modules/tasks/stateMerge.js"></script>
   <script src="js/modules/tasks/render.js"></script>
+  <script src="js/modules/tasks/manager.js"></script>
   <script src="js/modules/events/filters.js"></script>
   <script src="js/modules/events/query.js"></script>
   <script src="js/modules/events/timeMeta.js"></script>

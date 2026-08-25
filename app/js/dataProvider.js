@@ -434,11 +434,31 @@
     const body = await res.json();
     return { ok: true, version: Number(body.version || 0) };
   }
+
+  async function loadReportState(userId) {
+    const targetUserId = String(userId || "").trim();
+    if (!targetUserId) throw new Error("Missing report user");
+    const res = await api(`/api/legacy/report-state?userId=${encodeURIComponent(targetUserId)}`, {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        "cache-control": "no-cache",
+        pragma: "no-cache"
+      }
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(stateSaveError(body, "Failed to load report data"));
+    }
+    return res.json();
+  }
+
   window.dataProvider = {
     loadState,
     saveState,
     loadSharedState,
     saveSharedState,
+    loadReportState,
     getCalendarMode: function () {
       return calendarMode;
     },

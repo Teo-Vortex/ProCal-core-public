@@ -114,6 +114,7 @@
     const isDateKey = typeof o.isDateKey === "function" ? o.isDateKey : () => false;
     const isLinkedStandaloneTask = typeof o.isLinkedStandaloneTask === "function" ? o.isLinkedStandaloneTask : () => false;
     const getTaskAssigneeIds = typeof o.getTaskAssigneeIds === "function" ? o.getTaskAssigneeIds : (() => []);
+    const isTaskDone = typeof o.isTaskDone === "function" ? o.isTaskDone : ((task) => Boolean(task && task.done));
 
     const formatDateKey = (value) => {
       const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -185,7 +186,7 @@
           when: formatDateKey(dateKey),
           time: "99:99"
         };
-        if (task.done) doneTaskRows.push(row);
+        if (isTaskDone(task)) doneTaskRows.push(row);
         else rows.push(row);
       });
     });

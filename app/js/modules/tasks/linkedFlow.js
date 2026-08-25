@@ -73,6 +73,9 @@
       personIds,
       categoryId: String((evt && evt.categoryId) || ""),
       done: false,
+      memberStates: typeof o.createInitialTaskMemberStates === "function"
+        ? o.createInitialTaskMemberStates(personIds)
+        : {},
       createdByUserId: String(o.currentUserId || ""),
       linkedEventId: getEventBaseId(evt),
       linkedEventDateKey: targetDateKey,

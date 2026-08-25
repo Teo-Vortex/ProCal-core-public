@@ -121,6 +121,256 @@ function normalizeIdList(value: unknown): string[] {
   return out;
 }
 
+function hasLegacyPermission(permissions: string[] | undefined, key: string): boolean {
+  const set = new Set(permissions || []);
+  return set.has("*") || set.has(key);
+}
+
+function legacyActorIdentityIds(state: Record<string, unknown>, userId: string): Set<string> {
+  const ids = new Set<string>([asString(userId)].filter(Boolean));
+  asArray(state.people).forEach((raw) => {
+    const person = asRecord(raw);
+    const personId = asString(person.id);
+    const personUserId = asString(person.userId) || personId;
+    if (personUserId === userId && personId) ids.add(personId);
+  });
+  return ids;
+}
+
+function legacyTaskAssignedTo(task: Record<string, unknown>, identityIds: Set<string>): boolean {
+  return normalizeIdList(task.personIds).some((id) => identityIds.has(id));
+}
+
+function filterSharedStateForActor(
+  stateInput: unknown,
+  _userId: string,
+  _permissions: string[] | undefined
+): Record<string, unknown> {
+  return cloneJson(asRecord(stateInput));
+}
+
+function mergeLegacyRowsByDate(primaryInput: unknown, secondaryInput: unknown): Record<string, unknown> {
+  const primary = asRecord(primaryInput);
+  const secondary = asRecord(secondaryInput);
+  const out: Record<string, unknown> = {};
+  const seen = new Set<string>();
+  const append = (source: Record<string, unknown>) => {
+    Object.entries(source).forEach(([dateKey, listRaw]) => {
+      asArray(listRaw).forEach((raw) => {
+        const row = cloneJson(asRecord(raw));
+        const id = asString(row.id);
+        const key = id ? `${dateKey}:${id}` : `${dateKey}:${JSON.stringify(row)}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        if (!Array.isArray(out[dateKey])) out[dateKey] = [];
+        (out[dateKey] as unknown[]).push(row);
+      });
+    });
+  };
+  append(primary);
+  append(secondary);
+  return out;
+}
+
+function mergeLegacyLists(primaryInput: unknown, secondaryInput: unknown): unknown[] {
+  const out: unknown[] = [];
+  const seen = new Set<string>();
+  [...asArray(primaryInput), ...asArray(secondaryInput)].forEach((raw) => {
+    const row = cloneJson(asRecord(raw));
+    const id = asString(row.id) || asString(row.userId);
+    const key = id || JSON.stringify(row);
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(row);
+  });
+  return out;
+}
+
+function buildLegacyReportState(sharedInput: unknown, personalInput: unknown): Record<string, unknown> {
+  const shared = asRecord(sharedInput);
+  const personal = asRecord(personalInput);
+  return {
+    people: mergeLegacyLists(shared.people, personal.people),
+    categories: mergeLegacyLists(shared.categories, personal.categories),
+    absences: mergeLegacyLists(shared.absences, personal.absences),
+    events: mergeLegacyRowsByDate(shared.events, personal.events),
+    tasks: mergeLegacyRowsByDate(shared.tasks, personal.tasks),
+    stickyNotes: []
+  };
+}
+
+function normalizeLegacyMemberState(raw: unknown): Record<string, unknown> {
+  const state = asRecord(raw);
+  const status = state.status === "done" || state.status === "in_progress" ? state.status : "open";
+  return {
+    status,
+    startedOn: asString(state.startedOn),
+    completedOn: status === "done" ? asString(state.completedOn) : ""
+  };
+}
+
+function mergeActorMemberState(
+  existingTaskInput: unknown,
+  incomingTaskInput: unknown,
+  identityIds: Set<string>
+): Record<string, unknown> {
+  const existingTask = cloneJson(asRecord(existingTaskInput));
+  const incomingTask = asRecord(incomingTaskInput);
+  const existingStates = asRecord(existingTask.memberStates);
+  const incomingStates = asRecord(incomingTask.memberStates);
+  const assigneeIds = normalizeIdList(existingTask.personIds);
+  const actorAssigneeId = assigneeIds.find((id) => identityIds.has(id));
+  if (!actorAssigneeId) return existingTask;
+
+  const incomingActorId = Array.from(identityIds).find((id) => incomingStates[id] && assigneeIds.includes(id)) || actorAssigneeId;
+  const legacyFallback = {
+    status: incomingTask.done === true ? "done" : (asString(incomingTask.workStartedOn) ? "in_progress" : "open"),
+    startedOn: asString(incomingTask.workStartedOn),
+    completedOn: incomingTask.done === true ? asString(incomingTask.workCompletedOn) : ""
+  };
+  existingStates[actorAssigneeId] = normalizeLegacyMemberState(incomingStates[incomingActorId] || legacyFallback);
+  existingTask.memberStates = existingStates;
+
+  const previousFallback = {
+    status: existingTask.done === true ? "done" : (asString(existingTask.workStartedOn) ? "in_progress" : "open"),
+    startedOn: asString(existingTask.workStartedOn),
+    completedOn: existingTask.done === true ? asString(existingTask.workCompletedOn) : ""
+  };
+  const activeStates = assigneeIds.map((id) => normalizeLegacyMemberState(existingStates[id] || previousFallback));
+  const allDone = activeStates.length > 0 && activeStates.every((row) => row.status === "done");
+  const starts = activeStates.map((row) => asString(row.startedOn)).filter(Boolean).sort();
+  const completions = activeStates.map((row) => asString(row.completedOn)).filter(Boolean).sort();
+  existingTask.done = allDone;
+  existingTask.workStartedOn = starts[0] || "";
+  existingTask.workCompletedOn = allDone ? (completions[completions.length - 1] || "") : "";
+  return existingTask;
+}
+
+function mergeSharedStandaloneTasksForActor(
+  incomingState: Record<string, unknown>,
+  existingState: Record<string, unknown>,
+  userId: string,
+  permissions: string[] | undefined
+): Record<string, unknown> {
+  const canCreate = hasLegacyPermission(permissions, "tasks.create");
+  const canAssign = hasLegacyPermission(permissions, "tasks.assign");
+  const canUpdateAny = hasLegacyPermission(permissions, "tasks.update_any");
+  const canUpdateOwn = hasLegacyPermission(permissions, "tasks.update_own");
+  const canDeleteAny = hasLegacyPermission(permissions, "tasks.delete_any");
+  const canDeleteOwn = hasLegacyPermission(permissions, "tasks.delete_own");
+  const identityIds = legacyActorIdentityIds(existingState, userId);
+  const existingRows = iterStandaloneTasks(existingState);
+  const incomingRows = iterStandaloneTasks(incomingState);
+  const existingById = new Map(existingRows.map((row) => [asString(row.task.id), row]));
+  const incomingById = new Map(incomingRows.map((row) => [asString(row.task.id), row]));
+  const result: Record<string, unknown> = {};
+  const push = (dateKey: string, task: Record<string, unknown>) => {
+    if (!Array.isArray(result[dateKey])) result[dateKey] = [];
+    (result[dateKey] as unknown[]).push(task);
+  };
+
+  existingRows.forEach((row) => {
+    const taskId = asString(row.task.id);
+    const incoming = incomingById.get(taskId);
+    const owner = asString(row.task.createdByUserId) === userId;
+    if (!incoming) {
+      if (canDeleteAny || (owner && canDeleteOwn)) return;
+      push(row.dateKey, cloneJson(row.task));
+      return;
+    }
+
+    if (canUpdateAny || (owner && canUpdateOwn)) {
+      const accepted = cloneJson(incoming.task);
+      accepted.createdByUserId = asString(row.task.createdByUserId) || userId;
+      if (!canAssign) accepted.personIds = normalizeIdList(row.task.personIds);
+      push(incoming.dateKey, accepted);
+      return;
+    }
+    if (legacyTaskAssignedTo(row.task, identityIds)) {
+      push(row.dateKey, mergeActorMemberState(row.task, incoming.task, identityIds));
+      return;
+    }
+    push(row.dateKey, cloneJson(row.task));
+  });
+
+  incomingRows.forEach((row) => {
+    const taskId = asString(row.task.id);
+    if (existingById.has(taskId) || !canCreate) return;
+    const created = cloneJson(row.task);
+    created.createdByUserId = userId;
+    const requested = normalizeIdList(created.personIds);
+    created.personIds = canAssign ? requested : requested.filter((id) => identityIds.has(id));
+    if (!normalizeIdList(created.personIds).length) created.personIds = [Array.from(identityIds)[0] || userId];
+    push(row.dateKey, created);
+  });
+  return result;
+}
+
+function mergeSharedEventTaskMemberStates(
+  finalStateInput: Record<string, unknown>,
+  incomingState: Record<string, unknown>,
+  existingState: Record<string, unknown>,
+  userId: string,
+  permissions: string[] | undefined
+): Record<string, unknown> {
+  const finalState = cloneJson(finalStateInput);
+  const identityIds = legacyActorIdentityIds(existingState, userId);
+  const canUpdateAny = hasLegacyPermission(permissions, "tasks.update_any");
+  const taskMap = (state: Record<string, unknown>) => {
+    const map = new Map<string, Record<string, unknown>>();
+    Object.values(asRecord(state.events)).forEach((listRaw) => asArray(listRaw).forEach((eventRaw) => {
+      const event = asRecord(eventRaw);
+      const eventId = asString(event.id);
+      asArray(event.tasks).forEach((taskRaw) => {
+        const task = asRecord(taskRaw);
+        const taskId = asString(task.id);
+        if (eventId && taskId) map.set(`${eventId}:${taskId}`, task);
+      });
+    }));
+    return map;
+  };
+  const incomingTasks = taskMap(incomingState);
+  const existingTasks = taskMap(existingState);
+  Object.values(asRecord(finalState.events)).forEach((listRaw) => asArray(listRaw).forEach((eventRaw) => {
+    const event = asRecord(eventRaw);
+    const eventId = asString(event.id);
+    event.tasks = asArray(event.tasks).map((taskRaw) => {
+      const task = asRecord(taskRaw);
+      const key = `${eventId}:${asString(task.id)}`;
+      const existing = existingTasks.get(key);
+      const incoming = incomingTasks.get(key);
+      if (!existing || !incoming) return taskRaw;
+      if (canUpdateAny) {
+        const merged = cloneJson(task);
+        const assigneeIds = normalizeIdList(existing.personIds);
+        const existingStates = asRecord(existing.memberStates);
+        const incomingStates = asRecord(incoming.memberStates);
+        const legacyFallback = {
+          status: existing.done === true ? "done" : (asString(existing.workStartedOn) ? "in_progress" : "open"),
+          startedOn: asString(existing.workStartedOn),
+          completedOn: existing.done === true ? asString(existing.workCompletedOn) : ""
+        };
+        const memberStates: Record<string, unknown> = {};
+        assigneeIds.forEach((id) => {
+          memberStates[id] = normalizeLegacyMemberState(incomingStates[id] || existingStates[id] || legacyFallback);
+        });
+        const activeStates = assigneeIds.map((id) => asRecord(memberStates[id]));
+        const allDone = activeStates.length > 0 && activeStates.every((row) => row.status === "done");
+        const starts = activeStates.map((row) => asString(row.startedOn)).filter(Boolean).sort();
+        const completions = activeStates.map((row) => asString(row.completedOn)).filter(Boolean).sort();
+        merged.memberStates = memberStates;
+        merged.done = allDone;
+        merged.workStartedOn = starts[0] || "";
+        merged.workCompletedOn = allDone ? (completions[completions.length - 1] || "") : "";
+        return merged;
+      }
+      if (!legacyTaskAssignedTo(existing, identityIds)) return taskRaw;
+      return mergeActorMemberState(existing, incoming, identityIds);
+    });
+  }));
+  return finalState;
+}
+
 type LegacyTaskLite = {
   id: string;
   title: string;
@@ -479,6 +729,9 @@ function buildMirroredTaskFromSource(sourceTask: Record<string, unknown>, target
     personIds: members.slice(),
     categoryId: asString(sourceTask.categoryId),
     done: Boolean(sourceTask.done),
+    workStartedOn: asString(sourceTask.workStartedOn),
+    workCompletedOn: asString(sourceTask.workCompletedOn),
+    memberStates: cloneJson(asRecord(sourceTask.memberStates)),
     createdByUserId: asString(sourceTask.createdByUserId) || ownerUserId,
     collabGroupId: groupId,
     collabOwnerUserId: ownerUserId,
@@ -535,6 +788,27 @@ async function syncPersonalCollaborativeTasksForActor(
       const found = findTaskByCollabGroup(targetState, snap.groupId);
       if (found) {
         const tasksByDate = asRecord(targetState.tasks);
+        const currentTargetTask = found.task;
+        const ownerIsActor = snap.ownerUserId === actorUserId;
+        const targetStates = asRecord(currentTargetTask.memberStates);
+        const sourceStates = asRecord(mirrored.memberStates);
+        if (ownerIsActor) {
+          mirrored.memberStates = { ...sourceStates, ...targetStates };
+          if (sourceStates[actorUserId]) {
+            asRecord(mirrored.memberStates)[actorUserId] = cloneJson(sourceStates[actorUserId]);
+          }
+        } else {
+          const preserved = buildMirroredTaskFromSource(currentTargetTask, targetUserId);
+          preserved.personIds = normalizeIdList(mirrored.personIds);
+          preserved.collabMemberUserIds = normalizeIdList(mirrored.collabMemberUserIds);
+          preserved.memberStates = { ...targetStates };
+          if (sourceStates[actorUserId]) {
+            asRecord(preserved.memberStates)[actorUserId] = cloneJson(sourceStates[actorUserId]);
+          }
+          Object.assign(mirrored, preserved);
+        }
+        const mergedStatus = mergeActorMemberState(mirrored, snap.task, new Set([actorUserId]));
+        Object.assign(mirrored, mergedStatus);
         if (found.dateKey !== snap.sourceDateKey) {
           const oldList = asArray(tasksByDate[found.dateKey]).filter((raw) => asString(asRecord(raw).collabGroupId) !== snap.groupId);
           if (oldList.length) tasksByDate[found.dateKey] = oldList; else delete tasksByDate[found.dateKey];
@@ -1377,7 +1651,12 @@ stateRouter.get("/api/legacy/state", async (req, res) => {
       return;
     }
     res.setHeader("ETag", `"${state.version}"`);
-    res.json({ mode, state: state.dataJson, version: state.version, updatedAt: state.updatedAt });
+    const visibleState = filterSharedStateForActor(
+      state.dataJson,
+      req.auth!.userId,
+      req.auth!.permissions || []
+    );
+    res.json({ mode, state: visibleState, version: state.version, updatedAt: state.updatedAt });
     return;
   }
 
@@ -1388,6 +1667,43 @@ stateRouter.get("/api/legacy/state", async (req, res) => {
   }
   res.setHeader("ETag", `"${state.version}"`);
   res.json({ mode, state: state.dataJson, version: state.version, updatedAt: state.updatedAt });
+});
+
+stateRouter.get("/api/legacy/report-state", async (req, res) => {
+  const requestedUserId = asString(req.query.userId) || req.auth!.userId;
+  const permissions = req.auth!.permissions || [];
+  const canReadAll = hasLegacyPermission(permissions, "reports.read_all");
+  const canReadSelf = hasLegacyPermission(permissions, "reports.read_self");
+  if (requestedUserId !== req.auth!.userId && !canReadAll) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+  if (requestedUserId === req.auth!.userId && !canReadSelf && !canReadAll) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const prisma = getPrisma();
+  const target = await prisma.user.findFirst({
+    where: { id: requestedUserId, isDeleted: false },
+    select: { id: true }
+  });
+  if (!target) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  const [shared, personal] = await Promise.all([
+    prisma.sharedLegacyState.findUnique({ where: { id: 1 } }),
+    prisma.legacyState.findUnique({ where: { userId: requestedUserId } })
+  ]);
+  res.json({
+    userId: requestedUserId,
+    state: buildLegacyReportState(shared?.dataJson, personal?.dataJson),
+    sharedVersion: shared?.version || 0,
+    personalVersion: personal?.version || 0,
+    updatedAt: personal?.updatedAt || shared?.updatedAt || null
+  });
 });
 
 stateRouter.put("/api/legacy/state", async (req, res) => {
@@ -1408,11 +1724,26 @@ stateRouter.put("/api/legacy/state", async (req, res) => {
     }
 
     const role = req.auth?.role;
-    const nextState = role === "user"
+    const roleRestrictedState = role === "user"
       ? restrictSharedStateForUser(parsed.data.state, existing?.dataJson)
       : isAdminLikeRole(role)
         ? (parsed.data.state as object)
         : restrictSharedStateForNonAdmin(parsed.data.state, existing?.dataJson);
+    const incomingState = asRecord(parsed.data.state);
+    const existingState = asRecord(existing?.dataJson);
+    const nextState = mergeSharedEventTaskMemberStates(
+      asRecord(roleRestrictedState),
+      incomingState,
+      existingState,
+      req.auth!.userId,
+      req.auth!.permissions || []
+    );
+    nextState.tasks = mergeSharedStandaloneTasksForActor(
+      incomingState,
+      existingState,
+      req.auth!.userId,
+      req.auth!.permissions || []
+    );
 
     const usersForPeople = await prisma.user.findMany({
       where: { isDeleted: false },

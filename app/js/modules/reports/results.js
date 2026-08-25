@@ -20,12 +20,15 @@
     const canReadAllReports = typeof opts.canReadAllReports === "function"
       ? opts.canReadAllReports
       : () => false;
-    if (canReadAllReports()) return normalizeIdentityTargets(selectedPersonId);
     const getCurrentUserIdentityIds = typeof opts.getCurrentUserIdentityIds === "function"
       ? opts.getCurrentUserIdentityIds
       : null;
     const identityIds = getCurrentUserIdentityIds ? getCurrentUserIdentityIds() : [];
     const targets = normalizeIdentityTargets(identityIds);
+    if (canReadAllReports()) {
+      const selectedTargets = normalizeIdentityTargets(opts.reportPersonIdentityIds || selectedPersonId);
+      return selectedTargets.size ? selectedTargets : normalizeIdentityTargets(selectedPersonId);
+    }
     if (!targets.size) return normalizeIdentityTargets(opts.currentUserId || selectedPersonId);
     return targets;
   }
@@ -60,6 +63,13 @@
     const t = typeof opts.t === "function" ? opts.t : (key) => String(key || "");
     const getEventsInRange = typeof opts.getEventsInRange === "function" ? opts.getEventsInRange : () => [];
     const taskHasAssignee = typeof opts.taskHasAssignee === "function" ? opts.taskHasAssignee : () => false;
+    const getTaskMemberState = typeof opts.getTaskMemberState === "function"
+      ? opts.getTaskMemberState
+      : ((task) => ({
+        status: task && task.done ? "done" : (task && task.workStartedOn ? "in_progress" : "open"),
+        startedOn: String((task && task.workStartedOn) || ""),
+        completedOn: String((task && task.workCompletedOn) || "")
+      }));
     const addDaysToKey = typeof opts.addDaysToKey === "function" ? opts.addDaysToKey : (dateKey) => dateKey;
 
     let personId = String((reportPerson && reportPerson.value) || "");
@@ -71,8 +81,13 @@
 
     const locale = String(opts.locale || "en");
     const documentRef = opts.documentRef || document;
-    const absences = Array.isArray(opts.absences) ? opts.absences : [];
-    const tasksByDate = opts.tasksByDate || {};
+    const reportState = opts.reportState && typeof opts.reportState === "object" ? opts.reportState : {};
+    const absences = Array.isArray(reportState.absences)
+      ? reportState.absences
+      : (Array.isArray(opts.absences) ? opts.absences : []);
+    const tasksByDate = reportState.tasks && typeof reportState.tasks === "object"
+      ? reportState.tasks
+      : (opts.tasksByDate || {});
 
     const formatReportDate = (dateKey) => {
       const dt = parseDateKey(dateKey);
@@ -81,6 +96,18 @@
       const mm = String(dt.getMonth() + 1).padStart(2, "0");
       const yyyy = String(dt.getFullYear());
       return `${dd}.${mm}.${yyyy}`;
+    };
+
+    const formatTaskWorkStatus = (task, memberState) => {
+      const state = memberState || getTaskMemberState(task, personTargets);
+      const startedOn = String((state && state.startedOn) || "");
+      if (!isDateKey(startedOn)) return "";
+      const completedOn = String((state && state.completedOn) || "");
+      const startedLabel = `${t("taskWorkStartedOn")} ${formatReportDate(startedOn)}`;
+      if (isDateKey(completedOn)) {
+        return `${startedLabel}; ${t("taskWorkCompletedOn")} ${formatReportDate(completedOn)}`;
+      }
+      return `${startedLabel}; ${t("taskWorkStillActive")}`;
     };
 
     const dateMap = new Map();
@@ -128,43 +155,84 @@
       }
 
       const eventEntry = bucket.events.get(eventKey);
-      assignedTasks.forEach((task) => eventEntry.tasks.push({ title: task.title, done: Boolean(task.done) }));
+      assignedTasks.forEach((task) => {
+        const memberState = getTaskMemberState(task, personTargets);
+        eventEntry.tasks.push({
+          title: task.title,
+          done: memberState.status === "done",
+          workStatus: formatTaskWorkStatus(task, memberState)
+        });
+      });
     });
 
-    for (let d = startDate; d <= endDate; d = addDaysToKey(d, 1)) {
-      const ownTasks = (tasksByDate[d] || [])
+    Object.entries(tasksByDate).forEach(([taskDateKey, taskList]) => {
+      if (!Array.isArray(taskList)) return;
+      taskList
         .filter((task) => taskHasAssignee(task, personTargets))
-        .map((task) => ({ title: task.title, done: Boolean(task.done) }));
-      if (ownTasks.length) {
-        const bucket = ensureDateBucket(d);
-        bucket.standaloneTasks.push(...ownTasks);
-      }
-    }
+        .forEach((task) => {
+          const memberState = getTaskMemberState(task, personTargets);
+          const startedOn = String((memberState && memberState.startedOn) || "");
+          const reportDate = isDateKey(startedOn) ? startedOn : taskDateKey;
+          if (reportDate < startDate || reportDate > endDate) return;
+          ensureDateBucket(reportDate).standaloneTasks.push({
+            title: task.title,
+            done: memberState.status === "done",
+            workStatus: formatTaskWorkStatus(task, memberState)
+          });
+        });
+    });
 
-    reportResults.innerHTML = "";
+    const appendReportRow = (className, text, textClassName, strong) => {
+      const row = documentRef.createElement("li");
+      row.className = className;
+      const main = documentRef.createElement("div");
+      main.className = "event-main";
+      const content = documentRef.createElement(strong ? "strong" : "span");
+      content.className = textClassName;
+      content.textContent = String(text || "");
+      main.appendChild(content);
+      row.appendChild(main);
+      reportResults.appendChild(row);
+      return row;
+    };
+
+    const appendTaskRow = (taskItem) => {
+      const row = appendReportRow(
+        `event-item report-row report-level-2${taskItem.done ? " report-done" : ""}`,
+        `${taskItem.done ? "\u2713" : "\u2610"} ${String(taskItem.title || "")}`,
+        "event-time report-text",
+        false
+      );
+      if (!taskItem.workStatus) return;
+      const text = row.querySelector(".report-text");
+      if (!text) return;
+      const workStatus = documentRef.createElement("small");
+      workStatus.className = "report-task-work";
+      workStatus.textContent = ` ${String(taskItem.workStatus)}`;
+      text.appendChild(workStatus);
+    };
+
+    reportResults.replaceChildren();
     const sortedDates = Array.from(dateMap.keys()).sort((a, b) => a.localeCompare(b));
     if (!sortedDates.length) {
       const noRowsText = String(t("reportsNoRowsInRange") || "");
       const fallback = String(opts.locale || "").toLowerCase().startsWith("bg")
         ? "Няма записи в отчета за избрания период."
         : "No report rows in selected range.";
-      reportResults.innerHTML = `<li class="empty">${(noRowsText && noRowsText !== "reportsNoRowsInRange") ? noRowsText : fallback}</li>`;
+      const empty = documentRef.createElement("li");
+      empty.className = "empty";
+      empty.textContent = (noRowsText && noRowsText !== "reportsNoRowsInRange") ? noRowsText : fallback;
+      reportResults.appendChild(empty);
       return;
     }
 
     sortedDates.forEach((dateKey) => {
       const bucket = dateMap.get(dateKey);
 
-      const dayLi = documentRef.createElement("li");
-      dayLi.className = "event-item report-day-item";
-      dayLi.innerHTML = `<div class="event-main"><strong>${dateKey}</strong></div>`;
-      reportResults.appendChild(dayLi);
+      appendReportRow("event-item report-day-item", dateKey, "", true);
 
       bucket.absences.forEach((absenceText) => {
-        const li = documentRef.createElement("li");
-        li.className = "event-item absence report-row report-level-1";
-        li.innerHTML = `<div class="event-main"><span class="event-time report-text">${absenceText}</span></div>`;
-        reportResults.appendChild(li);
+        appendReportRow("event-item absence report-row report-level-1", absenceText, "event-time report-text", false);
       });
 
       const events = Array.from(bucket.events.values()).sort((a, b) => {
@@ -173,33 +241,13 @@
       });
 
       events.forEach((eventEntry) => {
-        const liEvent = documentRef.createElement("li");
-        liEvent.className = "event-item report-row report-level-1";
-        liEvent.innerHTML = `<div class="event-main"><strong class="report-text">${eventEntry.label}</strong></div>`;
-        reportResults.appendChild(liEvent);
-
-        eventEntry.tasks.forEach((taskItem) => {
-          const liTask = documentRef.createElement("li");
-          liTask.className = `event-item report-row report-level-2${taskItem.done ? " report-done" : ""}`;
-          const marker = taskItem.done ? "&#10003; " : "&#9633; ";
-          liTask.innerHTML = `<div class="event-main"><span class="event-time report-text">${marker}${taskItem.title}</span></div>`;
-          reportResults.appendChild(liTask);
-        });
+        appendReportRow("event-item report-row report-level-1", eventEntry.label, "report-text", true);
+        eventEntry.tasks.forEach(appendTaskRow);
       });
 
       if (bucket.standaloneTasks.length) {
-        const liStandalone = documentRef.createElement("li");
-        liStandalone.className = "event-item report-row report-level-1 report-group-row";
-        liStandalone.innerHTML = `<div class="event-main"><strong class="report-text">${t("tasksWithoutEvent")}</strong></div>`;
-        reportResults.appendChild(liStandalone);
-
-        bucket.standaloneTasks.forEach((taskItem) => {
-          const liTask = documentRef.createElement("li");
-          liTask.className = `event-item report-row report-level-2${taskItem.done ? " report-done" : ""}`;
-          const marker = taskItem.done ? "&#10003; " : "&#9633; ";
-          liTask.innerHTML = `<div class="event-main"><span class="event-time report-text">${marker}${taskItem.title}</span></div>`;
-          reportResults.appendChild(liTask);
-        });
+        appendReportRow("event-item report-row report-level-1 report-group-row", t("tasksWithoutEvent"), "report-text", true);
+        bucket.standaloneTasks.forEach(appendTaskRow);
       }
     });
   }

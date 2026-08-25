@@ -118,6 +118,10 @@
     const getLinkedTaskContextLabel = typeof opts.getLinkedTaskContextLabel === "function"
       ? opts.getLinkedTaskContextLabel
       : (() => "");
+    const isTaskDone = typeof opts.isTaskDone === "function" ? opts.isTaskDone : ((task) => Boolean(task && task.done));
+    const canToggleTask = typeof opts.canToggleTask === "function" ? opts.canToggleTask : (() => !readOnly);
+    const canEditTask = typeof opts.canEditTask === "function" ? opts.canEditTask : (() => !readOnly);
+    const canDeleteTask = typeof opts.canDeleteTask === "function" ? opts.canDeleteTask : (() => !readOnly);
 
     const onToggleEventTask = typeof opts.onToggleEventTask === "function" ? opts.onToggleEventTask : null;
     const onToggleLinkedTask = typeof opts.onToggleLinkedTask === "function" ? opts.onToggleLinkedTask : null;
@@ -136,14 +140,15 @@
 
     tasks.forEach((task) => {
       const row = doc.createElement("div");
-      const isOverdue = String(evt.endDate || "") < todayKey && !task.done;
-      row.className = `task-inline-item${task.done ? " task-done" : ""}${isOverdue ? " task-overdue" : ""}`;
+      const done = isTaskDone(task);
+      const isOverdue = String(evt.endDate || "") < todayKey && !done;
+      row.className = `task-inline-item${done ? " task-done" : ""}${isOverdue ? " task-overdue" : ""}`;
       if (sharedReadOnlyEvent && markSharedOriginVisual) markSharedOriginVisual(row);
 
       const cb = doc.createElement("input");
       cb.type = "checkbox";
-      cb.checked = Boolean(task.done);
-      cb.disabled = readOnly;
+      cb.checked = done;
+      cb.disabled = readOnly || !canToggleTask(task);
       cb.addEventListener("change", () => {
         if (!onToggleEventTask) return;
         onToggleEventTask({
@@ -168,14 +173,15 @@
       const task = entry && entry.task;
       if (!task) return;
       const row = doc.createElement("div");
-      const isOverdue = String((entry && entry.dateKey) || "") < todayKey && !task.done;
-      row.className = `task-inline-item${task.done ? " task-done" : ""}${isOverdue ? " task-overdue" : ""}`;
+      const done = isTaskDone(task);
+      const isOverdue = String((entry && entry.dateKey) || "") < todayKey && !done;
+      row.className = `task-inline-item${done ? " task-done" : ""}${isOverdue ? " task-overdue" : ""}`;
       row.style.borderLeft = "3px solid #0f766e";
 
       const cb = doc.createElement("input");
       cb.type = "checkbox";
-      cb.checked = Boolean(task.done);
-      cb.disabled = readOnly;
+      cb.checked = done;
+      cb.disabled = readOnly || !canToggleTask(task);
       cb.addEventListener("change", () => {
         if (!onToggleLinkedTask) return;
         onToggleLinkedTask(entry, cb.checked);
@@ -188,7 +194,8 @@
       name.textContent = linkedLabel ? `${baseText} • ${linkedLabel}` : baseText;
       row.append(cb, name);
 
-      if (!readOnly) {
+      if (!readOnly && (canEditTask(task) || canDeleteTask(task))) {
+        if (canEditTask(task)) {
         const editBtn = doc.createElement("button");
         editBtn.type = "button";
         editBtn.className = "delete-btn";
@@ -197,6 +204,10 @@
           if (onEditLinkedTask) onEditLinkedTask(entry);
         });
 
+        row.appendChild(editBtn);
+        }
+
+        if (canDeleteTask(task)) {
         const delBtn = doc.createElement("button");
         delBtn.type = "button";
         delBtn.className = "delete-btn";
@@ -205,7 +216,8 @@
           if (onDeleteLinkedTask) onDeleteLinkedTask(entry);
         });
 
-        row.append(editBtn, delBtn);
+        row.appendChild(delBtn);
+        }
       }
 
       wrap.appendChild(row);
@@ -336,6 +348,10 @@
     const onToggleStandaloneTask = typeof opts.onToggleStandaloneTask === "function" ? opts.onToggleStandaloneTask : null;
     const onEditStandaloneTask = typeof opts.onEditStandaloneTask === "function" ? opts.onEditStandaloneTask : null;
     const onDeleteStandaloneTask = typeof opts.onDeleteStandaloneTask === "function" ? opts.onDeleteStandaloneTask : null;
+    const isTaskDone = typeof opts.isTaskDone === "function" ? opts.isTaskDone : ((row) => Boolean(row && row.done));
+    const canToggleTask = typeof opts.canToggleTask === "function" ? opts.canToggleTask : (() => !readOnly);
+    const canEditTask = typeof opts.canEditTask === "function" ? opts.canEditTask : (() => !readOnly);
+    const canDeleteTask = typeof opts.canDeleteTask === "function" ? opts.canDeleteTask : (() => !readOnly);
 
     const li = doc.createElement("li");
     li.className = "event-item";
@@ -344,13 +360,14 @@
     const main = doc.createElement("div");
     main.className = "event-main";
     const row = doc.createElement("div");
-    const isOverdue = dateKey < todayKey && !task.done;
-    row.className = `task-inline-item${task.done ? " task-done" : ""}${isOverdue ? " task-overdue" : ""}`;
+    const done = isTaskDone(task);
+    const isOverdue = dateKey < todayKey && !done;
+    row.className = `task-inline-item${done ? " task-done" : ""}${isOverdue ? " task-overdue" : ""}`;
 
     const cb = doc.createElement("input");
     cb.type = "checkbox";
-    cb.checked = Boolean(task.done);
-    cb.disabled = readOnly;
+    cb.checked = done;
+    cb.disabled = readOnly || !canToggleTask(task);
     cb.addEventListener("change", () => {
       if (onToggleStandaloneTask) onToggleStandaloneTask(task, dateKey, cb.checked);
     });
@@ -362,7 +379,7 @@
     title.textContent = linkedLabel ? `${baseTaskText} • ${linkedLabel}` : baseTaskText;
     row.append(cb, title);
 
-    if (!readOnly) {
+    if (!readOnly && canEditTask(task)) {
       const editBtn = doc.createElement("button");
       editBtn.type = "button";
       editBtn.className = "delete-btn";
@@ -379,7 +396,7 @@
     info.textContent = dateKey;
     main.appendChild(info);
 
-    if (readOnly) {
+    if (readOnly || !canDeleteTask(task)) {
       li.append(main);
     } else {
       const delBtn = doc.createElement("button");
@@ -507,6 +524,10 @@
     const onToggleStandaloneTask = typeof opts.onToggleStandaloneTask === "function" ? opts.onToggleStandaloneTask : null;
     const onEditStandaloneTask = typeof opts.onEditStandaloneTask === "function" ? opts.onEditStandaloneTask : null;
     const onDeleteStandaloneTask = typeof opts.onDeleteStandaloneTask === "function" ? opts.onDeleteStandaloneTask : null;
+    const isTaskDone = typeof opts.isTaskDone === "function" ? opts.isTaskDone : ((task) => Boolean(task && task.done));
+    const canToggleTask = typeof opts.canToggleTask === "function" ? opts.canToggleTask : (() => !readOnly);
+    const canEditTask = typeof opts.canEditTask === "function" ? opts.canEditTask : (() => !readOnly);
+    const canDeleteTask = typeof opts.canDeleteTask === "function" ? opts.canDeleteTask : (() => !readOnly);
     const formatEventTimeLabel = typeof opts.formatEventTimeLabel === "function"
       ? opts.formatEventTimeLabel
       : ((eventRow, dateKey) => {
@@ -603,8 +624,9 @@
       sideDayList.appendChild(createSectionHeader(doc, t("sectionTasks"), dayTasks.length));
     }
     dayTasks.forEach((task) => {
+      const done = isTaskDone(task);
       const li = doc.createElement("li");
-      li.className = `event-item upcoming-task-item${task.done ? " task-done" : ""}`;
+      li.className = `event-item upcoming-task-item${done ? " task-done" : ""}`;
       if (isSharedStandaloneTaskInPersonalMode(task) && markSharedOriginVisual) markSharedOriginVisual(li);
 
       const taskCategoryId = String(task.categoryId || "");
@@ -615,8 +637,8 @@
       li.style.color = "#334155";
 
       const names = getTaskAssigneeNames(task);
-      const isOverdue = selectedDateKey < todayKey && !task.done;
-      const statusColor = task.done ? "#22c55e" : (isOverdue ? "#ef4444" : "#f59e0b");
+      const isOverdue = selectedDateKey < todayKey && !done;
+      const statusColor = done ? "#22c55e" : (isOverdue ? "#ef4444" : "#f59e0b");
 
       const top = doc.createElement("div");
       top.className = "upcoming-task-top";
@@ -625,8 +647,8 @@
       topLeft.className = "upcoming-task-top-left";
       const cb = doc.createElement("input");
       cb.type = "checkbox";
-      cb.checked = Boolean(task.done);
-      cb.disabled = readOnly;
+      cb.checked = done;
+      cb.disabled = readOnly || !canToggleTask(task);
       cb.addEventListener("change", () => {
         if (onToggleStandaloneTask) onToggleStandaloneTask(task, selectedDateKey, cb.checked);
       });
@@ -640,7 +662,7 @@
         documentRef: doc,
         readOnly,
         t,
-        allowActions: true,
+        allowActions: canEditTask(task) || canDeleteTask(task),
         onEdit: () => { if (onEditStandaloneTask) onEditStandaloneTask(task, selectedDateKey); },
         onDelete: () => { if (onDeleteStandaloneTask) onDeleteStandaloneTask(task, selectedDateKey); }
       });

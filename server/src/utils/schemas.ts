@@ -102,6 +102,56 @@ export const taskPatchSchema = z.object({
   version: z.number().int().positive().optional()
 });
 
+const taskDateKeySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+export const workspaceTaskCreateSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  description: z.string().max(4000).optional(),
+  scope: z.enum(["personal", "shared"]),
+  kind: z.enum(["dated", "ongoing"]),
+  source: z.enum(["standalone", "event"]),
+  eventId: z.string().min(1).optional(),
+  legacyEventId: z.string().min(1).max(191).optional(),
+  legacyDateKey: taskDateKeySchema.optional(),
+  scheduledOn: taskDateKeySchema.optional(),
+  categoryId: z.string().max(191).optional(),
+  memberIds: z.array(z.string().min(1)).max(100).default([]),
+  legacyKey: z.string().max(300).optional()
+}).refine((value) => value.source !== "event" || value.eventId || value.legacyEventId, {
+  message: "Event tasks require eventId or legacyEventId",
+  path: ["eventId"]
+});
+
+export const workspaceTaskPatchSchema = z.object({
+  title: z.string().trim().min(1).max(200).optional(),
+  description: z.string().max(4000).nullable().optional(),
+  categoryId: z.string().max(191).nullable().optional(),
+  scheduledOn: taskDateKeySchema.nullable().optional(),
+  dueAt: z.string().datetime().nullable().optional(),
+  remindAt: z.string().datetime().nullable().optional(),
+  ownerId: z.string().min(1).nullable().optional(),
+  status: z.enum(["open", "in_progress", "done", "archived"]).optional(),
+  version: z.number().int().positive().optional()
+}).refine((value) => Object.keys(value).some((key) => key !== "version"), {
+  message: "No patch fields provided"
+});
+
+export const workspaceTaskMembersSchema = z.object({
+  userIds: z.array(z.string().min(1)).max(100)
+});
+
+export const workspaceTaskMemberStatusSchema = z.object({
+  userId: z.string().min(1).optional(),
+  status: z.enum(["open", "in_progress", "done"]),
+  startedOn: taskDateKeySchema.nullable().optional(),
+  completedOn: taskDateKeySchema.nullable().optional(),
+  version: z.number().int().positive().optional()
+});
+
+export const workspaceTaskInviteResponseSchema = z.object({
+  action: z.enum(["accept", "decline"])
+});
+
 export const noteCreateSchema = z.object({
   text: z.string().min(1).max(4000),
   visibility: z.enum(["private", "team"])

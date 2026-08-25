@@ -7,6 +7,7 @@
     const doc = o.documentRef || root.document;
     const content = o.container;
     const dateLabel = o.dateLabel;
+    const summaryEl = o.summaryEl;
     if (!doc || !content) return false;
 
     const t = typeof o.t === "function" ? o.t : ((key) => key);
@@ -70,6 +71,15 @@
       visibleStart = Math.max(0, roundDownMinutes(Math.max(0, minMinute - 30), 30));
       visibleEnd = Math.min(timeMeta.DAY_MINUTES, roundUpMinutes(Math.min(timeMeta.DAY_MINUTES, maxMinute + 30), 30));
       if (visibleEnd <= visibleStart) visibleEnd = Math.min(timeMeta.DAY_MINUTES, visibleStart + 60);
+    }
+
+    if (summaryEl) {
+      const summaryParts = [
+        `${t("timelineVisibleRange")}: ${minutesToTime(visibleStart)} - ${minutesToTime(visibleEnd)}`,
+        `${t("timelineWorkingRange")}: ${minutesToTime(workingStart)} - ${minutesToTime(workingEnd)}`
+      ];
+      if (settings.autoFit) summaryParts.push(t("timelineAutoFit"));
+      summaryEl.textContent = summaryParts.join(" \u2022 ");
     }
 
     const visibleDuration = Math.max(60, visibleEnd - visibleStart);
@@ -230,11 +240,7 @@
 
     if (nowLine) track.appendChild(nowLine);
 
-    const legend = doc.createElement("div");
-    legend.className = "timeline-legend";
-    legend.textContent = `${t("timelineVisibleRange")}: ${minutesToTime(visibleStart)} - ${minutesToTime(visibleEnd)} • ${t("timelineWorkingRange")}: ${minutesToTime(workingStart)} - ${minutesToTime(workingEnd)}`;
-
-    frame.append(header, track, legend);
+    frame.append(header, track);
     content.appendChild(frame);
     return true;
   }

@@ -72,6 +72,12 @@
     }
 
     if (!String(hit.createdByUserId || "")) hit.createdByUserId = String(o.currentUserId || "");
+    if (typeof o.createInitialTaskMemberStates === "function") {
+      hit.memberStates = {
+        ...o.createInitialTaskMemberStates(hit.personIds),
+        ...(hit.memberStates && typeof hit.memberStates === "object" ? hit.memberStates : {})
+      };
+    }
 
     if (typeof o.persistState === "function") o.persistState();
 

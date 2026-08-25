@@ -42,10 +42,17 @@
         .filter((task) => !(typeof o.isLinkedStandaloneTask === "function" && o.isLinkedStandaloneTask(task)))
         .filter(o.matchesTaskFilters)
       : [];
+    const dayTaskIds = new Set(dayTasks.map((task) => String((task && task.id) || "")).filter(Boolean));
+    const spanningTasks = o.isTaskViewEnabled() && typeof o.getComplexTasksForDate === "function"
+      ? o.getComplexTasksForDate(o.selectedDateKey)
+        .filter((task) => !dayTaskIds.has(String((task && task.id) || "")))
+        .filter(o.matchesTaskFilters)
+      : [];
+    const visibleTasks = [...dayTasks, ...spanningTasks];
 
-    o.renderSideDayPanel(events, dayAbsences, dayTasks);
+    o.renderSideDayPanel(events, dayAbsences, visibleTasks);
 
-    if (!events.length && !dayAbsences.length && !dayTasks.length) {
+    if (!events.length && !dayAbsences.length && !visibleTasks.length) {
       if (o.eventList) o.eventList.innerHTML = `<li class="empty">${o.t("noEvents")}</li>`;
       return true;
     }
@@ -53,7 +60,7 @@
     if (o.eventList) o.eventList.innerHTML = "";
     events.forEach((evt) => o.renderEventRow(evt));
     dayAbsences.forEach((absence) => o.renderAbsenceRow(absence));
-    dayTasks.forEach((task) => o.renderStandaloneTaskRow(task, o.selectedDateKey));
+    visibleTasks.forEach((task) => o.renderStandaloneTaskRow(task, o.selectedDateKey));
     return true;
   }
 

@@ -10,7 +10,22 @@
     const list = Array.isArray(tasksByDate[dateKey]) ? tasksByDate[dateKey] : [];
     const hit = list.find((task) => String((task && task.id) || "") === taskId);
     if (!hit) return false;
-    hit.done = Boolean(o.done);
+    const setTaskMemberState = typeof o.setTaskMemberState === "function" ? o.setTaskMemberState : null;
+    const currentUserIdentityIds = o.currentUserIdentityIds;
+    if (setTaskMemberState) {
+      const current = typeof o.getTaskMemberState === "function"
+        ? o.getTaskMemberState(hit, currentUserIdentityIds)
+        : { startedOn: String(hit.workStartedOn || "") };
+      const startedOn = String((current && current.startedOn) || "");
+      setTaskMemberState(hit, currentUserIdentityIds, {
+        status: o.done ? "done" : (startedOn ? "in_progress" : "open"),
+        startedOn,
+        completedOn: o.done ? String(o.todayKey || "") : ""
+      });
+    } else {
+      hit.done = Boolean(o.done);
+      if (hit.workStartedOn) hit.workCompletedOn = hit.done ? String(o.todayKey || hit.workCompletedOn || "") : "";
+    }
     if (typeof o.persistState === "function") o.persistState();
     if (typeof o.renderStandaloneTaskList === "function") o.renderStandaloneTaskList(dateKey);
     if (typeof o.renderSelectedDayPanel === "function") o.renderSelectedDayPanel();
@@ -28,7 +43,22 @@
     const taskId = String(o.taskId || "");
     const hit = base.tasks.find((task) => String((task && task.id) || "") === taskId);
     if (!hit) return false;
-    hit.done = Boolean(o.done);
+    const setTaskMemberState = typeof o.setTaskMemberState === "function" ? o.setTaskMemberState : null;
+    const currentUserIdentityIds = o.currentUserIdentityIds;
+    if (setTaskMemberState) {
+      const current = typeof o.getTaskMemberState === "function"
+        ? o.getTaskMemberState(hit, currentUserIdentityIds)
+        : { startedOn: String(hit.workStartedOn || "") };
+      const startedOn = String((current && current.startedOn) || "");
+      setTaskMemberState(hit, currentUserIdentityIds, {
+        status: o.done ? "done" : (startedOn ? "in_progress" : "open"),
+        startedOn,
+        completedOn: o.done ? String(o.todayKey || "") : ""
+      });
+    } else {
+      hit.done = Boolean(o.done);
+      if (hit.workStartedOn) hit.workCompletedOn = hit.done ? String(o.todayKey || hit.workCompletedOn || "") : "";
+    }
     if (typeof o.persistState === "function") o.persistState();
     if (typeof o.renderSelectedDayPanel === "function") o.renderSelectedDayPanel();
     if (typeof o.renderUpcomingList === "function") o.renderUpcomingList();
@@ -52,6 +82,12 @@
     if (!nextTitle) return false;
     hit.title = nextTitle;
     hit.personIds = nextIds;
+    if (typeof o.createInitialTaskMemberStates === "function") {
+      hit.memberStates = {
+        ...o.createInitialTaskMemberStates(nextIds),
+        ...(hit.memberStates && typeof hit.memberStates === "object" ? hit.memberStates : {})
+      };
+    }
     if (typeof o.persistState === "function") o.persistState();
     if (typeof o.renderSelectedDayPanel === "function") o.renderSelectedDayPanel();
     if (typeof o.renderUpcomingList === "function") o.renderUpcomingList();
@@ -75,7 +111,12 @@
     if (!Array.isArray(base.tasks)) base.tasks = [];
     const createTaskId = typeof o.createTaskId === "function" ? o.createTaskId : null;
     if (!createTaskId) return false;
-    base.tasks.push({ id: createTaskId(), title, personIds, done: false });
+    const task = { id: createTaskId(), title, personIds, done: false };
+    if (typeof o.createInitialTaskMemberStates === "function") {
+      task.memberStates = o.createInitialTaskMemberStates(personIds);
+    }
+    task.createdByUserId = String(o.currentUserId || "");
+    base.tasks.push(task);
     if (typeof o.persistState === "function") o.persistState();
     if (typeof o.renderSelectedDayPanel === "function") o.renderSelectedDayPanel();
     if (typeof o.renderUpcomingList === "function") o.renderUpcomingList();

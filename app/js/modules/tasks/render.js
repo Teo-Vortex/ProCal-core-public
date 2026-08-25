@@ -34,16 +34,22 @@
     const t = typeof opts.t === "function" ? opts.t : ((key) => key);
     const onEditTask = typeof opts.onEditTask === "function" ? opts.onEditTask : null;
     const onDeleteTask = typeof opts.onDeleteTask === "function" ? opts.onDeleteTask : null;
+    const isTaskDone = typeof opts.isTaskDone === "function" ? opts.isTaskDone : ((task) => Boolean(task && task.done));
+    const canToggleTask = typeof opts.canToggleTask === "function" ? opts.canToggleTask : (() => !readOnly);
+    const canEditTask = typeof opts.canEditTask === "function" ? opts.canEditTask : (() => !readOnly);
+    const canDeleteTask = typeof opts.canDeleteTask === "function" ? opts.canDeleteTask : (() => !readOnly);
 
     list.forEach((task) => {
       const li = doc.createElement("li");
-      const isOverdue = dateKey < todayKey && !task.done;
-      li.className = `task-inline-item${task.done ? " task-done" : ""}${isOverdue ? " task-overdue" : ""}`;
+      const done = isTaskDone(task);
+      const isOverdue = dateKey < todayKey && !done;
+      li.className = `task-inline-item${done ? " task-done" : ""}${isOverdue ? " task-overdue" : ""}`;
       if (isSharedStandaloneTaskInPersonalMode(task) && markSharedOriginVisual) markSharedOriginVisual(li);
 
       const cb = doc.createElement("input");
       cb.type = "checkbox";
-      cb.checked = Boolean(task.done);
+      cb.checked = done;
+      cb.disabled = !canToggleTask(task);
       cb.addEventListener("change", () => {
         if (toggleStandaloneTaskDone) toggleStandaloneTaskDone(dateKey, task.id, cb.checked);
       });
@@ -55,7 +61,8 @@
       span.textContent = linkedLabel ? `${baseTaskText} • ${linkedLabel}` : baseTaskText;
       li.append(cb, span);
 
-      if (!readOnly) {
+      if (!readOnly && (canEditTask(task) || canDeleteTask(task))) {
+        if (canEditTask(task)) {
         const editBtn = doc.createElement("button");
         editBtn.type = "button";
         editBtn.className = "delete-btn";
@@ -64,6 +71,10 @@
           if (onEditTask) onEditTask(task, dateKey);
         });
 
+        li.appendChild(editBtn);
+        }
+
+        if (canDeleteTask(task)) {
         const delBtn = doc.createElement("button");
         delBtn.type = "button";
         delBtn.className = "delete-btn";
@@ -72,7 +83,8 @@
           if (onDeleteTask) onDeleteTask(task, dateKey);
         });
 
-        li.append(editBtn, delBtn);
+        li.appendChild(delBtn);
+        }
       }
 
       ul.appendChild(li);

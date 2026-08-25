@@ -32,7 +32,7 @@
 
   function normalizeMainPanel(panel) {
     const value = String(panel || "");
-    return value === "notes" || value === "events" ? value : "calendar";
+    return value === "notes" || value === "events" || value === "tasks" ? value : "calendar";
   }
 
   function readMainPanelPreference(options) {
@@ -119,15 +119,18 @@
     const t = typeof opts.t === "function" ? opts.t : ((key) => key);
     const notesMode = opts.currentMainPanel === "notes";
     const eventsMode = opts.currentMainPanel === "events";
-    const calendarMode = !notesMode && !eventsMode;
+    const tasksMode = opts.currentMainPanel === "tasks";
+    const calendarMode = !notesMode && !eventsMode && !tasksMode;
     const tabs = [
       [opts.calendarPanelTabBtn, "calendar", calendarMode, t("calendarLabel")],
       [opts.eventsPanelTabBtn, "events", eventsMode, t("eventsTitle")],
-      [opts.notesToggleBtn, "notes", notesMode, t("notesToggle")]
+      [opts.notesToggleBtn, "notes", notesMode, t("notesToggle")],
+      [opts.taskManagerPanelTabBtn, "tasks", tasksMode, t("taskManager")]
     ];
     tabs.forEach(([button, key, active, label]) => {
       if (!button) return;
       button.textContent = label;
+      button.title = label;
       button.classList.toggle("active", active);
       button.setAttribute("aria-selected", active ? "true" : "false");
       button.setAttribute("aria-pressed", active ? "true" : "false");
@@ -162,21 +165,25 @@
     const opts = options || {};
     const notesMode = opts.currentMainPanel === "notes";
     const eventsMode = opts.currentMainPanel === "events";
+    const tasksMode = opts.currentMainPanel === "tasks";
     if (opts.layoutEl) {
       opts.layoutEl.classList.toggle("notes-mode", notesMode);
       opts.layoutEl.classList.toggle("events-mode", eventsMode);
+      opts.layoutEl.classList.toggle("tasks-mode", tasksMode);
     }
     if (opts.notesPanel) opts.notesPanel.classList.toggle("hidden-section", !notesMode);
     if (opts.eventsPanel) opts.eventsPanel.classList.toggle("hidden-section", !eventsMode);
+    if (opts.taskManagerPanel) opts.taskManagerPanel.classList.toggle("hidden-section", !tasksMode);
     const doc = opts.documentRef || root.document;
     const calendarPanel = doc && typeof doc.querySelector === "function" ? doc.querySelector(".calendar-panel") : null;
     const upcomingPanel = doc && typeof doc.getElementById === "function" ? doc.getElementById("upcomingPanel") : null;
-    if (calendarPanel) calendarPanel.classList.toggle("hidden-section", notesMode || eventsMode);
-    if (upcomingPanel) upcomingPanel.classList.toggle("hidden-section", eventsMode);
+    if (calendarPanel) calendarPanel.classList.toggle("hidden-section", notesMode || eventsMode || tasksMode);
+    if (upcomingPanel) upcomingPanel.classList.toggle("hidden-section", eventsMode || tasksMode);
     updateNotesToggleButton({
       calendarPanelTabBtn: opts.calendarPanelTabBtn,
       eventsPanelTabBtn: opts.eventsPanelTabBtn,
       notesToggleBtn: opts.notesToggleBtn,
+      taskManagerPanelTabBtn: opts.taskManagerPanelTabBtn,
       notesViewModeLabel: opts.notesViewModeLabel,
       notesViewToggle: opts.notesViewToggle,
       notesViewMonthBtn: opts.notesViewMonthBtn,

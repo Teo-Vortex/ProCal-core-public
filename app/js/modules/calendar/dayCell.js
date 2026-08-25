@@ -30,6 +30,139 @@
     if (opts.sideDayQuickAddTrigger) opts.sideDayQuickAddTrigger.setAttribute("aria-expanded", "false");
   }
 
+  let activeTaskSummaryModal = null;
+
+  function closeTaskSummaryModal() {
+    if (!activeTaskSummaryModal) return;
+    activeTaskSummaryModal.remove();
+    activeTaskSummaryModal = null;
+  }
+
+  function buildTaskSummaryContent(doc, summary, options) {
+    const opts = options || {};
+    const content = doc.createElement("span");
+    content.className = "calendar-task-summary-content";
+
+    const statusRow = doc.createElement("span");
+    statusRow.className = "calendar-task-summary-statuses";
+    summary.statuses.filter((status) => status.count > 0).forEach((status) => {
+      const item = doc.createElement("span");
+      item.className = `calendar-task-summary-status status-${status.key}`;
+      item.textContent = `${status.label} ${status.count}`;
+      statusRow.appendChild(item);
+    });
+    content.appendChild(statusRow);
+
+    summary.sections.filter((section) => section.rows.length > 0).forEach((section) => {
+      const sectionEl = doc.createElement("span");
+      sectionEl.className = "calendar-task-summary-section";
+
+      const heading = doc.createElement("span");
+      heading.className = "calendar-task-summary-heading";
+      heading.textContent = section.title;
+      sectionEl.appendChild(heading);
+
+      section.rows.forEach((row) => {
+        const rowEl = doc.createElement("span");
+        rowEl.className = `calendar-task-summary-row status-${row.status}`;
+
+        const checkbox = doc.createElement("span");
+        const checked = row.status === "completed";
+        checkbox.className = `calendar-task-summary-checkbox${checked ? " checked" : ""}`;
+        checkbox.setAttribute("role", "checkbox");
+        checkbox.setAttribute("aria-checked", checked ? "true" : "false");
+        checkbox.setAttribute("aria-label", `${row.statusLabel}: ${row.title}`);
+        checkbox.setAttribute("tabindex", row.canToggle ? "0" : "-1");
+        if (!row.canToggle) checkbox.setAttribute("aria-disabled", "true");
+
+        const toggle = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          if (!row.canToggle || typeof row.onToggle !== "function") return;
+          row.onToggle(!checked);
+          if (typeof opts.afterToggle === "function") opts.afterToggle();
+        };
+        checkbox.addEventListener("click", toggle);
+        checkbox.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          toggle(event);
+        });
+
+        const rowCopy = doc.createElement("span");
+        rowCopy.className = "calendar-task-summary-row-copy";
+        const rowTitle = doc.createElement("span");
+        rowTitle.className = "calendar-task-summary-row-title";
+        rowTitle.textContent = row.title;
+        rowCopy.appendChild(rowTitle);
+        if (row.assigneeLabel) {
+          const assignee = doc.createElement("span");
+          assignee.className = "calendar-task-summary-row-assignee";
+          assignee.textContent = row.assigneeLabel;
+          rowCopy.appendChild(assignee);
+        }
+
+        const rowStatus = doc.createElement("span");
+        rowStatus.className = "calendar-task-summary-row-status";
+        rowStatus.textContent = row.statusLabel;
+        rowEl.append(checkbox, rowCopy, rowStatus);
+        sectionEl.appendChild(rowEl);
+      });
+      content.appendChild(sectionEl);
+    });
+    return content;
+  }
+
+  function openTaskSummaryModal(doc, summary, labels, onOpenTasks) {
+    closeTaskSummaryModal();
+    const modal = doc.createElement("div");
+    modal.className = "modal calendar-task-summary-modal";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-label", labels.title);
+
+    const card = doc.createElement("div");
+    card.className = "modal-card compact-modal-card calendar-task-summary-modal-card";
+
+    const head = doc.createElement("div");
+    head.className = "modal-head";
+    const title = doc.createElement("h3");
+    title.textContent = labels.title;
+    const close = doc.createElement("button");
+    close.type = "button";
+    close.className = "ghost-btn";
+    close.textContent = labels.close;
+    close.addEventListener("click", closeTaskSummaryModal);
+    head.append(title, close);
+
+    const body = doc.createElement("div");
+    body.className = "calendar-task-summary-modal-body";
+    body.appendChild(buildTaskSummaryContent(doc, summary, { afterToggle: closeTaskSummaryModal }));
+
+    const actions = doc.createElement("div");
+    actions.className = "modal-actions calendar-task-summary-modal-actions";
+    const openTasks = doc.createElement("button");
+    openTasks.type = "button";
+    openTasks.className = "accent-btn";
+    openTasks.textContent = labels.openTasks;
+    openTasks.addEventListener("click", () => {
+      closeTaskSummaryModal();
+      if (typeof onOpenTasks === "function") onOpenTasks();
+    });
+    actions.appendChild(openTasks);
+
+    card.append(head, body, actions);
+    modal.appendChild(card);
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) closeTaskSummaryModal();
+    });
+    modal.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeTaskSummaryModal();
+    });
+    doc.body.appendChild(modal);
+    activeTaskSummaryModal = modal;
+    close.focus();
+  }
+
   function createDetailedDayCell(options) {
     const opts = options || {};
     const doc = opts.documentRef || root.document;
@@ -51,6 +184,14 @@
     const getAbsencesForDate = typeof opts.getAbsencesForDate === "function" ? opts.getAbsencesForDate : (() => []);
     const matchesAbsenceFilters = typeof opts.matchesAbsenceFilters === "function" ? opts.matchesAbsenceFilters : (() => true);
     const getStandaloneTasksForDate = typeof opts.getStandaloneTasksForDate === "function" ? opts.getStandaloneTasksForDate : (() => []);
+    const getWorkingTasksForDate = typeof opts.getWorkingTasksForDate === "function" ? opts.getWorkingTasksForDate : (() => []);
+    const getComplexTasksForDate = typeof opts.getComplexTasksForDate === "function" ? opts.getComplexTasksForDate : getWorkingTasksForDate;
+    const getCalendarTaskRowsForDate = typeof opts.getCalendarTaskRowsForDate === "function" ? opts.getCalendarTaskRowsForDate : null;
+    const isTaskDone = typeof opts.isTaskDone === "function" ? opts.isTaskDone : ((task) => Boolean(task && task.done));
+    const canToggleTask = typeof opts.canToggleTask === "function" ? opts.canToggleTask : (() => false);
+    const onToggleTask = typeof opts.onToggleTask === "function" ? opts.onToggleTask : null;
+    const canToggleTaskRow = typeof opts.canToggleTaskRow === "function" ? opts.canToggleTaskRow : (() => false);
+    const onToggleTaskRow = typeof opts.onToggleTaskRow === "function" ? opts.onToggleTaskRow : null;
     const isLinkedStandaloneTask = typeof opts.isLinkedStandaloneTask === "function" ? opts.isLinkedStandaloneTask : (() => false);
     const matchesTaskFilters = typeof opts.matchesTaskFilters === "function" ? opts.matchesTaskFilters : (() => true);
     const getCategoryBgColor = typeof opts.getCategoryBgColor === "function" ? opts.getCategoryBgColor : (() => "");
@@ -71,6 +212,7 @@
     const setSelectedDateKey = typeof opts.setSelectedDateKey === "function" ? opts.setSelectedDateKey : (() => {});
     const renderCalendar = typeof opts.renderCalendar === "function" ? opts.renderCalendar : (() => {});
     const renderSelectedDayPanel = typeof opts.renderSelectedDayPanel === "function" ? opts.renderSelectedDayPanel : (() => {});
+    const openWorkingTasksForDate = typeof opts.openWorkingTasksForDate === "function" ? opts.openWorkingTasksForDate : null;
     const onDaySelected = typeof opts.onDaySelected === "function" ? opts.onDaySelected : null;
     const openEventPreview = typeof opts.openEventPreview === "function" ? opts.openEventPreview : null;
     const openDayMenu = typeof opts.openDayMenu === "function" ? opts.openDayMenu : null;
@@ -89,6 +231,10 @@
     const events = getEventsForDate(key).filter(matchesEventFilters);
     const dailyAbsences = getAbsencesForDate(key).filter(matchesAbsenceFilters);
     const dailyTasks = getStandaloneTasksForDate(key).filter((task) => !isLinkedStandaloneTask(task)).filter(matchesTaskFilters);
+    const workingTasks = getWorkingTasksForDate(key);
+    const spanningComplexTasks = getComplexTasksForDate(key).filter(matchesTaskFilters);
+    const workingTaskIds = new Set(workingTasks.map((task) => String((task && task.id) || "")).filter(Boolean));
+    const managedTaskRows = getCalendarTaskRowsForDate ? getCalendarTaskRowsForDate(key) : null;
 
     const dayOfWeek = cellDate.getDay();
     const day = doc.createElement("button");
@@ -301,19 +447,154 @@
     }
     day.appendChild(chips);
 
-    if (dailyTasks.length) {
-      const dots = doc.createElement("div");
-      dots.className = "task-dot-stack";
-      dailyTasks.forEach((task) => {
-        const dot = doc.createElement("span");
-        const isOverdue = key < todayKey && !task.done;
-        dot.className = `task-day-dot${task.done ? " task-done" : ""}${isOverdue ? " task-overdue" : ""}`;
-        if (!task.done && !isOverdue) {
-          dot.style.background = "#f59e0b";
-        }
-        dots.appendChild(dot);
+    const legacyRows = () => {
+      const complexTasksById = new Map();
+      dailyTasks.filter((task) => Boolean(task && task.workStartedOn)).forEach((task) => {
+        complexTasksById.set(String(task.id || `${task.title || "task"}-${task.workStartedOn}`), task);
       });
-      day.appendChild(dots);
+      spanningComplexTasks.forEach((task) => {
+        complexTasksById.set(String(task.id || `${task.title || "task"}-${task.workStartedOn}`), task);
+      });
+      return [
+        ...Array.from(complexTasksById.values()).map((task) => ({
+          task,
+          title: String((task && task.title) || ""),
+          assigneeLabel: "",
+          workStartedOn: String((task && task.workStartedOn) || ""),
+          status: workingTaskIds.has(String((task && task.id) || "")) ? "working" : "completed"
+        })),
+        ...dailyTasks.filter((task) => !task || !task.workStartedOn).map((task) => ({
+          task,
+          title: String((task && task.title) || ""),
+          assigneeLabel: "",
+          workStartedOn: "",
+          status: isTaskDone(task) ? "completed" : "open"
+        }))
+      ];
+    };
+    const taskRows = (Array.isArray(managedTaskRows) ? managedTaskRows : legacyRows())
+      .slice()
+      .sort((left, right) => {
+        if (left.status !== right.status) return left.status === "working" ? -1 : 1;
+        return String(left.title || "").localeCompare(String(right.title || ""));
+      });
+    const complexTaskRows = taskRows.filter((row) => Boolean(row.isLongRunning) || isDateKey(String(row.workStartedOn || "")));
+    const ordinaryTaskRows = taskRows.filter((row) => !row.isLongRunning && !isDateKey(String(row.workStartedOn || "")));
+    const openComplexTasks = complexTaskRows.filter((row) => row.status === "open");
+    const workingComplexTasks = complexTaskRows.filter((row) => row.status === "working");
+    const completedComplexTasks = complexTaskRows.filter((row) => row.status === "completed");
+    const overdueTasks = ordinaryTaskRows.filter((row) => key < todayKey && row.status !== "completed");
+    const activeTasks = ordinaryTaskRows.filter((row) => key >= todayKey && row.status !== "completed");
+    const completedTasks = ordinaryTaskRows.filter((row) => row.status === "completed");
+
+    if (complexTaskRows.length || ordinaryTaskRows.length) {
+      const hasOpenTask = openComplexTasks.length > 0 || workingComplexTasks.length > 0 || overdueTasks.length > 0 || activeTasks.length > 0;
+      const statusLabels = {
+        working: String(opts.workingTaskLabel || "Working on"),
+        overdue: String(opts.overdueTaskLabel || "Overdue"),
+        active: String(opts.activeTaskLabel || "Active"),
+        completed: String(opts.completedTaskLabel || "Completed")
+      };
+      const toSummaryRow = (row, status) => ({
+        title: String(row.title || (row.task && row.task.title) || opts.complexTaskLabel || "Task"),
+        assigneeLabel: String(row.assigneeLabel || ""),
+        status,
+        statusLabel: statusLabels[status],
+        canToggle: Array.isArray(managedTaskRows) ? canToggleTaskRow(row) : canToggleTask(row.task),
+        onToggle: (done) => {
+          if (Array.isArray(managedTaskRows)) {
+            if (onToggleTaskRow) onToggleTaskRow(row, done);
+          } else if (onToggleTask) {
+            onToggleTask(row.task, done);
+          }
+        }
+      });
+      const summary = {
+        statuses: [
+          { key: "overdue", label: statusLabels.overdue, count: overdueTasks.length },
+          { key: "active", label: statusLabels.active, count: activeTasks.length + openComplexTasks.length },
+          { key: "working", label: statusLabels.working, count: workingComplexTasks.length },
+          { key: "completed", label: statusLabels.completed, count: completedTasks.length + completedComplexTasks.length }
+        ],
+        sections: [
+          {
+            title: String(opts.complexTasksLabel || opts.workingTaskLabel || "Long-running tasks"),
+            rows: [
+              ...workingComplexTasks.map((row) => toSummaryRow(row, "working")),
+              ...openComplexTasks.map((row) => toSummaryRow(row, "active"))
+            ]
+          },
+          {
+            title: String(opts.datedTasksLabel || "Dated tasks"),
+            rows: [
+              ...overdueTasks.map((row) => toSummaryRow(row, "overdue")),
+              ...activeTasks.map((row) => toSummaryRow(row, "active")),
+              ...completedTasks.map((row) => toSummaryRow(row, "completed"))
+            ]
+          },
+          {
+            title: String(opts.completedWorkLabel || "Completed work"),
+            rows: completedComplexTasks.map((row) => toSummaryRow(row, "completed"))
+          }
+        ]
+      };
+      const chip = doc.createElement("span");
+      chip.className = `calendar-complex-task${hasOpenTask ? " is-working" : " is-completed"}`;
+      if (dayOfWeek >= 4) chip.classList.add("popover-align-right");
+      chip.setAttribute("role", "button");
+      chip.setAttribute("tabindex", "0");
+
+      const title = doc.createElement("span");
+      title.className = "calendar-complex-task-title";
+      title.textContent = String(opts.tasksLabel || "Tasks");
+      chip.appendChild(title);
+
+      const indexes = doc.createElement("span");
+      indexes.className = "calendar-task-indexes";
+      summary.statuses.filter((status) => status.count > 0).forEach((status) => {
+        const index = doc.createElement("span");
+        index.className = `calendar-task-index status-${status.key}`;
+        index.textContent = String(status.count);
+        index.title = `${status.label}: ${status.count}`;
+        indexes.appendChild(index);
+      });
+      chip.appendChild(indexes);
+
+      const popover = doc.createElement("span");
+      popover.className = "calendar-task-popover";
+      popover.appendChild(buildTaskSummaryContent(doc, summary));
+      popover.addEventListener("click", (event) => event.stopPropagation());
+      chip.appendChild(popover);
+
+      const ariaText = summary.sections
+        .filter((section) => section.rows.length > 0)
+        .map((section) => `${section.title}: ${section.rows.map((row) => `${row.title}, ${row.statusLabel}`).join("; ")}`)
+        .join(". ");
+      chip.setAttribute("aria-label", ariaText);
+
+      const openTasks = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const compactMode = root.matchMedia
+          && root.matchMedia("(hover: none), (pointer: coarse), (max-width: 980px)").matches;
+        if (compactMode) {
+          openTaskSummaryModal(doc, summary, {
+            title: String(opts.taskSummaryTitle || "Tasks for the day"),
+            close: String(opts.closeLabel || "Close"),
+            openTasks: String(opts.openTasksLabel || "Open tasks")
+          }, () => {
+            if (openWorkingTasksForDate) openWorkingTasksForDate(key);
+          });
+          return;
+        }
+        if (openWorkingTasksForDate) openWorkingTasksForDate(key);
+      };
+      chip.addEventListener("click", openTasks);
+      chip.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        openTasks(event);
+      });
+      day.appendChild(chip);
     }
 
     return day;

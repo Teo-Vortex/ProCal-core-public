@@ -7,6 +7,7 @@ const USER_UI_PREFS_KEY = "procal_ui_prefs_v1";
 const MAIN_PANEL_KEY = "procal_main_panel";
 const STICKY_LAYOUT_KEY = "procal_sticky_layout_v1";
 const DAY_TIMELINE_PREFS_KEY = "procal_day_timeline_prefs_v1";
+const DAY_TIMELINE_COLLAPSED_KEY = "procal_day_timeline_collapsed";
 const READ_ONLY = Boolean(window.PROCAL_READ_ONLY);
 const LEGACY_ABSENCE_EDIT_ENABLED = false;
 const APP_VERSION = "0.9.9";
@@ -200,6 +201,7 @@ const dayTimelineContent = document.getElementById("dayTimelineContent");
 const dayTimelinePrevBtn = document.getElementById("dayTimelinePrevBtn");
 const dayTimelineNextBtn = document.getElementById("dayTimelineNextBtn");
 const openDayTimelineSettingsBtn = document.getElementById("openDayTimelineSettingsBtn");
+const toggleDayTimelineBtn = document.getElementById("toggleDayTimelineBtn");
 const dayTimelineSettingsModal = document.getElementById("dayTimelineSettingsModal");
 const closeDayTimelineSettingsBtn = document.getElementById("closeDayTimelineSettingsBtn");
 const timelineWorkingStart = document.getElementById("timelineWorkingStart");
@@ -223,6 +225,7 @@ const filtersBtn = document.getElementById("filtersBtn");
 const calendarPanelTabBtn = document.getElementById("calendarPanelTabBtn");
 const eventsPanelTabBtn = document.getElementById("eventsPanelTabBtn");
 const notesToggleBtn = document.getElementById("notesToggleBtn");
+const taskManagerPanelTabBtn = document.getElementById("taskManagerPanelTabBtn");
 const notesViewModeLabel = document.getElementById("notesViewModeLabel");
 const notesViewToggle = document.getElementById("notesViewToggle");
 const notesViewMonthBtn = document.getElementById("notesViewMonthBtn");
@@ -303,6 +306,25 @@ const openDataFileBtn = document.getElementById("openDataFileBtn");
 const createDataFileBtn = document.getElementById("createDataFileBtn");
 const useLocalOnlyBtn = document.getElementById("useLocalOnlyBtn");
 const reportsBtn = document.getElementById("reportsBtn");
+const taskManagerPanel = document.getElementById("taskManagerPanel");
+const taskManagerCreateForm = document.getElementById("taskManagerCreateForm");
+const taskManagerNewTitle = document.getElementById("taskManagerNewTitle");
+const taskManagerNewDate = document.getElementById("taskManagerNewDate");
+const taskManagerNewCategory = document.getElementById("taskManagerNewCategory");
+const taskManagerWorkingList = document.getElementById("taskManagerWorkingList");
+const taskManagerWorkingEmpty = document.getElementById("taskManagerWorkingEmpty");
+const taskManagerWorkingCount = document.getElementById("taskManagerWorkingCount");
+const taskManagerWorkingSection = document.getElementById("taskManagerWorkingSection");
+const taskManagerWorkingTab = document.getElementById("taskManagerWorkingTab");
+const taskManagerList = document.getElementById("taskManagerList");
+const taskManagerEmpty = document.getElementById("taskManagerEmpty");
+const taskManagerCount = document.getElementById("taskManagerCount");
+const taskManagerOrdinarySection = document.getElementById("taskManagerOrdinarySection");
+const taskManagerOrdinaryTab = document.getElementById("taskManagerOrdinaryTab");
+const taskManagerFilter = document.getElementById("taskManagerFilter");
+const taskManagerFilterButtons = Array.from(taskManagerFilter?.querySelectorAll("[data-task-manager-filter]") || []);
+const taskManagerScope = document.getElementById("taskManagerScope");
+const taskManagerScopeButtons = Array.from(taskManagerScope?.querySelectorAll("[data-task-manager-scope]") || []);
 const leaveBtn = document.getElementById("leaveBtn");
 const attendanceBtn = document.getElementById("attendanceBtn");
 const inventoryBtn = document.getElementById("inventoryBtn");
@@ -551,6 +573,8 @@ let peopleDirectorySyncTimer = null;
 let peopleDirectorySyncInFlight = false;
 let peopleDirectoryPollTimer = null;
 let sharedOverlayPollTimer = null;
+let sharedOverlaySaveQueue = Promise.resolve(false);
+let sharedOverlaySavePending = 0;
 let lastRealtimeSignatureByMode = { personal: "", shared: "" };
 let lastBootstrapSignatureByMode = { personal: "", shared: "" };
 let currentUserName = "";
@@ -968,6 +992,8 @@ const I18N = {
     timelineUnavailable: "Timeline is unavailable.",
     timelinePrevDay: "Previous day",
     timelineNextDay: "Next day",
+    timelineCollapse: "Collapse timeline",
+    timelineExpand: "Expand timeline",
     repeat: "Repeat",
     repeatEnds: "Repeat ends",
     repeatNone: "No repeat",
@@ -1086,7 +1112,47 @@ const I18N = {
     sectionTasks: "Tasks",
     completedTasks: "Completed tasks",
     manageEventTasks: "Manage Event Tasks",
+    taskManager: "Tasks",
+    taskManagerSubtitle: "Ongoing work and dated tasks you participate in.",
+    taskManagerMyTasks: "Dated tasks",
+    taskManagerWorking: "Working on",
+    taskManagerComplexTasks: "Ongoing work",
+    taskManagerComplexEmpty: "No ongoing work.",
+    taskManagerCreateHeading: "Start new work",
+    taskManagerFilterLabel: "Task status",
+    taskManagerFilterAll: "All",
+    taskManagerFilterActive: "Active",
+    taskManagerFilterCompleted: "Completed",
+    taskManagerScopeLabel: "Whose tasks",
+    taskManagerScopeMine: "Mine",
+    taskManagerScopeAll: "All people",
+    taskManagerUnassigned: "Unassigned",
+    taskManagerStartDate: "Start date",
+    taskManagerStart: "Start work",
+    taskManagerEdit: "Edit",
+    taskManagerEditTitle: "Edit long-running task",
+    taskManagerEditDatedTitle: "Edit dated task",
+    taskManagerFinish: "Finish",
+    taskManagerResume: "Resume",
+    taskManagerOpen: "Open",
+    taskManagerCompleted: "Completed",
+    taskManagerComplexTask: "Long-running task",
+    taskManagerCompletedComplexTask: "Completed long-running task",
+    taskManagerCompletionDate: "Completion date",
+    taskManagerEmpty: "No tasks here.",
+    taskManagerWorkingEmpty: "No active work.",
+    taskSummaryTitle: "Tasks for the day",
+    taskSummaryDated: "Dated tasks",
+    taskSummaryCompletedWork: "Completed work",
+    taskSummaryOverdue: "Overdue",
+    taskSummaryActive: "Active",
+    taskSummaryOpen: "Open tasks",
+    taskWorkStartedOn: "Started on",
+    taskWorkCompletedOn: "completed on",
+    taskWorkStillActive: "still in progress",
     reports: "Reports",
+    reportsLoading: "Loading report data...",
+    reportsLoadFailed: "Report data could not be loaded.",
     mediaMonitoring: "Media",
     leave: "Leave",
     attendance: "Attendance",
@@ -1492,6 +1558,8 @@ const I18N = {
     timelineUnavailable: "\u0412\u0440\u0435\u043C\u0435\u0432\u0430\u0442\u0430 \u043B\u0438\u043D\u0438\u044F \u043D\u0435 \u0435 \u043D\u0430\u043B\u0438\u0447\u043D\u0430.",
     timelinePrevDay: "\u041F\u0440\u0435\u0434\u0438\u0448\u0435\u043D \u0434\u0435\u043D",
     timelineNextDay: "\u0421\u043B\u0435\u0434\u0432\u0430\u0449 \u0434\u0435\u043D",
+    timelineCollapse: "\u0421\u0432\u0438\u0439 \u0432\u0440\u0435\u043C\u0435\u0432\u0430\u0442\u0430 \u043B\u0438\u043D\u0438\u044F",
+    timelineExpand: "\u0420\u0430\u0437\u0433\u044A\u043D\u0438 \u0432\u0440\u0435\u043C\u0435\u0432\u0430\u0442\u0430 \u043B\u0438\u043D\u0438\u044F",
     repeat: "\u041F\u043E\u0432\u0442\u0430\u0440\u044F\u043D\u0435",
     repeatEnds: "\u041A\u0440\u0430\u0439 \u043D\u0430 \u043F\u043E\u0432\u0442\u043E\u0440\u0435\u043D\u0438\u0435\u0442\u043E",
     repeatNone: "\u0411\u0435\u0437 \u043F\u043E\u0432\u0442\u043E\u0440\u0435\u043D\u0438\u0435",
@@ -1610,7 +1678,47 @@ const I18N = {
     sectionTasks: "\u0417\u0430\u0434\u0430\u0447\u0438",
     completedTasks: "\u0418\u0437\u043F\u044A\u043B\u043D\u0435\u043D\u0438 \u0437\u0430\u0434\u0430\u0447\u0438",
     manageEventTasks: "\u0423\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u043D\u0430 \u0437\u0430\u0434\u0430\u0447\u0438",
+    taskManager: "\u0417\u0430\u0434\u0430\u0447\u0438",
+    taskManagerSubtitle: "\u0422\u0435\u043A\u0443\u0449\u0430 \u0440\u0430\u0431\u043E\u0442\u0430 \u0438 \u0437\u0430\u0434\u0430\u0447\u0438 \u043F\u043E \u0434\u0430\u0442\u0430, \u0432 \u043A\u043E\u0438\u0442\u043E \u0443\u0447\u0430\u0441\u0442\u0432\u0430\u0448.",
+    taskManagerMyTasks: "\u0417\u0430\u0434\u0430\u0447\u0438 \u043F\u043E \u0434\u0430\u0442\u0430",
+    taskManagerWorking: "\u0420\u0430\u0431\u043E\u0442\u044F \u043F\u043E",
+    taskManagerComplexTasks: "\u0422\u0435\u043A\u0443\u0449\u0430 \u0440\u0430\u0431\u043E\u0442\u0430",
+    taskManagerComplexEmpty: "\u041D\u044F\u043C\u0430 \u0442\u0435\u043A\u0443\u0449\u0430 \u0440\u0430\u0431\u043E\u0442\u0430.",
+    taskManagerCreateHeading: "\u0417\u0430\u043F\u043E\u0447\u043D\u0438 \u043D\u043E\u0432\u0430 \u0440\u0430\u0431\u043E\u0442\u0430",
+    taskManagerFilterLabel: "\u0421\u0442\u0430\u0442\u0443\u0441 \u043D\u0430 \u0437\u0430\u0434\u0430\u0447\u0438\u0442\u0435",
+    taskManagerFilterAll: "\u0412\u0441\u0438\u0447\u043A\u0438",
+    taskManagerFilterActive: "\u0410\u043A\u0442\u0438\u0432\u043D\u0438",
+    taskManagerFilterCompleted: "\u0417\u0430\u0432\u044A\u0440\u0448\u0435\u043D\u0438",
+    taskManagerScopeLabel: "\u0427\u0438\u0438 \u0437\u0430\u0434\u0430\u0447\u0438",
+    taskManagerScopeMine: "\u041C\u043E\u0438\u0442\u0435",
+    taskManagerScopeAll: "\u0412\u0441\u0438\u0447\u043A\u0438 \u0445\u043E\u0440\u0430",
+    taskManagerUnassigned: "\u0411\u0435\u0437 \u0438\u0437\u043F\u044A\u043B\u043D\u0438\u0442\u0435\u043B",
+    taskManagerStartDate: "\u041D\u0430\u0447\u0430\u043B\u043D\u0430 \u0434\u0430\u0442\u0430",
+    taskManagerStart: "\u0417\u0430\u043F\u043E\u0447\u043D\u0438 \u0440\u0430\u0431\u043E\u0442\u0430",
+    taskManagerEdit: "\u0420\u0435\u0434\u0430\u043A\u0446\u0438\u044F",
+    taskManagerEditTitle: "\u0420\u0435\u0434\u0430\u043A\u0446\u0438\u044F \u043D\u0430 \u043F\u0440\u043E\u0434\u044A\u043B\u0436\u0438\u0442\u0435\u043B\u043D\u0430 \u0437\u0430\u0434\u0430\u0447\u0430",
+    taskManagerEditDatedTitle: "\u0420\u0435\u0434\u0430\u043A\u0446\u0438\u044F \u043D\u0430 \u0437\u0430\u0434\u0430\u0447\u0430 \u043F\u043E \u0434\u0430\u0442\u0430",
+    taskManagerFinish: "\u041F\u0440\u0438\u043A\u043B\u044E\u0447\u0438",
+    taskManagerResume: "\u041F\u0440\u043E\u0434\u044A\u043B\u0436\u0438",
+    taskManagerOpen: "\u041E\u0442\u0432\u043E\u0440\u0435\u043D\u0430",
+    taskManagerCompleted: "\u0417\u0430\u0432\u044A\u0440\u0448\u0435\u043D\u0430",
+    taskManagerComplexTask: "\u041F\u0440\u043E\u0434\u044A\u043B\u0436\u0438\u0442\u0435\u043B\u043D\u0430 \u0437\u0430\u0434\u0430\u0447\u0430",
+    taskManagerCompletedComplexTask: "\u041F\u0440\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0430 \u043F\u0440\u043E\u0434\u044A\u043B\u0436\u0438\u0442\u0435\u043B\u043D\u0430 \u0437\u0430\u0434\u0430\u0447\u0430",
+    taskManagerCompletionDate: "\u0414\u0430\u0442\u0430 \u043D\u0430 \u043F\u0440\u0438\u043A\u043B\u044E\u0447\u0432\u0430\u043D\u0435",
+    taskManagerEmpty: "\u041D\u044F\u043C\u0430 \u0437\u0430\u0434\u0430\u0447\u0438 \u0442\u0443\u043A.",
+    taskManagerWorkingEmpty: "\u041D\u044F\u043C\u0430 \u0430\u043A\u0442\u0438\u0432\u043D\u0430 \u0440\u0430\u0431\u043E\u0442\u0430.",
+    taskSummaryTitle: "\u0417\u0430\u0434\u0430\u0447\u0438 \u0437\u0430 \u0434\u0435\u043D\u044F",
+    taskSummaryDated: "\u0417\u0430\u0434\u0430\u0447\u0438 \u043F\u043E \u0434\u0430\u0442\u0430",
+    taskSummaryCompletedWork: "\u041F\u0440\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0430 \u0440\u0430\u0431\u043E\u0442\u0430",
+    taskSummaryOverdue: "\u041F\u0440\u043E\u0441\u0440\u043E\u0447\u0435\u043D\u0438",
+    taskSummaryActive: "\u0410\u043A\u0442\u0438\u0432\u043D\u0438",
+    taskSummaryOpen: "\u041E\u0442\u0432\u043E\u0440\u0438 \u0437\u0430\u0434\u0430\u0447\u0438\u0442\u0435",
+    taskWorkStartedOn: "\u0417\u0430\u043F\u043E\u0447\u043D\u0430\u0442\u0430 \u043D\u0430",
+    taskWorkCompletedOn: "\u0437\u0430\u0432\u044A\u0440\u0448\u0435\u043D\u0430 \u043D\u0430",
+    taskWorkStillActive: "\u0432\u0441\u0435 \u043E\u0449\u0435 \u0441\u0435 \u0440\u0430\u0431\u043E\u0442\u0438 \u043F\u043E \u043D\u0435\u044F",
     reports: "\u041E\u0442\u0447\u0435\u0442\u0438",
+    reportsLoading: "\u0417\u0430\u0440\u0435\u0436\u0434\u0430\u043d\u0435 \u043d\u0430 \u0434\u0430\u043d\u043d\u0438\u0442\u0435 \u0437\u0430 \u043e\u0442\u0447\u0435\u0442\u0430...",
+    reportsLoadFailed: "\u0414\u0430\u043d\u043d\u0438\u0442\u0435 \u0437\u0430 \u043e\u0442\u0447\u0435\u0442\u0430 \u043d\u0435 \u043c\u043e\u0436\u0430\u0445\u0430 \u0434\u0430 \u0441\u0435 \u0437\u0430\u0440\u0435\u0434\u044f\u0442.",
     mediaMonitoring: "\u041C\u0435\u0434\u0438\u0438",
     leave: "\u041E\u0442\u0441\u044A\u0441\u0442\u0432\u0438\u044F",
     attendance: "\u041F\u0440\u0438\u0441\u044A\u0441\u0442\u0432\u0438\u044F",
@@ -1987,6 +2095,9 @@ let editingEventSeriesId = null;
 let editingAbsenceId = null;
 let currentView = "month";
 let currentMainPanel = "calendar";
+let taskManagerView = "working";
+let taskManagerStatusFilter = "all";
+let taskManagerScopeMode = "mine";
 let selectedDayPanelTab = "plan";
 let selectedDayAttendanceRequestId = 0;
 let eventsRegistrySearch = "";
@@ -2003,6 +2114,8 @@ let previewEventDateKey = null;
 let previewEventSnapshot = null;
 let personalSharedOverlayEventIds = new Set();
 let personalSharedOverlayTaskIds = new Set();
+let reportRenderRequestId = 0;
+let latestReportContext = null;
 let leaveAbsenceSyncTimer = null;
 let leaveAbsenceSyncInFlight = false;
 let leaveAbsenceLoadedViewKey = "";
@@ -2015,6 +2128,7 @@ let leaveQuickMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 
 let suppressDayMenuOpenUntil = 0;
 const savedUpcomingCollapsed = localStorage.getItem(UPCOMING_COLLAPSED_KEY);
 let upcomingCollapsed = savedUpcomingCollapsed === null ? true : savedUpcomingCollapsed === "1";
+let dayTimelineCollapsed = localStorage.getItem(DAY_TIMELINE_COLLAPSED_KEY) === "1";
 const activeFilters = { categoryIds: new Set(), peopleIds: new Set() };
 let currentUserRefreshTimer = null;
 let accessTokenRefreshPromise = null;
@@ -2050,6 +2164,7 @@ startDayTimelineRefresh();
 renderCalendarModeUI();
 renderMainPanelUI();
   setUpcomingCollapsed(upcomingCollapsed);
+  setDayTimelineCollapsed(dayTimelineCollapsed);
   updateMobileResponsivePanels();
   updateRepeatVisibility();
   bootstrapRemoteState();
@@ -2299,6 +2414,11 @@ if (eventsPanelTabBtn) {
 if (notesToggleBtn) {
   notesToggleBtn.addEventListener("click", () => {
     setMainPanel("notes");
+  });
+}
+if (taskManagerPanelTabBtn) {
+  taskManagerPanelTabBtn.addEventListener("click", () => {
+    setMainPanel("tasks");
   });
 }
 if (notesViewMonthBtn) {
@@ -3516,6 +3636,39 @@ if (openTaskFormBtn) {
   });
 }
 
+if (taskManagerCreateForm) {
+  taskManagerCreateForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    createWorkingTaskFromManager();
+  });
+}
+
+taskManagerFilterButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const value = String(button.dataset.taskManagerFilter || "all");
+    taskManagerStatusFilter = value === "active" || value === "completed" ? value : "all";
+    renderTaskManager();
+  });
+});
+
+taskManagerScopeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    taskManagerScopeMode = String(button.dataset.taskManagerScope || "mine") === "all" ? "all" : "mine";
+    renderTaskManager();
+  });
+});
+
+[
+  [taskManagerWorkingTab, "working"],
+  [taskManagerOrdinaryTab, "ordinary"]
+].forEach(([button, view]) => {
+  if (!button) return;
+  button.addEventListener("click", () => {
+    taskManagerView = view;
+    renderTaskManager();
+  });
+});
+
 toggleEventTasksBtn.addEventListener("click", () => {
   eventTasksEditorWrap.classList.toggle("hidden-section");
   updateEventTasksToggleLabel();
@@ -3530,7 +3683,14 @@ eventTaskAddBtn.addEventListener("click", () => {
   const blockedAssignees = getAbsentPersonIdsForRange(rangeStart, rangeEnd);
   const personIds = getSelectedPersonIds(eventTaskPeopleChecklist).filter((id) => !blockedAssignees.has(id));
   if (personIds.some((id) => !people.some((p) => p.id === id))) return;
-  draftEventTasks.push({ id: createTaskId(), title, personIds, done: false });
+  draftEventTasks.push({
+    id: createTaskId(),
+    title,
+    personIds,
+    done: false,
+    memberStates: createInitialTaskMemberStates(personIds),
+    createdByUserId: String(currentUserId || "")
+  });
   eventTaskTitle.value = "";
   renderPeopleChecklist(eventTaskPeopleChecklist, []);
   refreshEventTaskChecklistAvailability();
@@ -3721,6 +3881,11 @@ if (eventFilesDetached) {
 if (openDayTimelineSettingsBtn) {
   openDayTimelineSettingsBtn.addEventListener("click", () => {
     openModalElement(dayTimelineSettingsModal);
+  });
+}
+if (toggleDayTimelineBtn) {
+  toggleDayTimelineBtn.addEventListener("click", () => {
+    setDayTimelineCollapsed(!dayTimelineCollapsed);
   });
 }
 if (dayTimelinePrevBtn) {
@@ -4072,6 +4237,7 @@ taskForm.addEventListener("submit", (event) => {
     personIds,
     categoryId: safeCategoryId,
     done: false,
+    memberStates: createInitialTaskMemberStates(personIds),
     createdByUserId: String(currentUserId || "")
   };
   list.push(newTask);
@@ -4089,7 +4255,7 @@ taskForm.addEventListener("submit", (event) => {
 
 reportsForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  renderReportResults();
+  void renderReportResults();
 });
 if (compensationForm) {
   compensationForm.addEventListener("submit", async (event) => {
@@ -4137,7 +4303,7 @@ if (compAdjustForm) {
 }
 if (saveReportPdfBtn) {
   saveReportPdfBtn.addEventListener("click", () => {
-    saveReportAsPdf();
+    void saveReportAsPdf();
   });
 }
 personForm.addEventListener("submit", (event) => {
@@ -4507,6 +4673,24 @@ function applyTranslations() {
   setText("menuGuideBtn", t("userGuide"));
   setText("menuMobileAppBtn", t("mobileApp"));
   setText("menuServerManagerBtn", t("serverManager"));
+  setText("taskManagerPanelTabBtn", t("taskManager"));
+  setText("taskManagerTitle", t("taskManager"));
+  setText("taskManagerSubtitle", t("taskManagerSubtitle"));
+  setText("taskManagerWorkingTitle", t("taskManagerComplexTasks"));
+  setText("taskManagerCreateHeading", t("taskManagerCreateHeading"));
+  setText("taskManagerFilterAllBtn", t("taskManagerFilterAll"));
+  setText("taskManagerFilterActiveBtn", t("taskManagerFilterActive"));
+  setText("taskManagerFilterCompletedBtn", t("taskManagerFilterCompleted"));
+  if (taskManagerFilter) taskManagerFilter.setAttribute("aria-label", t("taskManagerFilterLabel"));
+  setText("taskManagerScopeMineBtn", t("taskManagerScopeMine"));
+  setText("taskManagerScopeAllBtn", t("taskManagerScopeAll"));
+  if (taskManagerScope) taskManagerScope.setAttribute("aria-label", t("taskManagerScopeLabel"));
+  setText("taskManagerListTitle", t("taskManagerMyTasks"));
+  setText("taskManagerNewTitleLabel", t("task"));
+  setText("taskManagerNewDateLabel", t("taskManagerStartDate"));
+  setText("taskManagerNewCategoryLabel", t("category"));
+  setText("taskManagerCreateBtn", t("taskManagerStart"));
+  if (taskManagerNewTitle) taskManagerNewTitle.placeholder = t("taskTitlePlaceholder");
   setText("profileTitle", t("profile"));
   setText("menuShortcutsTitle", t("quickActions"));
   setText("profileNicknameLabel", t("userLabel"));
@@ -4647,6 +4831,7 @@ renderMainPanelUI();
   setText("globalQrLabel", t("scanQr"));
   setTitle("globalQrBtn", t("scanQr"));
   setText("currentUserLeaveBtn", t("leaveAvailableTitle"));
+  if (currentMainPanel === "tasks") renderTaskManager();
   setText("leaveQuickTitle", t("leaveAvailableTitle"));
   setText("leaveQuickPaidLabel", t("leaveAvailablePaid"));
   setText("leaveQuickStudyLabel", t("leaveAvailableStudy"));
@@ -4755,6 +4940,7 @@ renderMainPanelUI();
   apply24HourTimeInputs();
   setText("dayTimelineTitle", t("dayTimeline"));
   setText("openDayTimelineSettingsBtn", t("dayTimelineSettings"));
+  updateDayTimelineCollapseUI();
   setText("dayTimelineSettingsTitle", t("dayTimelineSettingsTitle"));
   setText("timePickerTitle", t("timePickerTitle"));
   setText("timePickerListLabel", t("time"));
@@ -9538,6 +9724,7 @@ function updateNotesToggleButton() {
     calendarPanelTabBtn,
     eventsPanelTabBtn,
     notesToggleBtn,
+    taskManagerPanelTabBtn,
     notesViewModeLabel,
     notesViewToggle,
     notesViewMonthBtn,
@@ -9555,9 +9742,11 @@ function renderMainPanelUI() {
     layoutEl,
     notesPanel,
     eventsPanel,
+    taskManagerPanel,
     calendarPanelTabBtn,
     eventsPanelTabBtn,
     notesToggleBtn,
+    taskManagerPanelTabBtn,
     notesViewModeLabel,
     notesViewToggle,
     notesViewMonthBtn,
@@ -9570,11 +9759,12 @@ function renderMainPanelUI() {
 }
 
 function setMainPanel(panel, persist = true) {
-  currentMainPanel = panel === "notes" || panel === "events" ? panel : "calendar";
+  currentMainPanel = panel === "notes" || panel === "events" || panel === "tasks" ? panel : "calendar";
   closeMobileOverlayPanels();
   renderMainPanelUI();
   if (currentMainPanel === "events") renderEventsRegistry();
   if (currentMainPanel === "notes") scheduleStickyNotesPullFromShared(0);
+  if (currentMainPanel === "tasks") renderTaskManager();
   if (persist && !READ_ONLY) {
     localStorage.setItem(MAIN_PANEL_KEY, currentMainPanel);
     persistUiPrefs();
@@ -10762,6 +10952,7 @@ function applyUserViewMode() {
   if (toggleEventTasksBtn) toggleEventTasksBtn.style.display = (simple || !tasksEnabled) ? "none" : "";
   if (sideAddTaskBtn) sideAddTaskBtn.style.display = tasksEnabled ? "" : "none";
   if (eventPreviewAddTaskBtn) eventPreviewAddTaskBtn.style.display = tasksEnabled ? "" : "none";
+  if (taskManagerPanelTabBtn) taskManagerPanelTabBtn.style.display = tasksEnabled ? "" : "none";
   if (reportsBtn) reportsBtn.style.display = (simple || !canReadOwnReports()) ? "none" : "";
   if (mediaMonitoringBtn) mediaMonitoringBtn.style.display = canMediaAccess() ? "" : "none";
   if (chatBtn) chatBtn.style.display = canChatAccess() ? "" : "none";
@@ -10785,6 +10976,7 @@ function applyUserViewMode() {
   if (sideAddCompBtn) sideAddCompBtn.style.display = canCompOverviewAccess() ? "" : "none";
   if (notesToggleBtn) notesToggleBtn.style.display = notesEnabled ? "" : "none";
   if (!notesEnabled && currentMainPanel === "notes") setMainPanel("calendar", false);
+  if (!tasksEnabled && currentMainPanel === "tasks") setMainPanel("calendar", false);
   if (eventPreviewFilesBtn) eventPreviewFilesBtn.style.display = filesEnabled ? "" : "none";
   if (eventPreviewProgramBtn) eventPreviewProgramBtn.style.display = filesEnabled ? "" : "none";
   if (eventProgramInput) eventProgramInput.disabled = !filesEnabled;
@@ -11173,6 +11365,550 @@ function closeSettingsMenu() {
   mod.closeMenu({ panel: settingsMenu });
 }
 
+function canManageTaskWork() {
+  if (READ_ONLY) return false;
+  return canCreateTasksInCurrentCalendar();
+}
+
+function canUpdateOwnTaskStatus(task) {
+  if (READ_ONLY || !task) return false;
+  return taskHasAssignee(task, getTaskManagerIdentityIds());
+}
+
+function canEditTaskDefinition(task) {
+  if (READ_ONLY || !task) return false;
+  const actorId = String(currentUserId || "");
+  if (isPersonalCalendarMode()) {
+    if (isSharedStandaloneTaskInPersonalMode(task)) return false;
+    if (isCollaborativePersonalTask(task)) return isCollaborativePersonalTaskOwner(task);
+    return !String(task.createdByUserId || "") || String(task.createdByUserId || "") === actorId;
+  }
+  if (currentUserHasPermission("tasks.update_any")) return true;
+  return currentUserHasPermission("tasks.update_own") && String(task.createdByUserId || "") === actorId;
+}
+
+function canDeleteTaskDefinition(task) {
+  if (READ_ONLY || !task) return false;
+  const actorId = String(currentUserId || "");
+  if (isPersonalCalendarMode()) {
+    if (isSharedStandaloneTaskInPersonalMode(task)) return false;
+    if (isCollaborativePersonalTask(task)) return isCollaborativePersonalTaskOwner(task);
+    return !String(task.createdByUserId || "") || String(task.createdByUserId || "") === actorId;
+  }
+  if (currentUserHasPermission("tasks.delete_any")) return true;
+  return currentUserHasPermission("tasks.delete_own") && String(task.createdByUserId || "") === actorId;
+}
+
+function getTaskManagerIdentityIds() {
+  const ids = getCurrentUserIdentityIds();
+  if (currentUserId) ids.add(String(currentUserId));
+  return ids;
+}
+
+function getTaskWorkStatusFromState(memberState) {
+  if (!memberState || typeof memberState !== "object") return "open";
+  if (memberState.status === "done" || isDateKey(String(memberState.completedOn || ""))) return "completed";
+  if (memberState.status === "in_progress" || isDateKey(String(memberState.startedOn || ""))) return "working";
+  return "open";
+}
+
+function getTaskWorkStatus(task) {
+  return getTaskWorkStatusFromState(getCurrentTaskMemberState(task));
+}
+
+function formatTaskManagerDate(dateKey) {
+  if (!isDateKey(String(dateKey || ""))) return String(dateKey || "-");
+  const date = parseDateKey(String(dateKey));
+  return new Intl.DateTimeFormat(getLocale(), { day: "2-digit", month: "2-digit", year: "numeric" }).format(date);
+}
+
+function formatTaskManagerWorkLabelFromState(memberState) {
+  const startedOn = String(memberState.startedOn || "");
+  if (!isDateKey(startedOn)) return "";
+  const completedOn = String(memberState.completedOn || "");
+  if (isDateKey(completedOn)) {
+    return `${t("taskWorkStartedOn")} ${formatTaskManagerDate(startedOn)}; ${t("taskWorkCompletedOn")} ${formatTaskManagerDate(completedOn)}`;
+  }
+  return `${t("taskWorkStartedOn")} ${formatTaskManagerDate(startedOn)}`;
+}
+
+function formatTaskManagerWorkLabel(task) {
+  return formatTaskManagerWorkLabelFromState(getCurrentTaskMemberState(task));
+}
+
+function getTaskAssigneeDescriptor(assigneeId) {
+  const id = String(assigneeId || "");
+  const person = getOperationalPeople().find((candidate) => (
+    String((candidate && candidate.id) || "") === id
+    || String((candidate && candidate.userId) || "") === id
+  ));
+  const identityIds = new Set([id]);
+  if (person && person.id) identityIds.add(String(person.id));
+  if (person && person.userId) identityIds.add(String(person.userId));
+  return {
+    id,
+    identityIds,
+    label: person ? getPersonDisplayName(person) : id
+  };
+}
+
+function isLongRunningTask(task) {
+  if (!task || typeof task !== "object") return false;
+  if (isDateKey(String(task.workStartedOn || ""))) return true;
+  const memberStates = task.memberStates && typeof task.memberStates === "object" && !Array.isArray(task.memberStates)
+    ? task.memberStates
+    : {};
+  return Object.values(memberStates).some((state) => (
+    state && (
+      state.status === "in_progress"
+      || isDateKey(String(state.startedOn || ""))
+    )
+  ));
+}
+
+function collectTaskManagerRows(options) {
+  const opts = options || {};
+  const requestedScope = String(opts.scope || "mine");
+  const includeAll = requestedScope === "all"
+    && !isPersonalCalendarMode();
+  const currentIdentityIds = getTaskManagerIdentityIds();
+  const rows = [];
+  const seen = new Set();
+  const pushMemberRow = (kind, dateKey, task, contextLabel, eventId, descriptor) => {
+    const memberIdentityIds = descriptor ? descriptor.identityIds : currentIdentityIds;
+    const memberState = getTaskMemberState(task, memberIdentityIds);
+    const taskId = String(task.id || "");
+    const memberKey = descriptor ? descriptor.id : "mine";
+    const key = `${kind}:${eventId || ""}:${dateKey}:${taskId}:${memberKey}`;
+    if (!taskId || seen.has(key)) return;
+    seen.add(key);
+    rows.push({
+      kind,
+      dateKey: String(dateKey || ""),
+      dateLabel: formatTaskManagerDate(dateKey),
+      task,
+      id: taskId,
+      eventId: String(eventId || ""),
+      title: String(task.title || ""),
+      scopeLabel: getTaskManagerScopeLabel(kind, task, eventId),
+      contextLabel: String(contextLabel || ""),
+      assigneeLabel: descriptor ? descriptor.label : getTaskAssigneeNames(task).join(", "),
+      memberPersonId: descriptor ? descriptor.id : "",
+      memberIdentityIds: Array.from(memberIdentityIds),
+      isCurrentUserMember: Array.from(memberIdentityIds).some((id) => currentIdentityIds.has(String(id))),
+      isUnassigned: Boolean(descriptor && !descriptor.id),
+      isLongRunning: isLongRunningTask(task),
+      workStartedOn: String(memberState.startedOn || ""),
+      workCompletedOn: String(memberState.completedOn || ""),
+      workLabel: formatTaskManagerWorkLabelFromState(memberState),
+      status: getTaskWorkStatusFromState(memberState)
+    });
+  };
+  const pushRow = (kind, dateKey, task, contextLabel, eventId) => {
+    if (!task) return;
+    if (!includeAll) {
+      if (!taskHasAssignee(task, currentIdentityIds)) return;
+      pushMemberRow(kind, dateKey, task, contextLabel, eventId, null);
+      return;
+    }
+    const assigneeIds = getTaskAssigneeIds(task);
+    if (!assigneeIds.length) {
+      pushMemberRow(kind, dateKey, task, contextLabel, eventId, {
+        id: "",
+        identityIds: new Set(),
+        label: t("taskManagerUnassigned")
+      });
+      return;
+    }
+    assigneeIds.forEach((assigneeId) => {
+      pushMemberRow(kind, dateKey, task, contextLabel, eventId, getTaskAssigneeDescriptor(assigneeId));
+    });
+  };
+
+  Object.entries(tasksByDate || {}).forEach(([dateKey, list]) => {
+    if (!Array.isArray(list)) return;
+    list.forEach((task) => pushRow("standalone", dateKey, task, getLinkedTaskContextLabel(task, true), ""));
+  });
+  Object.entries(eventsByDate || {}).forEach(([storageDateKey, list]) => {
+    if (!Array.isArray(list)) return;
+    list.forEach((event) => {
+      const eventDateKey = isDateKey(String(event.startDate || "")) ? String(event.startDate) : storageDateKey;
+      (Array.isArray(event.tasks) ? event.tasks : []).forEach((task) => {
+        pushRow("event", eventDateKey, task, `${t("eventTasks")}: ${String(event.title || "")}`, event.id);
+      });
+    });
+  });
+  return rows;
+}
+
+function getTaskManagerRowIdentityIds(row) {
+  const ids = new Set((row && Array.isArray(row.memberIdentityIds) ? row.memberIdentityIds : [])
+    .map((id) => String(id || ""))
+    .filter(Boolean));
+  return ids.size ? ids : getTaskManagerIdentityIds();
+}
+
+function canUpdateTaskManagerRowStatus(row) {
+  if (READ_ONLY || !row || !row.task || row.isUnassigned) return false;
+  if (row.isCurrentUserMember || taskHasAssignee(row.task, getTaskManagerIdentityIds()) && !row.memberPersonId) return true;
+  return currentUserHasPermission("tasks.update_any");
+}
+
+function getTaskManagerScopeLabel(kind, task, eventId) {
+  const bg = String(currentLang || "").toLowerCase().startsWith("bg");
+  if (!isPersonalCalendarMode()) {
+    return kind === "event"
+      ? (bg ? "Общ календар · Събитие" : "Shared calendar · Event")
+      : (bg ? "Общ календар" : "Shared calendar");
+  }
+  const sharedOverlay = kind === "event"
+    ? Boolean(findBaseEventById(eventId) && isSharedEventReadOnlyInPersonalMode(findBaseEventById(eventId)))
+    : isSharedStandaloneTaskInPersonalMode(task);
+  if (sharedOverlay) {
+    return kind === "event"
+      ? (bg ? "Общ календар · Събитие" : "Shared calendar · Event")
+      : (bg ? "От общия календар" : "From shared calendar");
+  }
+  if (isCollaborativePersonalTask(task) && !isCollaborativePersonalTaskOwner(task)) {
+    return bg ? "Споделена с мен" : "Shared with me";
+  }
+  return bg ? "Лична задача" : "Personal task";
+}
+
+function getEffectiveTaskManagerScope() {
+  return taskManagerScopeMode === "all"
+    && !isPersonalCalendarMode()
+    ? "all"
+    : "mine";
+}
+
+function getCalendarTaskRowsForDate(dateKey) {
+  const key = String(dateKey || "");
+  if (!isDateKey(key) || key > todayKey) return [];
+  return collectTaskManagerRows({ scope: getEffectiveTaskManagerScope() })
+    .filter((row) => matchesTaskFilters(row.task))
+    .filter((row) => {
+      const startedOn = String(row.workStartedOn || "");
+      if (!isDateKey(startedOn)) {
+        if (!row.isLongRunning) return row.kind === "standalone" && row.dateKey === key;
+        if (!isDateKey(String(row.dateKey || "")) || row.dateKey > key) return false;
+        if (row.status !== "completed") return true;
+        const completedOn = isDateKey(String(row.workCompletedOn || ""))
+          ? String(row.workCompletedOn)
+          : String(row.dateKey || "");
+        return key <= completedOn;
+      }
+      if (startedOn > key) return false;
+      if (row.status === "working") return true;
+      if (row.status !== "completed") return false;
+      const completedOn = isDateKey(String(row.workCompletedOn || ""))
+        ? String(row.workCompletedOn)
+        : startedOn;
+      return key <= completedOn;
+    });
+}
+
+function getWorkingTasksForDate(dateKey) {
+  const key = String(dateKey || "");
+  if (!isDateKey(key) || key > todayKey) return [];
+  return collectTaskManagerRows({ scope: getEffectiveTaskManagerScope() })
+    .filter((row) => row.status === "working" && row.workStartedOn <= key)
+    .map((row) => row.task);
+}
+
+function getComplexTasksForDate(dateKey) {
+  const key = String(dateKey || "");
+  if (!isDateKey(key) || key > todayKey) return [];
+  const seen = new Set();
+  return collectTaskManagerRows({ scope: getEffectiveTaskManagerScope() })
+    .filter((row) => {
+      const startedOn = String(row.workStartedOn || "");
+      if (!isDateKey(startedOn)) {
+        if (!row.isLongRunning || !isDateKey(String(row.dateKey || "")) || row.dateKey > key) return false;
+        if (row.status !== "completed") return true;
+        const completedOn = isDateKey(String(row.workCompletedOn || ""))
+          ? String(row.workCompletedOn)
+          : String(row.dateKey || "");
+        return key <= completedOn;
+      }
+      if (startedOn > key) return false;
+      if (row.status === "working") return true;
+      if (row.status !== "completed") return false;
+      const completedOn = isDateKey(String(row.workCompletedOn || ""))
+        ? String(row.workCompletedOn)
+        : startedOn;
+      return key <= completedOn;
+    })
+    .map((row) => row.task)
+    .filter((task) => {
+      const id = String((task && task.id) || "");
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+}
+
+function renderTaskManagerCategoryOptions() {
+  if (!taskManagerNewCategory) return;
+  const selected = String(taskManagerNewCategory.value || "");
+  taskManagerNewCategory.innerHTML = "";
+  const none = document.createElement("option");
+  none.value = "";
+  none.textContent = t("noCategory");
+  taskManagerNewCategory.appendChild(none);
+  categories.forEach((category) => {
+    const option = document.createElement("option");
+    option.value = String(category.id || "");
+    option.textContent = String(category.name || "");
+    taskManagerNewCategory.appendChild(option);
+  });
+  taskManagerNewCategory.value = categories.some((category) => String(category.id || "") === selected) ? selected : "";
+}
+
+function renderTaskManager() {
+  if (!taskManagerPanel || !taskManagerWorkingList || !taskManagerWorkingEmpty || !taskManagerList || !taskManagerEmpty) return;
+  const mod = window.ProCalModules && window.ProCalModules.taskManager;
+  if (!mod || typeof mod.render !== "function") return;
+  if (taskManagerNewDate) {
+    if (!isDateKey(String(taskManagerNewDate.value || ""))) taskManagerNewDate.value = todayKey;
+    taskManagerNewDate.max = todayKey;
+  }
+  if (taskManagerCreateForm) taskManagerCreateForm.classList.toggle("hidden-section", !canManageTaskWork());
+  const canReadAll = !isPersonalCalendarMode();
+  if (taskManagerScope) taskManagerScope.classList.toggle("hidden-section", !canReadAll);
+  const effectiveScope = getEffectiveTaskManagerScope();
+  taskManagerScopeButtons.forEach((button) => {
+    const active = String(button.dataset.taskManagerScope || "mine") === effectiveScope;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+  taskManagerFilterButtons.forEach((button) => {
+    const active = String(button.dataset.taskManagerFilter || "all") === taskManagerStatusFilter;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+  const workingActive = taskManagerView === "working";
+  if (taskManagerWorkingSection) taskManagerWorkingSection.classList.toggle("hidden-section", !workingActive);
+  if (taskManagerOrdinarySection) taskManagerOrdinarySection.classList.toggle("hidden-section", workingActive);
+  if (taskManagerWorkingTab) {
+    taskManagerWorkingTab.classList.toggle("active", workingActive);
+    taskManagerWorkingTab.setAttribute("aria-selected", workingActive ? "true" : "false");
+  }
+  if (taskManagerOrdinaryTab) {
+    taskManagerOrdinaryTab.classList.toggle("active", !workingActive);
+    taskManagerOrdinaryTab.setAttribute("aria-selected", workingActive ? "false" : "true");
+  }
+  setText("taskManagerWorkingEmpty", t("taskManagerComplexEmpty"));
+  setText("taskManagerEmpty", t("taskManagerEmpty"));
+  renderTaskManagerCategoryOptions();
+  const commonOptions = {
+    documentRef: document,
+    rows: collectTaskManagerRows({ scope: effectiveScope }),
+    locale: getLocale(),
+    canManage: canManageTaskWork(),
+    canToggleRow: canUpdateTaskManagerRowStatus,
+    canEditRow: (row) => row && row.isLongRunning
+      ? canUpdateTaskManagerRowStatus(row)
+      : canEditTaskDefinition(row && row.task),
+    copy: {
+      open: t("taskManagerOpen"),
+      working: t("taskManagerWorking"),
+      completed: t("taskManagerCompleted"),
+      edit: t("taskManagerEdit"),
+      start: t("taskManagerStart"),
+      finish: t("taskManagerFinish"),
+      resume: t("taskManagerResume")
+    },
+    onStart: (row) => updateTaskWork(row, "start"),
+    onFinish: (row) => updateTaskWork(row, "finish"),
+    onResume: (row) => updateTaskWork(row, "resume"),
+    onEdit: openTaskManagerEdit,
+    onToggle: toggleTaskManagerRowDone,
+    onOpenDate: openTaskManagerDate
+  };
+  mod.render({
+    ...commonOptions,
+    listEl: taskManagerWorkingList,
+    emptyEl: taskManagerWorkingEmpty,
+    countEl: taskManagerWorkingCount,
+    tab: "complex",
+    statusFilter: taskManagerStatusFilter
+  });
+  mod.render({
+    ...commonOptions,
+    listEl: taskManagerList,
+    emptyEl: taskManagerEmpty,
+    countEl: taskManagerCount,
+    tab: "ordinary",
+    statusFilter: taskManagerStatusFilter
+  });
+}
+
+function isSharedOverlayTaskRow(row) {
+  if (!isPersonalCalendarMode() || !row || !row.task) return false;
+  if (row.kind === "event") {
+    const event = findBaseEventById(row.eventId);
+    return Boolean(event && isSharedEventReadOnlyInPersonalMode(event));
+  }
+  return isSharedStandaloneTaskInPersonalMode(row.task);
+}
+
+function saveTaskManagerRow(row) {
+  if (isSharedOverlayTaskRow(row)) {
+    void saveSharedOverlayTaskState(row.task, row.kind === "event" ? row.eventId : "");
+  } else {
+    persistState();
+  }
+}
+
+function toggleTaskManagerRowDone(row, done) {
+  if (!canUpdateTaskManagerRowStatus(row)) return;
+  const identityIds = getTaskManagerRowIdentityIds(row);
+  const currentState = getTaskMemberState(row.task, identityIds);
+  const startedOn = String(currentState.startedOn || (row.isLongRunning && done ? row.dateKey : "") || "");
+  setTaskMemberState(row.task, identityIds, {
+    status: done ? "done" : (startedOn ? "in_progress" : "open"),
+    startedOn,
+    completedOn: done ? todayKey : ""
+  });
+  saveTaskManagerRow(row);
+  refreshTaskWorkSurfaces(row.dateKey, false);
+}
+
+function refreshTaskWorkSurfaces(dateKey, shouldPersist = true) {
+  if (shouldPersist) persistState();
+  if (isDateKey(String(dateKey || ""))) renderStandaloneTaskList(String(dateKey));
+  renderSelectedDayPanel();
+  renderUpcomingList();
+  renderCalendar();
+  renderTaskManager();
+  if (reportsMenu && !reportsMenu.classList.contains("hidden")) renderReportResults();
+}
+
+function updateTaskWork(row, action) {
+  if (!canUpdateTaskManagerRowStatus(row)) return;
+  const task = row.task;
+  const identityIds = getTaskManagerRowIdentityIds(row);
+  const currentState = getTaskMemberState(task, identityIds);
+  if (action === "finish") {
+    setTaskMemberState(task, identityIds, {
+      status: "done",
+      startedOn: isDateKey(String(currentState.startedOn || "")) ? String(currentState.startedOn) : String(row.dateKey || todayKey),
+      completedOn: todayKey
+    });
+  } else if (action === "resume") {
+    setTaskMemberState(task, identityIds, {
+      status: "in_progress",
+      startedOn: isDateKey(String(currentState.startedOn || "")) ? String(currentState.startedOn) : todayKey,
+      completedOn: ""
+    });
+  } else {
+    setTaskMemberState(task, identityIds, { status: "in_progress", startedOn: todayKey, completedOn: "" });
+  }
+  saveTaskManagerRow(row);
+  refreshTaskWorkSurfaces(row.dateKey, false);
+}
+
+function openTaskManagerEdit(row) {
+  if (!row) return;
+  const isOngoingWork = Boolean(row.isLongRunning);
+  if (isOngoingWork ? !canUpdateTaskManagerRowStatus(row) : !canEditTaskDefinition(row.task)) return;
+  const editableTask = {
+    ...row.task,
+    done: row.status === "completed",
+    workStartedOn: String(row.workStartedOn || row.dateKey || todayKey),
+    workCompletedOn: String(row.workCompletedOn || "")
+  };
+  openTaskEditDialog(editableTask, (payload) => {
+    updateTaskManagerDetails(row, payload);
+  }, {
+    allowCategory: true,
+    allowWorkFields: isOngoingWork,
+    hidePeople: true,
+    lockDefinition: !canEditTaskDefinition(row.task),
+    dialogTitleText: isOngoingWork ? t("taskManagerEditTitle") : t("taskManagerEditDatedTitle")
+  });
+}
+
+function updateTaskManagerDetails(row, payload) {
+  if (!row || !payload) return;
+  const task = row.task;
+  const nextTitle = String(payload.title || "").trim();
+  const isOngoingWork = Boolean(row.isLongRunning);
+  if (isOngoingWork ? !canUpdateTaskManagerRowStatus(row) : !canEditTaskDefinition(task)) return;
+  if (!nextTitle) return;
+  if (canEditTaskDefinition(task)) {
+    task.title = nextTitle;
+    task.categoryId = categories.some((category) => String(category.id || "") === String(payload.categoryId || ""))
+      ? String(payload.categoryId)
+      : "";
+  }
+  if (!isOngoingWork) {
+    saveTaskManagerRow(row);
+    refreshTaskWorkSurfaces(String(row.dateKey || todayKey), false);
+    return;
+  }
+  const nextStartedOn = String(payload.workStartedOn || "");
+  const nextCompletedOn = Boolean(payload.done) ? String(payload.workCompletedOn || "") : "";
+  if (!isDateKey(nextStartedOn) || nextStartedOn > todayKey) return;
+  if (nextCompletedOn && (!isDateKey(nextCompletedOn) || nextCompletedOn < nextStartedOn || nextCompletedOn > todayKey)) return;
+
+  setTaskMemberState(task, getTaskManagerRowIdentityIds(row), {
+    status: nextCompletedOn ? "done" : "in_progress",
+    startedOn: nextStartedOn,
+    completedOn: nextCompletedOn
+  });
+
+  saveTaskManagerRow(row);
+  refreshTaskWorkSurfaces(String(row.dateKey || nextStartedOn), false);
+}
+
+function createWorkingTaskFromManager() {
+  if (!canManageTaskWork() || !taskManagerNewTitle || !taskManagerNewDate) return;
+  const title = String(taskManagerNewTitle.value || "").trim();
+  const dateKey = String(taskManagerNewDate.value || "");
+  const categoryId = String((taskManagerNewCategory && taskManagerNewCategory.value) || "");
+  if (!title || !isDateKey(dateKey) || dateKey > todayKey) return;
+  const roster = getOperationalPeople();
+  const me = roster.find((person) => String(person.id || "") === String(currentUserId || "") || String(person.userId || "") === String(currentUserId || ""));
+  const assignmentId = String((me && me.id) || currentUserId || "");
+  const personIds = isPersonalCalendarMode()
+    ? normalizePersonalTaskAssignees(assignmentId ? [assignmentId] : [])
+    : normalizeTaskAssigneeIds(assignmentId ? [assignmentId] : []);
+  const task = {
+    id: createTaskId(),
+    title,
+    personIds,
+    categoryId: categories.some((category) => String(category.id || "") === categoryId) ? categoryId : "",
+    done: false,
+    workStartedOn: dateKey,
+    workCompletedOn: "",
+    memberStates: createInitialTaskMemberStates(personIds, {
+      status: "in_progress",
+      startedOn: dateKey
+    }),
+    createdByUserId: String(currentUserId || "")
+  };
+  const list = Array.isArray(tasksByDate[dateKey]) ? tasksByDate[dateKey] : [];
+  list.push(task);
+  tasksByDate[dateKey] = list;
+  taskManagerNewTitle.value = "";
+  refreshTaskWorkSurfaces(dateKey);
+  taskManagerNewTitle.focus();
+}
+
+function openTaskManagerDate(row) {
+  const dateKey = String((row && row.dateKey) || "");
+  if (!isDateKey(dateKey)) return;
+  selectedDateKey = dateKey;
+  const date = parseDateKey(dateKey);
+  currentMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+  setMainPanel("calendar");
+  renderCalendar();
+  renderSelectedDayPanel();
+  if (isMobileViewport()) openMobileDayPanel();
+}
+
 function positionSettingsMenu() {
   if (!settingsMenu) return;
   const card = settingsMenu.querySelector(".modal-card");
@@ -11310,6 +12046,7 @@ function renderUpcomingList() {
       tasksByDate,
       toggleStandaloneTaskDone,
       getTaskAssigneeNames,
+      isTaskDone: (task) => getCurrentTaskMemberState(task).status === "done",
       categories,
       getCategoryById,
       getCategoryBgColor,
@@ -11337,6 +12074,7 @@ function renderUpcomingList() {
     tasksByDate,
     toggleStandaloneTaskDone,
     getTaskAssigneeNames,
+    isTaskDone: (task) => getCurrentTaskMemberState(task).status === "done",
     categories,
     getCategoryById,
     getCategoryBgColor,
@@ -11795,6 +12533,18 @@ function createDetailedDayCell(cellDate, key, inCurrentMonth, peopleMap, laneMap
     getAbsencesForDate,
     matchesAbsenceFilters,
     getStandaloneTasksForDate,
+    getWorkingTasksForDate,
+    getComplexTasksForDate,
+    getCalendarTaskRowsForDate,
+    isTaskDone: (task) => getCurrentTaskMemberState(task).status === "done",
+    canToggleTask: canUpdateOwnTaskStatus,
+    onToggleTask: (task, done) => {
+      const row = collectTaskManagerRows().find((candidate) => candidate.task === task)
+        || collectTaskManagerRows().find((candidate) => String(candidate.id || "") === String((task && task.id) || ""));
+      if (row) toggleTaskManagerRowDone(row, done);
+    },
+    canToggleTaskRow: canUpdateTaskManagerRowStatus,
+    onToggleTaskRow: toggleTaskManagerRowDone,
     isLinkedStandaloneTask,
     matchesTaskFilters,
     getCategoryBgColor,
@@ -11809,6 +12559,12 @@ function createDetailedDayCell(cellDate, key, inCurrentMonth, peopleMap, laneMap
     setSelectedDateKey: (value) => { selectedDateKey = String(value || ""); },
     renderCalendar,
     renderSelectedDayPanel,
+    openWorkingTasksForDate: (dateKey) => {
+      selectedDateKey = String(dateKey || selectedDateKey || todayKey);
+      taskManagerView = "working";
+      taskManagerStatusFilter = "all";
+      setMainPanel("tasks");
+    },
     onDaySelected: (key) => {
       if (!isMobileViewport()) return;
       openMobileDayPanel();
@@ -11823,6 +12579,19 @@ function createDetailedDayCell(cellDate, key, inCurrentMonth, peopleMap, laneMap
     taskTitleInput,
     openCompensationMenu,
     todayKey,
+    workingTaskLabel: t("taskManagerWorking"),
+    tasksLabel: t("taskManager"),
+    complexTaskLabel: t("taskManagerComplexTask"),
+    complexTasksLabel: t("taskManagerComplexTasks"),
+    completedComplexTaskLabel: t("taskManagerCompletedComplexTask"),
+    datedTasksLabel: t("taskSummaryDated"),
+    completedWorkLabel: t("taskSummaryCompletedWork"),
+    overdueTaskLabel: t("taskSummaryOverdue"),
+    activeTaskLabel: t("taskSummaryActive"),
+    completedTaskLabel: t("taskManagerCompleted"),
+    taskSummaryTitle: t("taskSummaryTitle"),
+    openTasksLabel: t("taskSummaryOpen"),
+    closeLabel: t("close"),
     selectedDateKey,
     categories
   });
@@ -11846,6 +12615,7 @@ function renderSelectedDayPanel() {
     matchesAbsenceFilters,
     isTaskViewEnabled,
     getStandaloneTasksForDate,
+    getComplexTasksForDate,
     isLinkedStandaloneTask,
     matchesTaskFilters,
     renderEventRow,
@@ -12040,6 +12810,27 @@ function syncDayTimelinePanelHeight() {
   dayTimelinePanel.style.removeProperty("--day-timeline-height");
 }
 
+function updateDayTimelineCollapseUI() {
+  if (!toggleDayTimelineBtn) return;
+  const label = t(dayTimelineCollapsed ? "timelineExpand" : "timelineCollapse");
+  toggleDayTimelineBtn.textContent = dayTimelineCollapsed ? "⌄" : "⌃";
+  toggleDayTimelineBtn.title = label;
+  toggleDayTimelineBtn.setAttribute("aria-label", label);
+  toggleDayTimelineBtn.setAttribute("aria-expanded", dayTimelineCollapsed ? "false" : "true");
+}
+
+function setDayTimelineCollapsed(next) {
+  dayTimelineCollapsed = Boolean(next);
+  if (dayTimelinePanel) dayTimelinePanel.classList.toggle("collapsed", dayTimelineCollapsed);
+  if (dayTimelineContent) dayTimelineContent.setAttribute("aria-hidden", dayTimelineCollapsed ? "true" : "false");
+  try {
+    localStorage.setItem(DAY_TIMELINE_COLLAPSED_KEY, dayTimelineCollapsed ? "1" : "0");
+  } catch {}
+  updateDayTimelineCollapseUI();
+  syncDayTimelinePanelHeight();
+  syncSidePanelHeights();
+}
+
 function syncSidePanelHeights() {
   const isMobile = typeof isMobileViewport === "function" && isMobileViewport();
   [dayPanelShell, upcomingPanel].forEach((panel) => {
@@ -12079,6 +12870,7 @@ function renderDayTimelinePanel() {
     documentRef: document,
     container: dayTimelineContent,
     dateLabel: dayTimelineDate,
+    summaryEl: dayTimelinePrefsSummary,
     selectedDateKey,
     todayKey: toDateKey(new Date()),
     settings: dayTimelinePrefs,
@@ -12168,6 +12960,10 @@ function renderSideDayPanel(events, dayAbsences, dayTasks) {
     formatEventTimeLabel: (evt, dateKey) => getEventTimeLabelForDate(evt, dateKey),
     getTaskAssigneeNames,
     getLinkedTaskContextLabel,
+    isTaskDone: (task) => getCurrentTaskMemberState(task).status === "done",
+    canToggleTask: canUpdateOwnTaskStatus,
+    canEditTask: canEditTaskDefinition,
+    canDeleteTask: canDeleteTaskDefinition,
     onOpenEventPreview: (evt, dateKey) => {
       openEventPreview(evt, dateKey);
     },
@@ -12186,11 +12982,13 @@ function renderSideDayPanel(events, dayAbsences, dayTasks) {
       toggleStandaloneTaskDone(dateKey, task.id, checked);
     },
     onEditStandaloneTask: (task, dateKey) => {
+      if (!canEditTaskDefinition(task)) return;
       openTaskEditDialog(task, ({ title: nextTitle, personIds, categoryId }) => {
         updateStandaloneTask(dateKey, task.id, { title: nextTitle, personIds, categoryId });
       }, { allowCategory: true });
     },
     onDeleteStandaloneTask: (task, dateKey) => {
+      if (!canDeleteTaskDefinition(task)) return;
       tasksByDate[dateKey] = (tasksByDate[dateKey] || []).filter((x) => x.id !== task.id);
       if (!tasksByDate[dateKey].length) delete tasksByDate[dateKey];
       persistState();
@@ -12335,6 +13133,10 @@ function renderEventTasksInline(container, evt, dateKeyHint) {
     markSharedOriginVisual,
     getTaskAssigneeNames,
     getLinkedTaskContextLabel,
+    isTaskDone: (task) => getCurrentTaskMemberState(task).status === "done",
+    canToggleTask: canUpdateOwnTaskStatus,
+    canEditTask: canEditTaskDefinition,
+    canDeleteTask: canDeleteTaskDefinition,
     onToggleEventTask: ({ eventId, taskId, checked }) => {
       toggleEventTaskDone(eventId, taskId, checked);
     },
@@ -12348,6 +13150,7 @@ function renderEventTasksInline(container, evt, dateKeyHint) {
       const task = entry && entry.task;
       const taskDateKey = String((entry && (entry.storageDateKey || entry.dateKey)) || "");
       if (!task || !taskDateKey) return;
+      if (!canEditTaskDefinition(task)) return;
       openTaskEditDialog(task, ({ title: nextTitle, personIds, categoryId }) => {
         updateStandaloneTask(taskDateKey, task.id, { title: nextTitle, personIds, categoryId });
       }, { allowCategory: false });
@@ -12356,6 +13159,7 @@ function renderEventTasksInline(container, evt, dateKeyHint) {
       const task = entry && entry.task;
       const taskDateKey = String((entry && (entry.storageDateKey || entry.dateKey)) || "");
       if (!task || !taskDateKey) return;
+      if (!canDeleteTaskDefinition(task)) return;
       tasksByDate[taskDateKey] = (tasksByDate[taskDateKey] || []).filter((x) => x.id !== task.id);
       if (!tasksByDate[taskDateKey].length) delete tasksByDate[taskDateKey];
       persistState();
@@ -12383,15 +13187,21 @@ function renderStandaloneTaskRow(task, dateKey) {
     markSharedOriginVisual,
     getTaskAssigneeNames,
     getLinkedTaskContextLabel,
+    isTaskDone: (task) => getCurrentTaskMemberState(task).status === "done",
+    canToggleTask: canUpdateOwnTaskStatus,
+    canEditTask: canEditTaskDefinition,
+    canDeleteTask: canDeleteTaskDefinition,
     onToggleStandaloneTask: (taskRow, taskDateKey, checked) => {
       toggleStandaloneTaskDone(taskDateKey, taskRow.id, checked);
     },
     onEditStandaloneTask: (taskRow, taskDateKey) => {
+      if (!canEditTaskDefinition(taskRow)) return;
       openTaskEditDialog(taskRow, ({ title: nextTitle, personIds, categoryId }) => {
         updateStandaloneTask(taskDateKey, taskRow.id, { title: nextTitle, personIds, categoryId });
       }, { allowCategory: true });
     },
     onDeleteStandaloneTask: (taskRow, taskDateKey) => {
+      if (!canDeleteTaskDefinition(taskRow)) return;
       tasksByDate[taskDateKey] = (tasksByDate[taskDateKey] || []).filter((x) => x.id !== taskRow.id);
       if (!tasksByDate[taskDateKey].length) delete tasksByDate[taskDateKey];
       persistState();
@@ -12406,11 +13216,17 @@ function renderStandaloneTaskRow(task, dateKey) {
 function toggleStandaloneTaskDone(dateKey, taskId, done) {
   const mod = window.ProCalModules && window.ProCalModules.taskMutations;
   if (!mod || typeof mod.toggleStandaloneTaskDone !== "function") return;
-  mod.toggleStandaloneTaskDone({
+  const task = (tasksByDate[dateKey] || []).find((row) => String((row && row.id) || "") === String(taskId || ""));
+  const sharedOverlay = Boolean(task && isSharedStandaloneTaskInPersonalMode(task));
+  const changed = mod.toggleStandaloneTaskDone({
     tasksByDate,
     dateKey,
     taskId,
     done,
+    todayKey,
+    currentUserIdentityIds: getTaskManagerIdentityIds(),
+    getTaskMemberState,
+    setTaskMemberState,
     persistState,
     renderStandaloneTaskList,
     renderSelectedDayPanel,
@@ -12422,15 +13238,76 @@ function toggleStandaloneTaskDone(dateKey, taskId, done) {
 function toggleEventTaskDone(seriesId, taskId, done) {
   const mod = window.ProCalModules && window.ProCalModules.taskMutations;
   if (!mod || typeof mod.toggleEventTaskDone !== "function") return;
-  mod.toggleEventTaskDone({
+  const baseEvent = findBaseEventById(seriesId);
+  const task = baseEvent && Array.isArray(baseEvent.tasks)
+    ? baseEvent.tasks.find((row) => String((row && row.id) || "") === String(taskId || ""))
+    : null;
+  const sharedOverlay = Boolean(baseEvent && isSharedEventReadOnlyInPersonalMode(baseEvent));
+  const changed = mod.toggleEventTaskDone({
     seriesId,
     taskId,
     done,
+    todayKey,
+    currentUserIdentityIds: getTaskManagerIdentityIds(),
+    getTaskMemberState,
+    setTaskMemberState,
     findBaseEventById,
-    persistState,
+    persistState: sharedOverlay ? (() => {}) : persistState,
     renderSelectedDayPanel,
     renderUpcomingList
   });
+  if (changed && sharedOverlay && task) void saveSharedOverlayTaskState(task, String((baseEvent && baseEvent.id) || seriesId || ""));
+}
+
+function saveSharedOverlayTaskState(task, eventId) {
+  if (!task || !window.dataProvider || typeof window.dataProvider.loadSharedState !== "function" || typeof window.dataProvider.saveSharedState !== "function") return false;
+  const snapshot = {
+    id: String(task.id || ""),
+    eventId: String(eventId || ""),
+    memberStates: task.memberStates && typeof task.memberStates === "object"
+      ? JSON.parse(JSON.stringify(task.memberStates))
+      : {},
+    done: Boolean(task.done),
+    workStartedOn: String(task.workStartedOn || ""),
+    workCompletedOn: String(task.workCompletedOn || "")
+  };
+  sharedOverlaySavePending += 1;
+  const operation = sharedOverlaySaveQueue
+    .catch(() => false)
+    .then(async () => {
+      try {
+        const envelope = await window.dataProvider.loadSharedState();
+        const sharedState = envelope && envelope.state && typeof envelope.state === "object" ? envelope.state : null;
+        if (!sharedState) return false;
+        let target = null;
+        if (snapshot.eventId) {
+          Object.values(sharedState.events || {}).some((list) => (Array.isArray(list) ? list : []).some((event) => {
+            if (String((event && event.id) || "") !== snapshot.eventId) return false;
+            target = (Array.isArray(event.tasks) ? event.tasks : []).find((row) => String((row && row.id) || "") === snapshot.id) || null;
+            return Boolean(target);
+          }));
+        } else {
+          Object.values(sharedState.tasks || {}).some((list) => {
+            target = (Array.isArray(list) ? list : []).find((row) => String((row && row.id) || "") === snapshot.id) || null;
+            return Boolean(target);
+          });
+        }
+        if (!target) return false;
+        target.memberStates = snapshot.memberStates;
+        target.done = snapshot.done;
+        target.workStartedOn = snapshot.workStartedOn;
+        target.workCompletedOn = snapshot.workCompletedOn;
+        await window.dataProvider.saveSharedState(sharedState, new Date().toISOString());
+        return true;
+      } catch {
+        return false;
+      }
+    });
+  sharedOverlaySaveQueue = operation.finally(() => {
+    sharedOverlaySavePending = Math.max(0, sharedOverlaySavePending - 1);
+    if (sharedOverlaySavePending === 0) queueRealtimeSync();
+  });
+  return operation;
 }
 
 function updateEventTask(seriesId, taskId, patch) {
@@ -12442,11 +13319,13 @@ function updateEventTask(seriesId, taskId, patch) {
     patch,
     findBaseEventById,
     normalizeTaskAssigneeIds,
-    persistState,
+    createInitialTaskMemberStates,
+    persistState: sharedOverlay ? (() => {}) : persistState,
     renderSelectedDayPanel,
     renderUpcomingList,
     renderCalendar
   });
+  if (changed && sharedOverlay && task) void saveSharedOverlayTaskState(task, "");
 }
 
 function updateStandaloneTask(dateKey, taskId, patch) {
@@ -12463,6 +13342,7 @@ function updateStandaloneTask(dateKey, taskId, patch) {
     getTaskCollabMembers,
     isCollaborativePersonalTaskOwner,
     currentUserId,
+    createInitialTaskMemberStates,
     categories,
     persistState,
     isPersonalCalendarMode,
@@ -12483,6 +13363,10 @@ function openTaskEditDialog(task, onSave, options) {
     task,
     onSave,
     allowCategory: Boolean(options && options.allowCategory),
+    allowWorkFields: Boolean(options && options.allowWorkFields),
+    hidePeople: Boolean(options && options.hidePeople),
+    lockDefinition: Boolean(options && options.lockDefinition),
+    todayKey,
     dialogTitleText: options && options.dialogTitleText,
     t,
     currentUserId,
@@ -12507,6 +13391,8 @@ function addEventTaskToSeries(seriesId, titleValue, personIdsValue) {
     people,
     findBaseEventById,
     createTaskId,
+    createInitialTaskMemberStates,
+    currentUserId,
     persistState,
     renderSelectedDayPanel,
     renderUpcomingList,
@@ -12536,6 +13422,41 @@ function getTaskAssigneeNames(task) {
   const taskAssignees = window.ProCalModules && window.ProCalModules.taskAssignees;
   if (!taskAssignees || typeof taskAssignees.getTaskAssigneeNames !== "function") return [];
   return taskAssignees.getTaskAssigneeNames(task, getOperationalPeople(), filterPeopleIds);
+}
+
+function getTaskMemberState(task, personIds) {
+  const taskAssignees = window.ProCalModules && window.ProCalModules.taskAssignees;
+  if (!taskAssignees || typeof taskAssignees.getTaskMemberState !== "function") {
+    return {
+      status: Boolean(task && task.done) ? "done" : (task && task.workStartedOn ? "in_progress" : "open"),
+      startedOn: String((task && task.workStartedOn) || ""),
+      completedOn: String((task && task.workCompletedOn) || "")
+    };
+  }
+  return taskAssignees.getTaskMemberState(task, personIds, filterPeopleIds);
+}
+
+function setTaskMemberState(task, personIds, nextState) {
+  const taskAssignees = window.ProCalModules && window.ProCalModules.taskAssignees;
+  if (!taskAssignees || typeof taskAssignees.setTaskMemberState !== "function") return false;
+  return taskAssignees.setTaskMemberState(task, personIds, nextState, filterPeopleIds);
+}
+
+function createInitialTaskMemberStates(personIds, initialState) {
+  const state = initialState && typeof initialState === "object" ? initialState : {};
+  const status = state.status === "done" || state.status === "in_progress" ? state.status : "open";
+  return normalizeTaskAssigneeIds(personIds).reduce((out, id) => {
+    out[String(id)] = {
+      status,
+      startedOn: isDateKey(String(state.startedOn || "")) ? String(state.startedOn) : "",
+      completedOn: isDateKey(String(state.completedOn || "")) ? String(state.completedOn) : ""
+    };
+    return out;
+  }, {});
+}
+
+function getCurrentTaskMemberState(task) {
+  return getTaskMemberState(task, getTaskManagerIdentityIds());
 }
 
 function getSelectedPersonIds(sourceEl) {
@@ -12642,12 +13563,18 @@ function renderStandaloneTaskList(dateKey) {
     toggleStandaloneTaskDone,
     getTaskAssigneeNames,
     getLinkedTaskContextLabel,
+    isTaskDone: (task) => getCurrentTaskMemberState(task).status === "done",
+    canToggleTask: canUpdateOwnTaskStatus,
+    canEditTask: canEditTaskDefinition,
+    canDeleteTask: canDeleteTaskDefinition,
     onEditTask: (task, taskDateKey) => {
+      if (!canEditTaskDefinition(task)) return;
       openTaskEditDialog(task, ({ title: nextTitle, personIds, categoryId }) => {
         updateStandaloneTask(taskDateKey, task.id, { title: nextTitle, personIds, categoryId });
       }, { allowCategory: true });
     },
     onDeleteTask: (task, taskDateKey) => {
+      if (!canDeleteTaskDefinition(task)) return;
       tasksByDate[taskDateKey] = (tasksByDate[taskDateKey] || []).filter((x) => x.id !== task.id);
       if (!tasksByDate[taskDateKey].length) delete tasksByDate[taskDateKey];
       persistState();
@@ -12914,44 +13841,120 @@ function openCompensationMenu(prefDate) {
   });
 }
 
-function renderReportResults() {
-  const mod = window.ProCalModules && window.ProCalModules.reportsResults;
-  if (!mod || typeof mod.renderResults !== "function") return;
-  mod.renderResults({
-    documentRef: document,
-    reportPerson,
-    reportStart,
-    reportEnd,
-    reportResults,
-    canReadAllReports,
-    currentUserId,
-    isDateKey,
-    parseDateKey,
-    rangesOverlap,
-    t,
-    absences,
-    getEventsInRange,
-    taskHasAssignee,
-    addDaysToKey,
-    tasksByDate,
-    people: getOperationalPeople(),
-    getCurrentUserIdentityIds,
-    locale: getLocale()
+function getSelectedReportPerson(roster) {
+  const peopleList = Array.isArray(roster) ? roster : getOperationalPeople();
+  const selectedId = String((reportPerson && reportPerson.value) || "");
+  return peopleList.find((person) => (
+    String((person && person.id) || "") === selectedId
+    || String((person && person.userId) || "") === selectedId
+  )) || null;
+}
+
+function getSelectedReportUserId(roster) {
+  const person = getSelectedReportPerson(roster);
+  return String((person && (person.userId || person.id)) || currentUserId || "");
+}
+
+function getSelectedReportIdentityIds(roster) {
+  const person = getSelectedReportPerson(roster);
+  const ids = new Set();
+  const selectedId = String((reportPerson && reportPerson.value) || "");
+  if (selectedId) ids.add(selectedId);
+  if (person && person.id) ids.add(String(person.id));
+  if (person && person.userId) ids.add(String(person.userId));
+  return Array.from(ids);
+}
+
+function getReportEventsInRange(reportState, startDate, endDate) {
+  const eventQuery = window.ProCalModules && window.ProCalModules.eventQuery;
+  if (!eventQuery || typeof eventQuery.getEventsInRange !== "function") return [];
+  const reportEvents = reportState && reportState.events && typeof reportState.events === "object"
+    ? reportState.events
+    : {};
+  return eventQuery.getEventsInRange(startDate, endDate, {
+    eventsByDate: reportEvents,
+    expandEventOccurrences
   });
 }
-function saveReportAsPdf() {
+
+function renderReportStatusMessage(message, isError) {
+  if (!reportResults) return;
+  const row = document.createElement("li");
+  row.className = isError ? "empty error-text" : "empty";
+  row.textContent = String(message || "");
+  reportResults.replaceChildren(row);
+}
+
+async function renderReportResults() {
+  const mod = window.ProCalModules && window.ProCalModules.reportsResults;
+  if (!mod || typeof mod.renderResults !== "function") return false;
+  if (!window.dataProvider || typeof window.dataProvider.loadReportState !== "function") {
+    renderReportStatusMessage(t("reportsLoadFailed"), true);
+    return false;
+  }
+  const requestId = ++reportRenderRequestId;
+  latestReportContext = null;
+  renderReportStatusMessage(t("reportsLoading"), false);
+  const directoryPeople = getOperationalPeople();
+  const targetUserId = getSelectedReportUserId(directoryPeople);
+  if (!targetUserId) {
+    renderReportStatusMessage(t("reportsLoadFailed"), true);
+    return false;
+  }
+  try {
+    const envelope = await window.dataProvider.loadReportState(targetUserId);
+    if (requestId !== reportRenderRequestId) return false;
+    const reportState = sanitizeState(envelope && envelope.state ? envelope.state : {});
+    const reportPeople = reportState.people.length ? reportState.people : directoryPeople;
+    const reportPersonIdentityIds = getSelectedReportIdentityIds(reportPeople);
+    latestReportContext = { targetUserId, reportState, reportPeople, reportPersonIdentityIds };
+    mod.renderResults({
+      documentRef: document,
+      reportPerson,
+      reportStart,
+      reportEnd,
+      reportResults,
+      canReadAllReports,
+      currentUserId,
+      isDateKey,
+      parseDateKey,
+      rangesOverlap,
+      t,
+      reportState,
+      absences: reportState.absences,
+      getEventsInRange: (startDate, endDate) => getReportEventsInRange(reportState, startDate, endDate),
+      taskHasAssignee,
+      getTaskMemberState,
+      addDaysToKey,
+      tasksByDate: reportState.tasks,
+      people: reportPeople,
+      reportPersonIdentityIds,
+      getCurrentUserIdentityIds,
+      locale: getLocale()
+    });
+    return true;
+  } catch (error) {
+    if (requestId !== reportRenderRequestId) return false;
+    console.warn("[ProCal] report context load failed", error);
+    renderReportStatusMessage(t("reportsLoadFailed"), true);
+    return false;
+  }
+}
+async function saveReportAsPdf() {
   const mod = window.ProCalModules && window.ProCalModules.reportsResults;
   if (!mod || typeof mod.saveAsPdf !== "function") return;
+  const rendered = await renderReportResults();
+  if (!rendered || !latestReportContext) return;
   mod.saveAsPdf({
     windowRef: window,
     reportResults,
-    renderReportResults,
     reportPerson,
     reportStart,
     reportEnd,
     canReadAllReports,
     currentUserId,
-    people: getOperationalPeople(),
+    people: latestReportContext.reportPeople,
+    reportPersonIdentityIds: latestReportContext.reportPersonIdentityIds,
     getCurrentUserIdentityIds,
     t,
     escapeHtml
@@ -13292,6 +14295,7 @@ function switchCalendarMode(mode) {
 
   currentCalendarMode = nextMode;
   remoteStateBootstrapped = false;
+  lastBootstrapSignatureByMode[currentCalendarMode] = "";
   localStorage.setItem(CALENDAR_MODE_KEY, currentCalendarMode);
   if (window.dataProvider && typeof window.dataProvider.setCalendarMode === "function") {
     window.dataProvider.setCalendarMode(currentCalendarMode);
@@ -13923,6 +14927,7 @@ window.addEventListener("beforeunload", () => {
 });
 function bootstrapRemoteState() {
   if (remoteStateLoading) return;
+  if (sharedOverlaySavePending > 0) return;
   if (!window.dataProvider || typeof window.dataProvider.loadState !== "function") return;
 
   remoteStateLoading = true;
@@ -13942,9 +14947,9 @@ function bootstrapRemoteState() {
       const remoteState = remoteEnvelope.state && typeof remoteEnvelope.state === "object"
         ? remoteEnvelope.state
         : remoteEnvelope;
-      const cleaned = sanitizeState(remoteState || {});
 
       if (!isPersonalCalendarMode() || !sharedEnvelope || typeof sharedEnvelope !== "object") {
+        const cleaned = sanitizeState(remoteState || {});
         personalSharedOverlayEventIds = new Set();
         personalSharedOverlayTaskIds = new Set();
         if (envelopeSignature) lastBootstrapSignatureByMode[currentMode] = envelopeSignature;
@@ -13956,6 +14961,12 @@ function bootstrapRemoteState() {
         ? sharedEnvelope.state
         : sharedEnvelope;
       const sharedCleaned = sanitizeState(sharedStateRaw || {});
+      const personalWithSharedDirectory = {
+        ...(remoteState || {}),
+        people: mergePeopleForPersonalOverlay(remoteState && remoteState.people, sharedStateRaw && sharedStateRaw.people),
+        categories: mergeCategoriesForPersonalOverlay(remoteState && remoteState.categories, sharedStateRaw && sharedStateRaw.categories)
+      };
+      const cleaned = sanitizeState(personalWithSharedDirectory);
       personalSharedOverlayEventIds = collectBaseEventIds(sharedCleaned.events);
       personalSharedOverlayTaskIds = collectStandaloneTaskIds(sharedCleaned.tasks);
       const mergedPersonal = sanitizeState(mergePersonalStateWithShared(cleaned, sharedCleaned));
@@ -14150,6 +15161,7 @@ function createLinkedStandaloneTaskForEvent(evt, dateKeyHint, payload) {
     people,
     tasksByDate,
     createTaskId,
+    createInitialTaskMemberStates,
     currentUserId,
     getEventBaseId,
     persistState,
@@ -14304,6 +15316,7 @@ function sanitizeEvents(value, knownPeople, safeCategories) {
   const out = {};
   if (!value || typeof value !== "object" || Array.isArray(value)) return out;
   const knownCategories = new Set((safeCategories || []).map((cat) => cat.id));
+  const fallbackCategoryId = String((safeCategories && safeCategories[0] && safeCategories[0].id) || "");
   const timeMeta = window.ProCalModules && window.ProCalModules.eventTimeMeta;
 
   Object.entries(value).forEach(([dateKey, list]) => {
@@ -14777,7 +15790,8 @@ function collectUpcomingRows(limit) {
     tasksByDate,
     isDateKey,
     isLinkedStandaloneTask,
-    getTaskAssigneeIds
+    getTaskAssigneeIds,
+    isTaskDone: (task) => getCurrentTaskMemberState(task).status === "done"
   });
 }
 
