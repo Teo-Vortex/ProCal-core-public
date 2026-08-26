@@ -7,6 +7,7 @@ export type RuntimeConfig = {
   setupPath: string;
   accessTokenTtlSec: number;
   refreshTokenTtlSec: number;
+  mobileRefreshTokenTtlSec: number;
   webhookUrl?: string;
   instanceSlug?: string;
   mobileAppDownloadUrl?: string;
@@ -25,6 +26,7 @@ export function getRuntimeConfig(): RuntimeConfig {
     setupPath: "/setup",
     accessTokenTtlSec: Number(process.env.ACCESS_TTL_SEC || 900),
     refreshTokenTtlSec: Number(process.env.REFRESH_TTL_SEC || 1209600),
+    mobileRefreshTokenTtlSec: Number(process.env.MOBILE_REFRESH_TTL_SEC || 31536000),
     webhookUrl: process.env.HA_WEBHOOK_URL || undefined,
     instanceSlug: process.env.INSTANCE_SLUG || undefined,
     mobileAppDownloadUrl: process.env.MOBILE_APP_DOWNLOAD_URL || "https://github.com/Teo-Vortex/ProCal-core-public/releases/latest",

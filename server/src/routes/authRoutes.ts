@@ -28,6 +28,17 @@ function isInternalAutoLoginEnabled(): boolean {
   return isTruthy(process.env.PROCAL_INTERNAL_AUTO_LOGIN);
 }
 
+function isAndroidShellRequest(req: any): boolean {
+  return /\bProCalAndroidShell\/[\w.-]+/i.test(String(req.header("user-agent") || ""));
+}
+
+function resolveRefreshTokenTtlSec(req: any): number {
+  const runtime = getRuntimeConfig();
+  return isAndroidShellRequest(req)
+    ? runtime.mobileRefreshTokenTtlSec
+    : runtime.refreshTokenTtlSec;
+}
+
 function resolveInternalAutoLoginUsername(): string {
   const username = String(
     process.env.PROCAL_INTERNAL_ADMIN_USERNAME || process.env.FIRST_ADMIN_USERNAME || "admin"
@@ -67,10 +78,11 @@ async function respondWithSession(
   auditMeta?: Record<string, unknown>
 ) {
   const runtime = getRuntimeConfig();
+  const refreshTokenTtlSec = resolveRefreshTokenTtlSec(req);
   const accessToken = signAccessToken({ userId: user.id, role: user.role }, runtime.accessTokenTtlSec);
-  const refreshToken = await issueRefreshToken(user.id, runtime.refreshTokenTtlSec);
+  const refreshToken = await issueRefreshToken(user.id, refreshTokenTtlSec);
 
-  setRefreshCookie(req, res, refreshToken, runtime.refreshTokenTtlSec);
+  setRefreshCookie(req, res, refreshToken, refreshTokenTtlSec);
 
   await writeAudit(user.id, auditAction, "auth", user.id, auditMeta);
   res.json({
@@ -227,7 +239,8 @@ authRouter.post("/api/auth/refresh", async (req, res) => {
   }
 
   const runtime = getRuntimeConfig();
-  const rotation = await rotateRefreshToken(token, runtime.refreshTokenTtlSec);
+  const refreshTokenTtlSec = resolveRefreshTokenTtlSec(req);
+  const rotation = await rotateRefreshToken(token, refreshTokenTtlSec);
   if (rotation.status !== "ok") {
     res.clearCookie(getRefreshCookieName(), { path: buildCookiePath(req, "/api/auth") });
     if (rotation.status === "reused") {
@@ -247,7 +260,7 @@ authRouter.post("/api/auth/refresh", async (req, res) => {
   }
 
   const accessToken = signAccessToken({ userId: user.id, role: user.role }, runtime.accessTokenTtlSec);
-  setRefreshCookie(req, res, rotation.refreshToken, runtime.refreshTokenTtlSec);
+  setRefreshCookie(req, res, rotation.refreshToken, refreshTokenTtlSec);
   await writeAudit(user.id, "token.refresh", "auth", user.id);
   res.json({ accessToken });
 });
