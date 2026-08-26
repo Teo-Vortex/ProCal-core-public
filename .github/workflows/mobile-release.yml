@@ -43,16 +43,21 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          RELEASE_TYPE_ARGS=(--latest)
+          if [[ "$RELEASE_TAG" == *-* ]]; then
+            RELEASE_TYPE_ARGS=(--prerelease)
+          fi
+
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release edit "$RELEASE_TAG" \
               --title "ProCal Core Public $RELEASE_TAG" \
               --notes-file release-assets/RELEASE_NOTES.md \
-              --latest
+              "${RELEASE_TYPE_ARGS[@]}"
           else
             gh release create "$RELEASE_TAG" \
               --title "ProCal Core Public $RELEASE_TAG" \
               --notes-file release-assets/RELEASE_NOTES.md \
-              --latest
+              "${RELEASE_TYPE_ARGS[@]}"
           fi
 
           gh release upload "$RELEASE_TAG" \
