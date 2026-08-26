@@ -1,6 +1,6 @@
 {
   "name": "procal-core-server",
-  "version": "0.9.9",
+  "version": "0.10.1",
   "private": true,
   "type": "commonjs",
   "scripts": {

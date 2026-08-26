@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ProCal - User Guide (v0.9.9)</title>
+  <title>ProCal - User Guide (v0.10.1)</title>
   <style>
     :root {
       --bg: #eef3ef;
@@ -110,9 +110,9 @@
       <h1>ProCal - User Guide</h1>
       <p>Updated guide for self-hosted ProCal Core, including daily work, modules, the Android app, and administration.</p>
       <div class="meta">
-        <span class="chip">Version: 0.9.9</span>
+        <span class="chip">Version: 0.10.1</span>
         <span class="chip">Language: EN</span>
-        <span class="chip">Reviewed: 2026-08-25</span>
+        <span class="chip">Reviewed: 2026-08-26</span>
         <span class="chip">Coverage: Core + Android + local admin panel</span>
       </div>
     </header>
@@ -128,27 +128,35 @@
         <a href="USER_GUIDE_EN.html#notes">6. Notes</a>
         <a href="USER_GUIDE_EN.html#files">7. Files</a>
         <a href="USER_GUIDE_EN.html#chat">8. Chat and notifications</a>
-        <a href="USER_GUIDE_EN.html#leave">9. Leave and absences</a>
-        <a href="USER_GUIDE_EN.html#attendance">10. Attendance</a>
-        <a href="USER_GUIDE_EN.html#inventory">11. Inventory</a>
-        <a href="USER_GUIDE_EN.html#mobile">12. Mobile app</a>
-        <a href="USER_GUIDE_EN.html#profile">13. Profile and password</a>
-        <a href="USER_GUIDE_EN.html#admin">14. Admin panel</a>
-        <a href="USER_GUIDE_EN.html#support">15. Updates, backups, and support</a>
+        <a href="USER_GUIDE_EN.html#reports">9. Reports and compensations</a>
+        <a href="USER_GUIDE_EN.html#leave">10. Leave and absences</a>
+        <a href="USER_GUIDE_EN.html#attendance">11. Attendance</a>
+        <a href="USER_GUIDE_EN.html#inventory">12. Inventory</a>
+        <a href="USER_GUIDE_EN.html#media">13. Media monitoring</a>
+        <a href="USER_GUIDE_EN.html#mobile">14. Mobile app</a>
+        <a href="USER_GUIDE_EN.html#profile">15. Profile and password</a>
+        <a href="USER_GUIDE_EN.html#admin">16. Admin panel</a>
+        <a href="USER_GUIDE_EN.html#support">17. Updates, backups, and support</a>
       </nav>
 
       <main class="content">
         <section id="access">
           <h2>1. Access and sign-in</h2>
+          <h3>Initial setup by the installation owner</h3>
           <ol>
             <li>Open the ProCal Core address provided by the installation owner, for example <code>http://server-ip:8080</code>.</li>
             <li>On a new installation, open <code>/setup</code>. Enter the <b>setup token</b> stored as <code>PROCAL_SELF_SETUP_TOKEN</code> in the local <code>.env</code> file.</li>
             <li>The first account requires a username and a password of at least 8 characters. Nickname, full name, workplace, and job title are optional.</li>
             <li>The first account is always created as <code>system_admin</code>; the setup screen does not offer a role selector.</li>
             <li>If setup displays a service token after account creation, store it securely at once: it is shown only once and is not the sign-in password.</li>
-            <li>After setup, users sign in with local username and password at the ProCal Core login page.</li>
-            <li>New users can use <b>Create account</b> on the login page. Their account remains pending until an admin approves it.</li>
-            <li>Admins approve, suspend, reset, or remove users from <b>Admin panel</b> &gt; <b>Personnel</b>.</li>
+          </ol>
+          <h3>Registering a colleague</h3>
+          <ol>
+            <li>The colleague opens the Core address and presses <b>Create account</b>.</li>
+            <li>They enter a username, nickname, full name, workplace, job title, password, and password confirmation.</li>
+            <li>After <b>Register</b>, the account remains <b>pending</b> and cannot sign in yet.</li>
+            <li>An administrator opens <b>Admin panel</b> &gt; <b>Personnel</b>, selects a role, and presses <b>Approve</b>. The same screen can suspend accounts, reset passwords, and assign individual permission overrides.</li>
+            <li>After approval, the colleague signs in with their username and password. On first sign-in, they complete any requested profile details.</li>
           </ol>
           <div class="hint warn">The setup token and passwords in <code>.env</code> are secrets for that installation. Do not publish them in GitHub, screenshots, chat, or bug reports. If ProCal is behind a reverse proxy or domain, configure the proxy, HTTPS, and allowed origins before inviting users.</div>
         </section>
@@ -187,7 +195,7 @@
             <li><b>Open admin panel</b> - visible only when the role allows it.</li>
             <li><b>Logout</b> - signs out of the realm.</li>
           </ul>
-          <p>Additional modules such as <b>Media</b>, <b>Reports</b>, <b>Leave</b>, and others are shown depending on role and permissions.</p>
+          <p><b>Quick actions</b> can show <b>Media</b>, <b>Reports</b>, <b>Leave</b>, <b>Attendance</b>, <b>Inventory</b>, <b>Compensations</b>, and <b>Files</b>, depending on the role. A missing button usually means that the module or the required permission is not enabled for the current user.</p>
         </section>
 
         <section id="calendar">
@@ -216,6 +224,12 @@
         <section id="events">
           <h2>5. Events and tasks</h2>
           <h3>Events</h3>
+          <ol>
+            <li>Select a day and use <b>Add event</b>, or open <b>Events</b> mode to search and manage the event register.</li>
+            <li>Enter a title, date, start and end time, or enable <b>All day</b>. Add a category, recurrence, participants, and description when needed.</li>
+            <li>Use the <b>Reminders</b> tab to enable reminders and select their timing and recipients. Use <b>Files</b> to attach event files.</li>
+            <li>Save the event. It appears in the calendar and in <b>Next 10 entries</b>; pressing it opens the full preview.</li>
+          </ol>
           <ul>
             <li>Events can have a time, be all-day, span multiple days, or repeat. The event preview also shows its date and time.</li>
             <li>The <b>Reminders</b> tab enables reminders and controls when and to whom they are sent. A repeating event can apply reminders to every occurrence.</li>
@@ -234,6 +248,12 @@
             <li>The program opens in a new tab instead of forcing a download.</li>
           </ul>
           <h3>Tasks</h3>
+          <ol>
+            <li>For a one-time action, select a day and press <b>Add task</b>. For longer work, open <b>Tasks</b> &gt; <b>Ongoing work</b>, enter a title, start date, and category, then press <b>Start work</b>.</li>
+            <li>Select the personal or shared calendar and add the responsible people. Personal-task invitees must accept; shared-task assignments are immediate.</li>
+            <li>Finish a task with its checkbox or the <b>Complete</b> button. Ongoing work allows correction of its actual completion date and can be resumed later.</li>
+            <li>Use the shared <b>All / Active / Completed</b> filters and, when permitted, <b>Mine / All people</b>.</li>
+          </ol>
           <ul>
             <li>The <b>Tasks</b> tab has shared <b>All / Active / Completed</b> filters and two lists: <b>Ongoing work</b> and <b>Dated tasks</b>.</li>
             <li>A <b>dated task</b> is a specific action for one day. It can be completed or resumed with its checkbox and edited from the same list.</li>
@@ -252,6 +272,7 @@
           <h2>6. Notes</h2>
           <ul>
             <li>The main panel can switch to <b>Notes</b>.</li>
+            <li>Press <b>New note</b>, enter a title and content, and save. The note actions let you edit, send, share, or delete it according to your permissions.</li>
             <li>Notes support ownership, sending, and sharing.</li>
             <li>The UI distinguishes between:
               <ul>
@@ -305,8 +326,25 @@
           </ul>
         </section>
 
+        <section id="reports">
+          <h2>9. Reports and compensations</h2>
+          <h3>Reports</h3>
+          <ol>
+            <li>Open <b>Menu</b> &gt; <b>Reports</b>.</li>
+            <li>Select a person and date range. A regular user can select themselves; a user with <code>reports.read_all</code> can report on other people.</li>
+            <li>Press <b>Generate report</b>, review the result, and use <b>Save PDF</b>.</li>
+          </ol>
+          <p>The report uses the records that belong to the selected person's personal calendar: their private entries, shared events and tasks in which they participate, absences, and ongoing work. Completed tasks use a status marker instead of strikethrough text.</p>
+          <h3>Compensations</h3>
+          <ul>
+            <li><b>Compensations</b> shows the personal balance and, with additional permission, the team overview.</li>
+            <li>A user with <code>comp.manage</code> can add overtime or absence for a selected person and date, enter a duration and reason, and make a separate adjustment.</li>
+            <li>The ledger preserves balance movements; adjustments should not be used to hide the original records.</li>
+          </ul>
+        </section>
+
         <section id="leave">
-          <h2>9. Leave and absences</h2>
+          <h2>10. Leave and absences</h2>
           <ul>
             <li>The menu opens the personal leave popup for the current user.</li>
             <li>That panel shows leave balances, used days, and the personal absence calendar.</li>
@@ -316,7 +354,20 @@
         </section>
 
         <section id="attendance">
-          <h2>10. Attendance</h2>
+          <h2>11. Attendance</h2>
+          <h3>Daily check-in</h3>
+          <ol>
+            <li>Sign in with your own account. A QR/NFC entry is always recorded for the currently signed-in person.</li>
+            <li>On arrival, open the Android app and hold the phone near the NFC tag, or press the global QR button and scan the station code. You can also open <b>Attendance</b> and use the permitted manual action.</li>
+            <li>On departure, scan the same station again. The screen shows the last status, time, and station.</li>
+            <li>Review your history in the module or open a selected calendar day &gt; <b>Attendance</b>.</li>
+          </ol>
+          <h3>Preparing a QR/NFC station</h3>
+          <ol>
+            <li>An administrator with <code>attendance.manage</code> opens <b>Attendance</b>, enters a name and location, and presses <b>Create station</b>.</li>
+            <li>Use <b>Download QR</b> to print the code. For NFC, press <b>Copy</b> and write the complete <code>procal://attendance/...</code> payload as an NDEF URI or UTF-8 Text record with an NFC-writing app. ProCal Android reads tags but does not program them.</li>
+            <li>The open action shows the same active code. Use <b>Create new code</b> only for a lost or compromised QR/NFC tag because it immediately invalidates the old one.</li>
+          </ol>
           <ul>
             <li>Open <b>Attendance</b> from the main menu to record check-in and check-out and review your personal workday log.</li>
             <li>A scan records attendance for the user currently signed in to ProCal. An unauthenticated visitor cannot create an entry.</li>
@@ -329,7 +380,21 @@
         </section>
 
         <section id="inventory">
-          <h2>11. Inventory</h2>
+          <h2>12. Inventory</h2>
+          <h3>Initial preparation</h3>
+          <ol>
+            <li>An administrator assigns inventory permissions under <b>Admin panel</b> &gt; <b>Roles</b>. A user without <code>inventory.read</code> cannot see the module.</li>
+            <li>Open <b>Inventory</b> &gt; <b>Locations</b> and create the real warehouses, rooms, or zones.</li>
+            <li>Press <b>New item</b> and enter a name, unique SKU, unit, category, initial location, and quantity. Set low-stock, critical-stock, and restock-target thresholds.</li>
+            <li>Under <b>Notifications</b>, select the global channels, additional recipients, and reminder frequency for active alerts.</li>
+          </ol>
+          <h3>Daily operations</h3>
+          <ol>
+            <li>Find an item by name/SKU or scan its QR code.</li>
+            <li>Select <b>Receive</b>, <b>Issue</b>, <b>Transfer</b>, or <b>Adjust/stocktake</b>, enter the quantity and locations, and review the summary before <b>Save movement</b>.</li>
+            <li>For a stocktake, use absolute quantity when entering the physically counted stock. A reason is required.</li>
+            <li>Use <b>Recent movements</b> to audit the ledger. If an entry is wrong, press <b>Correct</b>; ProCal adds an opposite movement and preserves the original.</li>
+          </ol>
           <ul>
             <li>The <b>Inventory</b> module shows the item catalog, total stock, and stock by storage location.</li>
             <li>Each item has a unique SKU/code, unit, category, and its own low and critical stock thresholds.</li>
@@ -343,8 +408,19 @@
           </ul>
         </section>
 
+        <section id="media">
+          <h2>13. Media monitoring</h2>
+          <ul>
+            <li>The module is visible with <code>media.read</code> and tracks your own publications and discovered online mentions.</li>
+            <li>Under <b>Our publications</b>, add a title, valid URL, and publication date.</li>
+            <li>Under <b>Discovered mentions</b>, add a title, URL, and date and optionally link it to one of your publications.</li>
+            <li>The top area shows monthly KPIs and a heatmap. Navigate with <b>Prev/Next</b> and export permitted data as CSV or JSON.</li>
+            <li>Creation, editing, deletion, and export are controlled by separate <code>media.*</code> permissions.</li>
+          </ul>
+        </section>
+
         <section id="mobile">
-          <h2>12. Mobile app</h2>
+          <h2>14. Mobile app</h2>
           <ul>
             <li>The Android app is a secured shell around the same ProCal Core interface and does not keep a separate copy of calendar data.</li>
             <li>On first launch, enter the Core address. You can save multiple servers and switch between them from server management.</li>
@@ -357,7 +433,7 @@
         </section>
 
         <section id="profile">
-          <h2>13. Profile and password</h2>
+          <h2>15. Profile and password</h2>
           <ul>
             <li>The profile dialog stores:
               <ul>
@@ -374,7 +450,7 @@
         </section>
 
         <section id="admin">
-          <h2>14. Admin panel</h2>
+          <h2>16. Admin panel</h2>
           <p>The local admin panel is the primary management surface for this self-hosted ProCal Core installation.</p>
           <ul>
             <li><b>Personnel</b> - users, approvals, roles, password resets, and permission overrides.</li>            <li><b>Roles</b>, <b>Categories</b>, <b>Holidays</b>, <b>Leave Form</b>.</li>
@@ -388,7 +464,7 @@
         </section>
 
         <section id="support">
-          <h2>15. Updates, backups, and support</h2>
+          <h2>17. Updates, backups, and support</h2>
           <ul>
             <li><b>Report bug</b> opens the configured issue URL. The public build uses GitHub Issues by default; another installation may use its own URL or a local report.</li>
             <li>For image-based installations with the updater, a system administrator can check versions and start an update from <b>Admin panel</b> &gt; <b>Updates</b>. Database and files remain in persistent Docker volumes.</li>

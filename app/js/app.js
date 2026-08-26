@@ -10,7 +10,7 @@ const DAY_TIMELINE_PREFS_KEY = "procal_day_timeline_prefs_v1";
 const DAY_TIMELINE_COLLAPSED_KEY = "procal_day_timeline_collapsed";
 const READ_ONLY = Boolean(window.PROCAL_READ_ONLY);
 const LEGACY_ABSENCE_EDIT_ENABLED = false;
-const APP_VERSION = "0.9.9";
+const APP_VERSION = "0.10.1";
 
 function normalizeReleaseChannel(value) {
   const raw = String(value || "").trim().toLowerCase();

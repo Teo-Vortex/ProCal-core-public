@@ -30,7 +30,7 @@ if (-not (Test-Path $envPath)) {
 PROCAL_SELF_BIND_IP=$BindIp
 PROCAL_SELF_PORT=$Port
 PROCAL_SELF_TRUST_PROXY=0
-PROCAL_SELF_APP_VERSION=0.9.9-community
+PROCAL_SELF_APP_VERSION=0.10.1-community
 PROCAL_SELF_SETUP_TOKEN=$setupToken
 TZ=Europe/Sofia
 

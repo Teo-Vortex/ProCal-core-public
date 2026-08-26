@@ -56,6 +56,6 @@ jobs:
           fi
 
           gh release upload "$RELEASE_TAG" \
-            release-assets/ProCal-Android-v0.9.9.apk \
+            release-assets/*.apk \
             release-assets/SHA256SUMS.txt \
             --clobber

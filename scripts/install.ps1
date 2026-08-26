@@ -182,7 +182,7 @@ function Write-InstallEnv {
 PROCAL_SELF_BIND_IP=$InstallBindIp
 PROCAL_SELF_PORT=$InstallPort
 PROCAL_SELF_TRUST_PROXY=0
-PROCAL_SELF_APP_VERSION=0.9.9-community
+PROCAL_SELF_APP_VERSION=0.10.1-community
 PROCAL_SELF_SETUP_TOKEN=$(New-HexSecret)
 PROCAL_CORE_IMAGE=$InstallImage
 PROCAL_UPDATER_IMAGE=ghcr.io/teo-vortex/procal-core-updater:latest
@@ -204,7 +204,7 @@ PROCAL_SELF_DB_PASSWORD=$(New-HexSecret)
   Set-EnvLine -Name "PROCAL_SELF_BIND_IP" -Value $InstallBindIp
   Set-EnvLine -Name "PROCAL_SELF_PORT" -Value ([string]$InstallPort)
   Set-EnvLine -Name "PROCAL_SELF_TRUST_PROXY" -Value (Get-EnvValue -Name "PROCAL_SELF_TRUST_PROXY" -Default "0")
-  Set-EnvLine -Name "PROCAL_SELF_APP_VERSION" -Value (Get-EnvValue -Name "PROCAL_SELF_APP_VERSION" -Default "0.9.9-community")
+  Set-EnvLine -Name "PROCAL_SELF_APP_VERSION" -Value (Get-EnvValue -Name "PROCAL_SELF_APP_VERSION" -Default "0.10.1-community")
   Set-EnvLine -Name "PROCAL_SELF_SETUP_TOKEN" -Value (Get-EnvValue -Name "PROCAL_SELF_SETUP_TOKEN" -Default (New-HexSecret))
   Set-EnvLine -Name "PROCAL_CORE_IMAGE" -Value $InstallImage
   Set-EnvLine -Name "PROCAL_UPDATER_IMAGE" -Value (Get-EnvValue -Name "PROCAL_UPDATER_IMAGE" -Default "ghcr.io/teo-vortex/procal-core-updater:latest")
