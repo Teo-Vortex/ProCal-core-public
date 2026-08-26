@@ -60,6 +60,7 @@ const appShellEl = document.querySelector(".app");
 const dayPanelShell = document.querySelector(".day-panel");
 const calendarPanelShell = document.querySelector(".calendar-panel");
 const upcomingPanel = document.getElementById("upcomingPanel");
+const mobileSheetBackdrop = document.getElementById("mobileSheetBackdrop");
 const sideDayHead = dayPanelShell ? dayPanelShell.querySelector(".side-day-head") : null;
 const upcomingHead = upcomingPanel ? upcomingPanel.querySelector(".upcoming-head") : null;
 const calendarGrid = document.getElementById("calendarGrid");
@@ -946,6 +947,7 @@ if (window.dataProvider && typeof window.dataProvider.getCalendarMode === "funct
 const I18N = {
   en: {
     subtitle: "Shared calendar and task planner",
+    quickAdd: "Add",
     addEvent: "Add Event",
     monthView: "Month",
     yearView: "Year",
@@ -1514,6 +1516,7 @@ const I18N = {
   },
   bg: {
     subtitle: "\u0421\u043F\u043E\u0434\u0435\u043B\u0435\u043D \u043A\u0430\u043B\u0435\u043D\u0434\u0430\u0440 \u0438 \u043F\u043B\u0430\u043D\u0438\u0440\u0430\u043D\u0435 \u043D\u0430 \u0437\u0430\u0434\u0430\u0447\u0438",
+    quickAdd: "\u0414\u043E\u0431\u0430\u0432\u0438",
     addEvent: "\u0414\u043E\u0431\u0430\u0432\u0438 \u0441\u044A\u0431\u0438\u0442\u0438\u0435",
     monthView: "\u041C\u0435\u0441\u0435\u0446",
     yearView: "\u0413\u043E\u0434\u0438\u043D\u0430",
@@ -2398,6 +2401,14 @@ window.addEventListener("pointermove", handleMobileSheetDragMove, { passive: fal
 window.addEventListener("pointerup", finishMobileSheetDrag);
 window.addEventListener("pointercancel", finishMobileSheetDrag);
 document.addEventListener("pointerdown", handleMobileSheetOutsidePointerDown);
+document.addEventListener("click", consumeMobileSheetDismissClick, true);
+if (mobileSheetBackdrop) {
+  mobileSheetBackdrop.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    closeMobileOverlayPanels();
+  });
+}
 settingsBtn.addEventListener("click", () => {
   openSettingsMenu();
 });
@@ -5077,12 +5088,13 @@ renderMainPanelUI();
   if (sideDayViewTabs) sideDayViewTabs.setAttribute("aria-label", t("selectedDayView"));
   setText("sideDayPlanTabBtn", t("selectedDayPlan"));
   setText("sideDayAttendanceTabBtn", t("attendance"));
-  setText("sideDayQuickAddTrigger", `+ ${t("add")}`);
+  setText("sideDayQuickAddTrigger", `+ ${t("quickAdd")}`);
   setText("sideAddEventBtn", t("addEvent"));
   setText("sideAddTaskBtn", t("addTask"));
   setText("sideAddAbsenceBtn", t("quickAbsenceShort"));
   setText("sideAddCompBtn", t("compensations"));
-  setTitle("sideDayQuickAddTrigger", t("add"));
+  setTitle("sideDayQuickAddTrigger", t("quickAdd"));
+  if (sideDayQuickAddTrigger) sideDayQuickAddTrigger.setAttribute("aria-label", t("quickAdd"));
   setTitle("sideAddEventBtn", t("addEvent"));
   setTitle("sideAddTaskBtn", t("addTask"));
   setTitle("sideAddAbsenceBtn", t("openAbsence"));
@@ -5414,6 +5426,7 @@ function updateMobileResponsivePanels() {
   mod.updateMobileResponsivePanels({
     upcomingPanel,
     dayPanelShell,
+    mobileSheetBackdrop,
     toggleUpcomingBtn,
     t,
     updateUpcomingToggleUI,
@@ -5428,6 +5441,7 @@ function openMobileUpcomingPanel() {
   mod.openMobileUpcomingPanel({
     upcomingPanel,
     dayPanelShell,
+    mobileSheetBackdrop,
     defaultHeightVh: MOBILE_UPCOMING_SHEET_DEFAULT_VH,
     isMobileViewport
   });
@@ -5438,6 +5452,8 @@ function closeMobileUpcomingPanel() {
   if (!mod || typeof mod.closeMobileUpcomingPanel !== "function") return;
   mod.closeMobileUpcomingPanel({
     upcomingPanel,
+    dayPanelShell,
+    mobileSheetBackdrop,
     isMobileViewport
   });
 }
@@ -5448,6 +5464,7 @@ function openMobileDayPanel() {
   mod.openMobileDayPanel({
     upcomingPanel,
     dayPanelShell,
+    mobileSheetBackdrop,
     defaultHeightVh: MOBILE_DAY_SHEET_DEFAULT_VH,
     isMobileViewport
   });
@@ -5458,6 +5475,8 @@ function closeMobileDayPanel() {
   if (!mod || typeof mod.closeMobileDayPanel !== "function") return;
   mod.closeMobileDayPanel({
     dayPanelShell,
+    upcomingPanel,
+    mobileSheetBackdrop,
     isMobileViewport
   });
 }
@@ -5474,8 +5493,15 @@ function handleMobileSheetOutsidePointerDown(event) {
     event,
     dayPanelShell,
     upcomingPanel,
+    mobileSheetBackdrop,
     isMobileViewport
   });
+}
+
+function consumeMobileSheetDismissClick(event) {
+  const mod = getMobileSheetsModule();
+  if (!mod || typeof mod.consumeMobileSheetDismissClick !== "function") return;
+  mod.consumeMobileSheetDismissClick(event);
 }
 
 function goPrevCalendarRange() {

@@ -4706,6 +4706,10 @@ button {
   display: none;
 }
 
+.mobile-sheet-backdrop {
+  display: none;
+}
+
 .modal-card {
   position: relative;
   width: min(740px, 96vw);
@@ -6081,6 +6085,22 @@ button {
 
 
 @media (max-width: 980px), (hover: none) and (pointer: coarse) {
+  .mobile-sheet-backdrop.active {
+    position: fixed;
+    inset: 0;
+    z-index: 69;
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: rgba(15, 23, 42, 0.28);
+    cursor: default;
+    touch-action: none;
+  }
+
   .app {
     padding: 0.55rem 0.55rem 0.8rem;
   }
@@ -6170,7 +6190,7 @@ button {
     z-index: 8;
   }
 
-  .day-panel > :not(.notes-switch-card) {
+  .day-panel:not(.mobile-sheet-open) > :not(.notes-switch-card) {
     display: none !important;
   }
 
@@ -6298,6 +6318,7 @@ button {
 
   .day-panel.mobile-sheet-open #sideDayActions {
     display: flex;
+    flex-wrap: nowrap;
     align-items: center;
     justify-content: flex-end;
     gap: 0.5rem;
@@ -6472,10 +6493,18 @@ button {
   }
 
   .side-day-quick-add-trigger {
-    min-width: 8.1rem;
-    height: 1.9rem;
-    padding: 0 0.62rem;
-    font-size: 0.76rem;
+    width: 2.15rem;
+    min-width: 2.15rem;
+    height: 2.15rem;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+  }
+
+  .side-day-quick-add-trigger::before {
+    content: "+";
+    font-size: 1.25rem;
+    line-height: 1;
   }
 
   .event-item {
@@ -8631,7 +8660,7 @@ button {
     min-height: 2.55rem;
   }
 
-  .day-panel > :not(.notes-switch-card):not(.own-balance-card) {
+  .day-panel:not(.mobile-sheet-open) > :not(.notes-switch-card):not(.own-balance-card) {
     display: none !important;
   }
 

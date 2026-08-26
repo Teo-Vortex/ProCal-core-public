@@ -5,6 +5,8 @@
   const MOBILE_SHEET_MIN_VH = 42;
   const MOBILE_SHEET_MAX_VH = 92;
   let activeMobileSheetDrag = null;
+  let suppressNextMobileSheetClick = false;
+  let mobileSheetClickSuppressTimer = null;
 
   function clampMobileSheetHeightVh(value) {
     const numeric = Number(value);
@@ -76,6 +78,31 @@
     return isMobileViewport() || Boolean(panelEl && panelEl.classList.contains("mobile-sheet"));
   }
 
+  function isMobileDayPanelOpen(dayPanelShell) {
+    return Boolean(dayPanelShell && dayPanelShell.classList.contains("mobile-sheet-open"));
+  }
+
+  function isMobileUpcomingPanelOpen(upcomingPanel) {
+    return Boolean(
+      upcomingPanel &&
+      upcomingPanel.classList.contains("mobile-sheet") &&
+      !upcomingPanel.classList.contains("hidden-section")
+    );
+  }
+
+  function syncMobileSheetBackdrop(options) {
+    const opts = options || {};
+    const backdrop = opts.mobileSheetBackdrop;
+    if (!backdrop) return;
+    const isMobileViewport = typeof opts.isMobileViewport === "function" ? opts.isMobileViewport : (() => false);
+    const visible = isMobileViewport() && (
+      isMobileDayPanelOpen(opts.dayPanelShell) ||
+      isMobileUpcomingPanelOpen(opts.upcomingPanel)
+    );
+    backdrop.classList.toggle("active", visible);
+    backdrop.setAttribute("aria-hidden", visible ? "false" : "true");
+  }
+
   function closeMobileUpcomingPanel(options) {
     const opts = options || {};
     const upcomingPanel = opts.upcomingPanel;
@@ -84,6 +111,7 @@
     upcomingPanel.classList.add("hidden-section");
     upcomingPanel.setAttribute("aria-hidden", "true");
     clearMobileSheetHeight(upcomingPanel);
+    syncMobileSheetBackdrop(opts);
   }
 
   function closeMobileDayPanel(options) {
@@ -94,6 +122,7 @@
     dayPanelShell.classList.remove("mobile-sheet-open");
     dayPanelShell.setAttribute("aria-hidden", "true");
     clearMobileSheetHeight(dayPanelShell);
+    syncMobileSheetBackdrop(opts);
   }
 
   function openMobileUpcomingPanel(options) {
@@ -105,6 +134,7 @@
     setMobileSheetHeight(upcomingPanel, Number(opts.defaultHeightVh || MOBILE_SHEET_MIN_VH));
     upcomingPanel.classList.remove("hidden-section");
     upcomingPanel.setAttribute("aria-hidden", "false");
+    syncMobileSheetBackdrop(opts);
   }
 
   function openMobileDayPanel(options) {
@@ -116,6 +146,7 @@
     setMobileSheetHeight(dayPanelShell, Number(opts.defaultHeightVh || MOBILE_SHEET_MIN_VH));
     dayPanelShell.classList.add("mobile-sheet-open");
     dayPanelShell.setAttribute("aria-hidden", "false");
+    syncMobileSheetBackdrop(opts);
   }
 
   function updateMobileResponsivePanels(options) {
@@ -144,11 +175,13 @@
         toggleUpcomingBtn.setAttribute("aria-label", t("close"));
         toggleUpcomingBtn.title = t("close");
       }
+      syncMobileSheetBackdrop(opts);
       return;
     }
     upcomingPanel.classList.remove("hidden-section");
     upcomingPanel.setAttribute("aria-hidden", "false");
     clearMobileSheetHeight(upcomingPanel);
+    syncMobileSheetBackdrop(opts);
     if (updateUpcomingToggleUI) updateUpcomingToggleUI();
   }
 
@@ -162,19 +195,38 @@
     const target = event.target;
     if (!(target instanceof Element)) return;
 
-    const dayPanelOpen = Boolean(dayPanelShell && dayPanelShell.classList.contains("mobile-sheet-open"));
-    const upcomingOpen = Boolean(
-      upcomingPanel &&
-      upcomingPanel.classList.contains("mobile-sheet") &&
-      !upcomingPanel.classList.contains("hidden-section")
-    );
+    const dayPanelOpen = isMobileDayPanelOpen(dayPanelShell);
+    const upcomingOpen = isMobileUpcomingPanelOpen(upcomingPanel);
+    let closedPanel = false;
 
     if (dayPanelOpen && dayPanelShell && !dayPanelShell.contains(target) && !target.closest("#mobileDayBtn")) {
       closeMobileDayPanel(opts);
+      closedPanel = true;
     }
     if (upcomingOpen && upcomingPanel && !upcomingPanel.contains(target) && !target.closest("#mobileUpcomingBtn")) {
       closeMobileUpcomingPanel(opts);
+      closedPanel = true;
     }
+    if (closedPanel) {
+      suppressNextMobileSheetClick = true;
+      if (mobileSheetClickSuppressTimer) root.clearTimeout(mobileSheetClickSuppressTimer);
+      mobileSheetClickSuppressTimer = root.setTimeout(() => {
+        suppressNextMobileSheetClick = false;
+        mobileSheetClickSuppressTimer = null;
+      }, 700);
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }
+
+  function consumeMobileSheetDismissClick(event) {
+    if (!suppressNextMobileSheetClick || !event) return false;
+    suppressNextMobileSheetClick = false;
+    if (mobileSheetClickSuppressTimer) root.clearTimeout(mobileSheetClickSuppressTimer);
+    mobileSheetClickSuppressTimer = null;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    return true;
   }
 
   root.ProCalModules.uiMobileSheets = {
@@ -190,6 +242,8 @@
     closeMobileUpcomingPanel,
     openMobileDayPanel,
     closeMobileDayPanel,
-    handleMobileSheetOutsidePointerDown
+    syncMobileSheetBackdrop,
+    handleMobileSheetOutsidePointerDown,
+    consumeMobileSheetDismissClick
   };
 })(window);
