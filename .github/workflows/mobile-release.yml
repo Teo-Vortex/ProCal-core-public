@@ -47,6 +47,7 @@ jobs:
             gh release edit "$RELEASE_TAG" \
               --title "ProCal Core Public $RELEASE_TAG" \
               --notes-file release-assets/RELEASE_NOTES.md \
+              --prerelease=false \
               --latest
           else
             gh release create "$RELEASE_TAG" \
