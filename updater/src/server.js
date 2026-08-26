@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const http = require("http");
 const path = require("path");
+const { selectCurrentTarget } = require("./container-selection");
 
 const API_VERSION = process.env.DOCKER_API_VERSION || "v1.45";
 const PORT = positiveInt(process.env.PORT, 7070);
@@ -140,10 +141,12 @@ async function findTarget() {
     ]
   }));
   const rows = await dockerRequest("GET", `/containers/json?all=0&filters=${filters}`);
-  if (!Array.isArray(rows) || rows.length !== 1) {
-    throw new Error(`Expected one running ProCal app container in project ${project}, found ${Array.isArray(rows) ? rows.length : 0}`);
+  const targets = selectCurrentTarget(rows, state.rollback?.containerId);
+  if (targets.length !== 1) {
+    const found = Array.isArray(rows) ? rows.length : 0;
+    throw new Error(`Expected one current ProCal app container in project ${project}, found ${targets.length} (${found} labeled running containers)`);
   }
-  return inspectContainer(rows[0].Id);
+  return inspectContainer(targets[0].Id);
 }
 
 function imageVersion(image, fallback = "unknown") {
@@ -312,6 +315,16 @@ async function stopContainer(id) {
   }
 }
 
+async function setRestartPolicy(id, policy) {
+  if (!policy?.Name) return;
+  await dockerRequest("POST", `/containers/${encodeURIComponent(id)}/update`, {
+    RestartPolicy: {
+      Name: policy.Name,
+      MaximumRetryCount: Number(policy.MaximumRetryCount || 0)
+    }
+  });
+}
+
 async function disconnectNetworks(containerId, networks) {
   for (const network of Object.keys(networks || {})) {
     await dockerRequest("POST", `/networks/${encodeURIComponent(network)}/disconnect`, { Container: containerId, Force: true }).catch(() => {});
@@ -359,6 +372,7 @@ async function restoreOld(old, failedId) {
     await dockerRequest("POST", `/containers/${encodeURIComponent(old.Id)}/rename?name=${encodeURIComponent(desiredName)}`);
   }
   await connectNetworks(old.Id, old.networks);
+  await setRestartPolicy(old.Id, old.restartPolicy || { Name: "unless-stopped", MaximumRetryCount: 0 });
   await dockerRequest("POST", `/containers/${encodeURIComponent(old.Id)}/start`);
   await waitHealthy(old.Id);
 }
@@ -382,9 +396,11 @@ async function performUpdate() {
   const originalName = target.Name.replace(/^\//, "");
   const rollbackName = `${originalName}-rollback-${Date.now()}`;
   const networks = target.NetworkSettings?.Networks || {};
+  const restartPolicy = target.HostConfig?.RestartPolicy || { Name: "no", MaximumRetryCount: 0 };
   let newId = "";
   try {
     saveState({ phase: "updating", message: "Replacing the application container" });
+    await setRestartPolicy(target.Id, { Name: "no", MaximumRetryCount: 0 });
     await stopContainer(target.Id);
     await disconnectNetworks(target.Id, networks);
     await dockerRequest("POST", `/containers/${encodeURIComponent(target.Id)}/rename?name=${encodeURIComponent(rollbackName)}`);
@@ -392,16 +408,17 @@ async function performUpdate() {
     newId = created.Id;
     await dockerRequest("POST", `/containers/${encodeURIComponent(newId)}/start`);
     await waitHealthy(newId);
+    await stopContainer(target.Id);
     saveState({
       phase: "idle",
       message: "Update completed",
       error: "",
-      rollback: { containerId: target.Id, originalName, rollbackName, networks, imageId: currentImage.Id, version: imageVersion(currentImage), createdAt: new Date().toISOString() },
+      rollback: { containerId: target.Id, originalName, rollbackName, networks, restartPolicy, imageId: currentImage.Id, version: imageVersion(currentImage), createdAt: new Date().toISOString() },
       lastUpdatedAt: new Date().toISOString()
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    await restoreOld({ Id: target.Id, Name: originalName, networks }, newId).catch((restoreError) => {
+    await restoreOld({ Id: target.Id, Name: originalName, networks, restartPolicy }, newId).catch((restoreError) => {
       throw new Error(`${message}; automatic rollback failed: ${restoreError instanceof Error ? restoreError.message : String(restoreError)}`);
     });
     saveState({ phase: "failed", message: "Update failed; previous version restored", error: message, rollback: null });
@@ -421,6 +438,7 @@ async function performRollback() {
     await dockerRequest("DELETE", `/containers/${encodeURIComponent(current.Id)}?force=true`);
     await dockerRequest("POST", `/containers/${encodeURIComponent(rollback.containerId)}/rename?name=${encodeURIComponent(rollback.originalName)}`);
     await connectNetworks(rollback.containerId, rollback.networks || {});
+    await setRestartPolicy(rollback.containerId, rollback.restartPolicy || { Name: "unless-stopped", MaximumRetryCount: 0 });
     await dockerRequest("POST", `/containers/${encodeURIComponent(rollback.containerId)}/start`);
     await waitHealthy(rollback.containerId);
     saveState({ phase: "idle", message: "Rollback completed", error: "", rollback: null, lastUpdatedAt: new Date().toISOString() });
