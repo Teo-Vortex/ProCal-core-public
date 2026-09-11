@@ -8780,3 +8780,18 @@ button {
     min-height: clamp(78px, 10.4dvh, 92px);
   }
 }
+
+.report-period-summary {
+  display: block;
+  border-left: 3px solid var(--accent, #0f766e);
+}
+.report-summary-details {
+  margin-top: 0.5rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.report-summary-details small {
+  display: block;
+  margin-top: 0.4rem;
+  opacity: 0.8;
+}

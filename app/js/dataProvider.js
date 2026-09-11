@@ -435,10 +435,13 @@
     return { ok: true, version: Number(body.version || 0) };
   }
 
-  async function loadReportState(userId) {
+  async function loadReportState(userId, from, to) {
     const targetUserId = String(userId || "").trim();
     if (!targetUserId) throw new Error("Missing report user");
-    const res = await api(`/api/legacy/report-state?userId=${encodeURIComponent(targetUserId)}`, {
+    const query = new URLSearchParams({ userId: targetUserId });
+    if (from != null) query.set("from", String(from));
+    if (to != null) query.set("to", String(to));
+    const res = await api(`/api/legacy/report-state?${query}`, {
       method: "GET",
       cache: "no-store",
       headers: {

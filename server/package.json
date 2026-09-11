@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.cjs",
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
@@ -25,7 +26,7 @@
     "helmet": "8.1.0",
     "http-errors": "2.0.0",
     "jsonwebtoken": "9.0.2",
-    "multer": "2.2.0",
+    "multer": "2.3.0",
     "pino": "9.6.0",
     "pino-http": "10.4.0",
     "prisma": "5.22.0",
@@ -54,7 +55,7 @@
     "path-to-regexp": "0.1.13",
     "@protobufjs/utf8": "1.1.1",
     "protobufjs": "7.6.5",
-    "qs": "6.15.2",
+    "qs": "6.16.0",
     "uuid": "11.1.1"
   },
   "description": "Self-hosted ProCal Core server",

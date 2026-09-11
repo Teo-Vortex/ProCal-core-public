@@ -690,6 +690,7 @@ adminRouter.put("/api/admin/holidays", requireRealmFeature("admin_holidays"), re
     id: z.string().min(1).max(120),
     name: z.string().min(1).max(200),
     dayOff: z.boolean().optional(),
+    observeWeekend: z.boolean().optional(),
     type: z.enum(["fixed", "nth_weekday", "relative"]),
     startYear: z.number().int().min(1900).max(2300).nullable().optional(),
     endYear: z.number().int().min(1900).max(2300).nullable().optional(),

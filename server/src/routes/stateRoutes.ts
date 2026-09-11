@@ -8,6 +8,8 @@ import { createNotifications, NotificationInput } from "../services/notification
 import { syncEventFoldersFromCalendarEvents } from "../services/filesService";
 import { findNewTextEncodingCorruption } from "../services/textEncodingGuard";
 
+import { buildReportPeriodSummary, isReportDate } from "../services/reportPeriodSummaryService";
+
 const stateSchema = z.object({
   state: z.record(z.any()),
   modifiedAt: z.string().datetime().optional(),
@@ -1693,13 +1695,30 @@ stateRouter.get("/api/legacy/report-state", async (req, res) => {
     return;
   }
 
-  const [shared, personal] = await Promise.all([
+  const from = asString(req.query.from);
+  const to = asString(req.query.to);
+  const hasPeriod = req.query.from !== undefined || req.query.to !== undefined;
+  if (hasPeriod && (!isReportDate(from) || !isReportDate(to) || from > to)) {
+    res.status(400).json({ error: "Invalid report period" });
+    return;
+  }
+  const [shared, personal, leaveRecords] = await Promise.all([
     prisma.sharedLegacyState.findUnique({ where: { id: 1 } }),
-    prisma.legacyState.findUnique({ where: { userId: requestedUserId } })
+    prisma.legacyState.findUnique({ where: { userId: requestedUserId } }),
+    hasPeriod ? prisma.leaveRecord.findMany({
+      where: {
+        userId: requestedUserId,
+        status: "approved",
+        startDate: { lte: new Date(`${to}T23:59:59.999Z`) },
+        endDate: { gte: new Date(`${from}T00:00:00.000Z`) }
+      },
+      select: { startDate: true, endDate: true, leaveType: true, status: true }
+    }) : Promise.resolve([])
   ]);
   res.json({
     userId: requestedUserId,
     state: buildLegacyReportState(shared?.dataJson, personal?.dataJson),
+    periodSummary: hasPeriod ? buildReportPeriodSummary(from, to, leaveRecords) : null,
     sharedVersion: shared?.version || 0,
     personalVersion: personal?.version || 0,
     updatedAt: personal?.updatedAt || shared?.updatedAt || null

@@ -8,6 +8,7 @@ export type HolidayRule = {
   id: string;
   name: string;
   dayOff?: boolean;
+  observeWeekend?: boolean;
   type: HolidayRuleType;
   startYear?: number | null;
   endYear?: number | null;
@@ -107,6 +108,7 @@ function normalizeRule(input: HolidayRule): HolidayRule | null {
     id,
     name,
     dayOff: input && typeof input.dayOff === "boolean" ? input.dayOff : true,
+    observeWeekend: input && typeof input.observeWeekend === "boolean" ? input.observeWeekend : true,
     type,
     durationDays,
     startYear: startYear && startYear > 1900 ? startYear : null,
@@ -376,8 +378,16 @@ export function buildEasterOccurrences(easter: EasterHolidayConfig, fromKey: str
 }
 
 export function buildHolidayOccurrencesFromConfig(config: HolidayRulesConfig, fromKey: string, toKey: string): HolidayOccurrence[] {
-  const fixed = buildHolidayOccurrences((config && config.rules) || [], fromKey, toKey);
-  const easter = buildEasterOccurrences(config && config.easter ? config.easter : defaultEasterConfig(), fromKey, toKey);
+  const from = parseDateKeyUTC(fromKey);
+  const to = parseDateKeyUTC(toKey);
+  if (!from || !to || from > to) return [];
+  // Expand before clipping so a weekend outside the requested month/year can
+  // create a substitute inside it. Reserve all actual holidays before assigning substitutes.
+  const expandedFrom = `${from.getUTCFullYear() - 1}-01-01`;
+  const expandedTo = `${to.getUTCFullYear() + 1}-12-31`;
+  const rules = (config && config.rules) || [];
+  const fixed = buildHolidayOccurrences(rules, expandedFrom, expandedTo);
+  const easter = buildEasterOccurrences(config && config.easter ? config.easter : defaultEasterConfig(), expandedFrom, expandedTo);
   const bucket = new Map<string, HolidayOccurrence>();
   [...fixed, ...easter].forEach((row) => {
     if (!bucket.has(row.dateKey)) {
@@ -393,7 +403,30 @@ export function buildHolidayOccurrencesFromConfig(config: HolidayRulesConfig, fr
     target.ruleIds.push(...(row.ruleIds || []));
     if (row.dayOff) target.dayOff = true;
   });
+  const observedRules = new Map(rules
+    .map(normalizeRule)
+    .filter((rule): rule is HolidayRule => Boolean(rule && rule.dayOff && rule.observeWeekend !== false))
+    .map((rule) => [rule.id, rule]));
+  for (const holiday of fixed) {
+    const originalDate = parseDateKeyUTC(holiday.dateKey)!;
+    if (![0, 6].includes(originalDate.getUTCDay())) continue;
+    const eligible = holiday.ruleIds.map((id) => observedRules.get(id)).filter((rule): rule is HolidayRule => Boolean(rule));
+    if (!eligible.length) continue;
+    let substitute = addDaysUTC(originalDate, 1);
+    while ([0, 6].includes(substitute.getUTCDay()) || bucket.get(toDateKeyUTC(substitute))?.dayOff) {
+      substitute = addDaysUTC(substitute, 1);
+    }
+    const key = toDateKeyUTC(substitute);
+    const existing = bucket.get(key);
+    bucket.set(key, {
+      dateKey: key,
+      names: [...(existing?.names || []), ...eligible.map((rule) => rule.name)],
+      ruleIds: [...(existing?.ruleIds || []), ...eligible.map((rule) => rule.id)],
+      dayOff: true
+    });
+  }
   return Array.from(bucket.values())
+    .filter((row) => row.dateKey >= fromKey && row.dateKey <= toKey)
     .sort((a, b) => a.dateKey.localeCompare(b.dateKey))
     .map((row) => ({
       dateKey: row.dateKey,

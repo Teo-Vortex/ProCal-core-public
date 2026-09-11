@@ -1157,6 +1157,15 @@ const I18N = {
     reports: "Reports",
     reportsLoading: "Loading report data...",
     reportsLoadFailed: "Report data could not be loaded.",
+    reportsInvalidPeriod: "Choose a valid start and end date.",
+    reportsPeriodSummary: "Period summary",
+    reportsWorkingDays: "Working days",
+    reportsLeaveDays: "Leave days",
+    reportsSickDays: "Sick leave days",
+    reportsPaidLeave: "Paid leave",
+    reportsUnpaidLeave: "Unpaid leave",
+    reportsStudyLeave: "Study leave",
+    reportsWorkdaysBasis: "Mon–Fri, excluding non-working holidays and approved leave/sick leave.",
     mediaMonitoring: "Media",
     leave: "Leave",
     attendance: "Attendance",
@@ -1726,6 +1735,15 @@ const I18N = {
     reports: "\u041E\u0442\u0447\u0435\u0442\u0438",
     reportsLoading: "\u0417\u0430\u0440\u0435\u0436\u0434\u0430\u043d\u0435 \u043d\u0430 \u0434\u0430\u043d\u043d\u0438\u0442\u0435 \u0437\u0430 \u043e\u0442\u0447\u0435\u0442\u0430...",
     reportsLoadFailed: "\u0414\u0430\u043d\u043d\u0438\u0442\u0435 \u0437\u0430 \u043e\u0442\u0447\u0435\u0442\u0430 \u043d\u0435 \u043c\u043e\u0436\u0430\u0445\u0430 \u0434\u0430 \u0441\u0435 \u0437\u0430\u0440\u0435\u0434\u044f\u0442.",
+    reportsInvalidPeriod: "Изберете валидна начална и крайна дата.",
+    reportsPeriodSummary: "Обобщение за периода",
+    reportsWorkingDays: "Работни дни",
+    reportsLeaveDays: "Дни отпуск",
+    reportsSickDays: "Дни болничен",
+    reportsPaidLeave: "Платен отпуск",
+    reportsUnpaidLeave: "Неплатен отпуск",
+    reportsStudyLeave: "Учебен отпуск",
+    reportsWorkdaysBasis: "Пон–пет, без неработните празници и одобрените отпуски и болнични.",
     mediaMonitoring: "\u041C\u0435\u0434\u0438\u0438",
     leave: "\u041E\u0442\u0441\u044A\u0441\u0442\u0432\u0438\u044F",
     attendance: "\u041F\u0440\u0438\u0441\u044A\u0441\u0442\u0432\u0438\u044F",
@@ -14028,9 +14046,18 @@ async function renderReportResults() {
     renderReportStatusMessage(t("reportsLoadFailed"), true);
     return false;
   }
+  const from = String(reportStart.value || "");
+  const to = String(reportEnd.value || "");
+  if (!isDateKey(from) || !isDateKey(to) || from > to) {
+    renderReportStatusMessage(t("reportsInvalidPeriod"), true);
+    return false;
+  }
   try {
-    const envelope = await window.dataProvider.loadReportState(targetUserId);
+    const envelope = await window.dataProvider.loadReportState(targetUserId, from, to);
     if (requestId !== reportRenderRequestId) return false;
+    if (reportStart.value !== from || reportEnd.value !== to || getSelectedReportUserId(getOperationalPeople()) !== targetUserId) {
+      return renderReportResults();
+    }
     const reportState = sanitizeState(envelope && envelope.state ? envelope.state : {});
     const reportPeople = reportState.people.length ? reportState.people : directoryPeople;
     const reportPersonIdentityIds = getSelectedReportIdentityIds(reportPeople);
@@ -14048,6 +14075,7 @@ async function renderReportResults() {
       rangesOverlap,
       t,
       reportState,
+      periodSummary: envelope.periodSummary,
       absences: reportState.absences,
       getEventsInRange: (startDate, endDate) => getReportEventsInRange(reportState, startDate, endDate),
       taskHasAssignee,

@@ -143,7 +143,8 @@
     <div id="content" class="hidden">
       <section class="card">
         <div class="tabs">
-          <button class="btn tab-btn active" data-tab="personnel">Personnel</button>          <button class="btn tab-btn" data-tab="roles">Roles</button>
+          <button class="btn tab-btn active" data-tab="personnel">Personnel</button>
+          <button class="btn tab-btn" data-tab="roles">Roles</button>
           <button class="btn tab-btn" data-tab="categories">Categories</button>
           <button class="btn tab-btn" data-tab="holidays">Holidays</button>
           <button class="btn tab-btn" data-tab="leave-template">Leave Form</button>
@@ -206,6 +207,7 @@
       <section id="tab-holidays" class="tab-pane">
         <section class="card">
           <h2>Official Holidays</h2>
+          <p class="muted">Weekend substitute: each Saturday/Sunday holiday adds the next available working day off, skipping other holidays. Enabled by default for these rules; the separate Easter schedule is unchanged.</p>
           <p class="muted">Define fixed and floating holidays with yearly recurrence. These dates will be highlighted as weekends in the main calendar.</p>
           <div class="row" style="margin-bottom:10px;">
             <button id="addHolidayRuleBtn" class="btn primary" type="button">Add rule</button>
@@ -219,6 +221,7 @@
                 <tr>
                   <th>Name</th>
                   <th>Day off</th>
+                  <th>Weekend substitute</th>
                   <th>Type</th>
                   <th>Rule settings</th>
                   <th>Start year</th>

@@ -213,6 +213,25 @@
     };
 
     reportResults.replaceChildren();
+    const summary = opts.periodSummary;
+    if (summary && summary.from === startDate && summary.to === endDate) {
+      const row = appendReportRow("event-item report-period-summary", `${t("reportsPeriodSummary")}: ${formatReportDate(startDate)} – ${formatReportDate(endDate)}`, "report-text", true);
+      const details = documentRef.createElement("div");
+      details.className = "report-summary-details";
+      [
+        `${t("reportsWorkingDays")}: ${summary.workingDays}`,
+        `${t("reportsLeaveDays")}: ${summary.leaveDays} (${t("reportsPaidLeave")}: ${summary.leaveByType.paid}; ${t("reportsUnpaidLeave")}: ${summary.leaveByType.unpaid}; ${t("reportsStudyLeave")}: ${summary.leaveByType.study})`,
+        `${t("reportsSickDays")}: ${summary.sickDays}`
+      ].forEach((label) => {
+        const item = documentRef.createElement("div");
+        item.textContent = label;
+        details.appendChild(item);
+      });
+      const basis = documentRef.createElement("small");
+      basis.textContent = t("reportsWorkdaysBasis");
+      details.appendChild(basis);
+      row.appendChild(details);
+    }
     const sortedDates = Array.from(dateMap.keys()).sort((a, b) => a.localeCompare(b));
     if (!sortedDates.length) {
       const noRowsText = String(t("reportsNoRowsInRange") || "");
@@ -307,6 +326,9 @@
   ul { list-style: none; margin: 0; padding: 0; }
   li { border-bottom: 1px solid #ddd; padding: 8px 0; break-inside: avoid; page-break-inside: avoid; }
   .report-day-item { background: #f4f6f8; padding: 8px; margin-top: 8px; border-radius: 4px; }
+  .report-period-summary { padding: 12px; border: 1px solid #bbb; margin-bottom: 12px; }
+  .report-summary-details { margin-top: 8px; line-height: 1.6; }
+  .report-summary-details small { display: block; color: #555; }
   .report-level-1 { padding-left: 10px; }
   .report-level-2 { padding-left: 24px; color: #333; }
   .report-done { color: #166534; background: #f0fdf4; border-left: 3px solid #22c55e; text-decoration: none; }

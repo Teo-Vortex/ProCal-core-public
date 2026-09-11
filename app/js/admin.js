@@ -2482,6 +2482,7 @@ function normalizeHolidayRule(raw) {
   const name = String((raw && raw.name) || "").trim() || "Holiday";
   const type = String((raw && raw.type) || "fixed");
   const dayOff = raw && typeof raw.dayOff === "boolean" ? raw.dayOff : true;
+  const observeWeekend = raw && typeof raw.observeWeekend === "boolean" ? raw.observeWeekend : true;
   const startYear = raw && raw.startYear != null && raw.startYear !== "" ? Number(raw.startYear) : null;
   const endYear = raw && raw.endYear != null && raw.endYear !== "" ? Number(raw.endYear) : null;
   const durationDays = Math.max(1, Math.min(31, Number((raw && raw.durationDays) || 1) || 1));
@@ -2490,6 +2491,7 @@ function normalizeHolidayRule(raw) {
       id,
       name,
       dayOff,
+      observeWeekend,
       type,
       nthMonth: Math.min(12, Math.max(1, Number((raw && raw.nthMonth) || 1))),
       nthWeekday: Math.min(6, Math.max(0, Number((raw && raw.nthWeekday) || 0))),
@@ -2504,6 +2506,7 @@ function normalizeHolidayRule(raw) {
       id,
       name,
       dayOff,
+      observeWeekend,
       type,
       baseRuleId: String((raw && raw.baseRuleId) || "").trim(),
       offsetDays: Math.max(-366, Math.min(366, Number((raw && raw.offsetDays) || 0) || 0)),
@@ -2516,6 +2519,7 @@ function normalizeHolidayRule(raw) {
     id,
     name,
     dayOff,
+    observeWeekend,
     type: "fixed",
     fixedMonth: Math.min(12, Math.max(1, Number((raw && raw.fixedMonth) || 1))),
     fixedDay: Math.min(31, Math.max(1, Number((raw && raw.fixedDay) || 1))),
@@ -2635,6 +2639,7 @@ function readHolidayRuleRow(tr) {
     id,
     name: String(nameEl && nameEl.value || "").trim(),
     dayOff: Boolean(dayOffEl && dayOffEl.checked),
+    observeWeekend: Boolean(tr.querySelector('input[data-field="observeWeekend"]')?.checked),
     type: String(typeEl && typeEl.value || "fixed"),
     startYear: String(startYearEl && startYearEl.value || "").trim() ? Number(startYearEl.value) : null,
     endYear: String(endYearEl && endYearEl.value || "").trim() ? Number(endYearEl.value) : null,
@@ -2670,6 +2675,13 @@ function renderHolidayRules() {
     dayOffInput.dataset.field = "dayOff";
     dayOffInput.checked = Boolean(r.dayOff);
     dayOffTd.appendChild(dayOffInput);
+    const observeTd = document.createElement("td");
+    const observeInput = document.createElement("input");
+    observeInput.type = "checkbox";
+    observeInput.dataset.field = "observeWeekend";
+    observeInput.checked = r.observeWeekend;
+    observeInput.setAttribute("aria-label", "Substitute weekdays for weekend holidays");
+    observeTd.appendChild(observeInput);
 
     const typeTd = document.createElement("td");
     const typeSel = buildHolidayTypeSelect(r.type);
@@ -2742,7 +2754,7 @@ function renderHolidayRules() {
       renderHolidayRules();
     });
 
-    tr.append(nameTd, dayOffTd, typeTd, cfgTd, startTd, endTd, durationTd, actionsTd);
+    tr.append(nameTd, dayOffTd, observeTd, typeTd, cfgTd, startTd, endTd, durationTd, actionsTd);
     holidaysBodyEl.appendChild(tr);
   });
 }
