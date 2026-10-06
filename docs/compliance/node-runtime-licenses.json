@@ -2,11 +2,11 @@
   "generatedBy": "infra/scripts/generate-compliance-artifacts.cjs",
   "scope": "ProCal Core production Node.js runtime dependencies",
   "source": "apps/procal-core/server/package-lock.json + apps/procal-core/server/node_modules",
-  "packageCount": 267,
+  "packageCount": 263,
   "summary": [
     {
       "license": "MIT",
-      "count": 200
+      "count": 196
     },
     {
       "license": "Apache-2.0",
@@ -36,7 +36,7 @@
   "packages": [
     {
       "name": "@fastify/busboy",
-      "version": "3.2.0",
+      "version": "3.2.2",
       "license": "MIT",
       "repository": "git+https://github.com/fastify/busboy.git",
       "licenseFile": "apps/procal-core/server/node_modules/@fastify/busboy/LICENSE",
@@ -396,7 +396,7 @@
     },
     {
       "name": "brace-expansion",
-      "version": "5.0.9",
+      "version": "5.0.12",
       "license": "MIT",
       "repository": "git+https://github.com/juliangruber/brace-expansion.git",
       "licenseFile": "apps/procal-core/server/node_modules/brace-expansion/LICENSE",
@@ -417,14 +417,6 @@
       "repository": "git@github.com:goinstant/buffer-equal-constant-time.git",
       "licenseFile": "apps/procal-core/server/node_modules/buffer-equal-constant-time/LICENSE.txt",
       "packagePath": "apps/procal-core/server/node_modules/buffer-equal-constant-time"
-    },
-    {
-      "name": "buffer-from",
-      "version": "1.1.2",
-      "license": "MIT",
-      "repository": "LinusU/buffer-from",
-      "licenseFile": "apps/procal-core/server/node_modules/buffer-from/LICENSE",
-      "packagePath": "apps/procal-core/server/node_modules/buffer-from"
     },
     {
       "name": "buffer",
@@ -505,14 +497,6 @@
       "repository": "https://github.com/archiverjs/node-compress-commons.git",
       "licenseFile": "apps/procal-core/server/node_modules/compress-commons/LICENSE",
       "packagePath": "apps/procal-core/server/node_modules/compress-commons"
-    },
-    {
-      "name": "concat-stream",
-      "version": "2.0.0",
-      "license": "MIT",
-      "repository": "http://github.com/maxogden/concat-stream.git",
-      "licenseFile": "apps/procal-core/server/node_modules/concat-stream/LICENSE",
-      "packagePath": "apps/procal-core/server/node_modules/concat-stream"
     },
     {
       "name": "content-disposition",
@@ -1404,7 +1388,7 @@
     },
     {
       "name": "multer",
-      "version": "2.3.0",
+      "version": "2.4.0",
       "license": "MIT",
       "repository": "git+https://github.com/expressjs/multer.git",
       "licenseFile": "apps/procal-core/server/node_modules/multer/LICENSE",
@@ -1636,7 +1620,7 @@
     },
     {
       "name": "proxy-addr",
-      "version": "2.0.7",
+      "version": "2.0.8",
       "license": "MIT",
       "repository": "jshttp/proxy-addr",
       "licenseFile": "apps/procal-core/server/node_modules/proxy-addr/LICENSE",
@@ -1689,14 +1673,6 @@
       "repository": "git://github.com/nodejs/readable-stream",
       "licenseFile": "apps/procal-core/server/node_modules/lazystream/node_modules/readable-stream/LICENSE",
       "packagePath": "apps/procal-core/server/node_modules/lazystream/node_modules/readable-stream"
-    },
-    {
-      "name": "readable-stream",
-      "version": "3.6.2",
-      "license": "MIT",
-      "repository": "git://github.com/nodejs/readable-stream",
-      "licenseFile": "apps/procal-core/server/node_modules/concat-stream/node_modules/readable-stream/LICENSE",
-      "packagePath": "apps/procal-core/server/node_modules/concat-stream/node_modules/readable-stream"
     },
     {
       "name": "readable-stream",
@@ -2017,14 +1993,6 @@
       "repository": "jshttp/type-is",
       "licenseFile": "apps/procal-core/server/node_modules/type-is/LICENSE",
       "packagePath": "apps/procal-core/server/node_modules/type-is"
-    },
-    {
-      "name": "typedarray",
-      "version": "0.0.6",
-      "license": "MIT",
-      "repository": "git://github.com/substack/typedarray.git",
-      "licenseFile": "apps/procal-core/server/node_modules/typedarray/LICENSE",
-      "packagePath": "apps/procal-core/server/node_modules/typedarray"
     },
     {
       "name": "undici-types",

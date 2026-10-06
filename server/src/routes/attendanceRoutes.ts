@@ -1,3 +1,4 @@
+import { backfillLegacyAttendance } from "../services/attendanceWorkplaceService";
 import crypto from "crypto";
 import { Router } from "express";
 import { z } from "zod";
@@ -16,13 +17,20 @@ attendanceRouter.use("/api/attendance", requireAuth);
 const punchKindSchema = z.enum(["check_in", "check_out"]);
 const punchSchema = z.object({
   action: punchKindSchema.optional(),
+  userId: z.string().trim().min(1).max(191).optional(),
+  workplaceId: z.string().trim().min(1).max(191).optional(),
   note: z.string().trim().max(512).optional()
 });
 const nfcPunchSchema = punchSchema.extend({
   stationId: z.string().trim().min(1).max(191),
   token: z.string().trim().min(16).max(512)
 });
+const workplaceSchema = z.object({
+  name: z.string().trim().min(1).max(191),
+  active: z.boolean().optional()
+});
 const stationSchema = z.object({
+  workplaceId: z.string().trim().min(1).max(191),
   name: z.string().trim().min(1).max(191),
   location: z.string().trim().max(191).optional(),
   active: z.boolean().optional()
@@ -94,7 +102,8 @@ function tokenMatches(stationId: string, token: string, storedValue: string): bo
 const punchInclude = {
   user: { select: { id: true, username: true, nickname: true, displayColor: true } },
   createdBy: { select: { id: true, username: true, nickname: true } },
-  station: { select: { id: true, name: true, location: true } },
+  station: { select: { id: true, name: true, location: true, workplaceId: true } },
+  workplace: { select: { id: true, name: true, active: true } },
   targetPunch: { select: { id: true, kind: true, occurredAt: true } },
   supersededBy: { select: { id: true, kind: true, occurredAt: true, reason: true, createdAt: true } }
 } as const;
@@ -105,11 +114,16 @@ async function createPunch(input: {
   requestedAction?: "check_in" | "check_out";
   source: "web" | "nfc";
   stationId?: string;
+  workplaceId?: string;
   note?: string;
 }) {
   const prisma = getPrisma();
   const now = new Date();
   return prisma.$transaction(async (tx) => {
+    // Serialize actions for one person, including concurrent web/NFC requests.
+    const target = await tx.$queryRaw<Array<{ id: string }>>`SELECT id FROM User WHERE id = ${input.userId} AND isDeleted = false AND status = 'active' FOR UPDATE`;
+    if (!target.length) throw apiError(404, "Employee not found");
+    await backfillLegacyAttendance(tx);
     const latest = await tx.attendancePunch.findFirst({
       where: {
         userId: input.userId,
@@ -125,6 +139,17 @@ async function createPunch(input: {
     if (latest && now.getTime() - latest.occurredAt.getTime() < 30_000) {
       throw apiError(429, "Please wait before recording another attendance action");
     }
+    let workplaceId = latest?.workplaceId || null;
+    let workplaceName = latest?.workplaceName || null;
+    if (expectedAction === "check_in") {
+      const workplace = input.workplaceId
+        ? await tx.attendanceWorkplace.findUnique({ where: { id: input.workplaceId } })
+        // Older clients without a workplace picker continue using the first active place.
+        : await tx.attendanceWorkplace.findFirst({ where: { active: true }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
+      if (!workplace || !workplace.active) throw apiError(400, "Choose an active workplace");
+      workplaceId = workplace.id;
+      workplaceName = workplace.name;
+    }
     return tx.attendancePunch.create({
       data: {
         userId: input.userId,
@@ -132,6 +157,8 @@ async function createPunch(input: {
         occurredAt: now,
         source: input.source,
         stationId: input.stationId || null,
+        workplaceId,
+        workplaceName,
         note: input.note || null,
         createdById: input.actorUserId
       },
@@ -142,9 +169,14 @@ async function createPunch(input: {
 
 attendanceRouter.get("/api/attendance/status", requirePermission("attendance.read_self"), async (req, res) => {
   const prisma = getPrisma();
+  const userId = typeof req.query.userId === "string" ? req.query.userId.trim() : req.auth!.userId;
+  if (userId !== req.auth!.userId && !canReadAll(req.auth!.permissions || []) && !hasPermission(new Set(req.auth!.permissions), "attendance.manage")) {
+    res.status(403).json({ error: "Forbidden" }); return;
+  }
+  await backfillLegacyAttendance();
   const latest = await prisma.attendancePunch.findFirst({
     where: {
-      userId: req.auth!.userId,
+      userId,
       kind: { in: ["check_in", "check_out"] },
       supersededBy: { none: {} }
     },
@@ -154,12 +186,14 @@ attendanceRouter.get("/api/attendance/status", requirePermission("attendance.rea
   res.json({
     state: latest?.kind === "check_in" ? "checked_in" : "checked_out",
     nextAction: latest?.kind === "check_in" ? "check_out" : "check_in",
-    latest: latest || null
+    latest: latest || null,
+    workplaces: await prisma.attendanceWorkplace.findMany({ where: { active: true }, orderBy: [{ createdAt: "asc" }, { id: "asc" }], select: { id: true, name: true } })
   });
 });
 
 attendanceRouter.get("/api/attendance/entries", requirePermission("attendance.read_self"), async (req, res) => {
   const prisma = getPrisma();
+  await backfillLegacyAttendance();
   const requestedUserId = typeof req.query.userId === "string" ? req.query.userId.trim() : "";
   const readAll = canReadAll(req.auth!.permissions || []);
   const userId = requestedUserId || (readAll ? "" : req.auth!.userId);
@@ -208,12 +242,17 @@ attendanceRouter.post("/api/attendance/punch", requirePermission("attendance.pun
     res.status(400).json({ error: parsed.error.flatten() });
     return;
   }
+  const userId = parsed.data.userId || req.auth!.userId;
+  if (userId !== req.auth!.userId && !hasPermission(new Set(req.auth!.permissions), "attendance.manage")) {
+    res.status(403).json({ error: "Forbidden" }); return;
+  }
   try {
     const punch = await createPunch({
-      userId: req.auth!.userId,
+      userId,
       actorUserId: req.auth!.userId,
       requestedAction: parsed.data.action,
       source: "web",
+      workplaceId: parsed.data.workplaceId,
       note: parsed.data.note
     });
     await writeAudit(req.auth!.userId, `attendance.${punch.kind}`, "attendancePunch", punch.id, {
@@ -235,6 +274,7 @@ attendanceRouter.post("/api/attendance/nfc-punch", requirePermission("attendance
     return;
   }
   const prisma = getPrisma();
+  await backfillLegacyAttendance();
   const station = await prisma.attendanceStation.findUnique({ where: { id: parsed.data.stationId } });
   if (!station || !station.active || !tokenMatches(station.id, parsed.data.token, station.tokenHash)) {
     res.status(403).json({ error: "Invalid or inactive attendance station" });
@@ -247,6 +287,7 @@ attendanceRouter.post("/api/attendance/nfc-punch", requirePermission("attendance
       requestedAction: parsed.data.action,
       source: "nfc",
       stationId: station.id,
+      workplaceId: station.workplaceId || undefined,
       note: parsed.data.note
     });
     await writeAudit(req.auth!.userId, `attendance.${punch.kind}`, "attendancePunch", punch.id, {
@@ -262,13 +303,53 @@ attendanceRouter.post("/api/attendance/nfc-punch", requirePermission("attendance
   }
 });
 
+attendanceRouter.get("/api/attendance/workplaces", requirePermission("attendance.read_self"), async (req, res) => {
+  await backfillLegacyAttendance();
+  const manage = hasPermission(new Set(req.auth!.permissions), "attendance.manage");
+  res.json({ items: await getPrisma().attendanceWorkplace.findMany({ where: manage ? {} : { active: true }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] }) });
+});
+
+attendanceRouter.post("/api/attendance/workplaces", requirePermission("attendance.manage"), async (req, res) => {
+  const parsed = workplaceSchema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Enter a workplace name" }); return; }
+  try {
+    const workplace = await getPrisma().$transaction(async tx => {
+      // First-place creation and legacy backfill must be atomic and deterministic.
+      await tx.$queryRaw`SELECT id FROM AppMeta WHERE id = 1 FOR UPDATE`;
+      const last = await tx.attendanceWorkplace.findFirst({ orderBy: [{ createdAt: "desc" }, { id: "desc" }] });
+      // Maintain creation order even for same-millisecond requests or a clock adjustment.
+      const createdAt = new Date(Math.max(Date.now(), (last?.createdAt.getTime() || 0) + 1));
+      const created = await tx.attendanceWorkplace.create({ data: { ...parsed.data, createdAt, createdById: req.auth!.userId } });
+      await backfillLegacyAttendance(tx);
+      return created;
+    });
+    await writeAudit(req.auth!.userId, "attendance.workplace.create", "attendanceWorkplace", workplace.id, { name: workplace.name });
+    res.status(201).json({ ok: true, workplace });
+  } catch (error) {
+    res.status((error as { code?: string }).code === "P2002" ? 409 : 500).json({ error: "Workplace could not be created; names must be unique" });
+  }
+});
+
+attendanceRouter.patch("/api/attendance/workplaces/:id", requirePermission("attendance.manage"), async (req, res) => {
+  const parsed = workplaceSchema.partial().refine(v => Object.keys(v).length > 0).safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid workplace" }); return; }
+  try {
+    const workplace = await getPrisma().attendanceWorkplace.update({ where: { id: paramAsString(req.params.id) }, data: parsed.data });
+    await writeAudit(req.auth!.userId, "attendance.workplace.update", "attendanceWorkplace", workplace.id, parsed.data);
+    res.json({ ok: true, workplace });
+  } catch (error) {
+    const code = (error as { code?: string }).code;
+    res.status(code === "P2025" ? 404 : code === "P2002" ? 409 : 500).json({ error: "Workplace could not be updated" });
+  }
+});
+
 attendanceRouter.get("/api/attendance/stations", requirePermission("attendance.read_self"), async (req, res) => {
   const prisma = getPrisma();
   const manage = hasPermission(new Set(req.auth!.permissions || []), "attendance.manage");
   const items = await prisma.attendanceStation.findMany({
     where: manage ? {} : { active: true },
     orderBy: [{ active: "desc" }, { name: "asc" }],
-    select: { id: true, name: true, location: true, active: true, createdAt: true, updatedAt: true }
+    select: { id: true, name: true, location: true, active: true, workplaceId: true, createdAt: true, updatedAt: true }
   });
   res.json({ items });
 });
@@ -280,10 +361,13 @@ attendanceRouter.post("/api/attendance/stations", requirePermission("attendance.
     return;
   }
   const prisma = getPrisma();
+  const workplace = await prisma.attendanceWorkplace.findUnique({ where: { id: parsed.data.workplaceId } });
+  if (!workplace || !workplace.active) { res.status(400).json({ error: "Choose an active workplace" }); return; }
   const tokenSeed = generateStationSeed();
   const station = await prisma.attendanceStation.create({
     data: {
       name: parsed.data.name,
+      workplaceId: parsed.data.workplaceId,
       location: parsed.data.location || null,
       active: parsed.data.active ?? true,
       tokenHash: tokenSeed,
@@ -338,14 +422,19 @@ attendanceRouter.patch("/api/attendance/stations/:id", requirePermission("attend
     res.status(404).json({ error: "Attendance station not found" });
     return;
   }
+  if (parsed.data.workplaceId !== undefined) {
+    const workplace = await prisma.attendanceWorkplace.findUnique({ where: { id: parsed.data.workplaceId } });
+    if (!workplace || !workplace.active) { res.status(400).json({ error: "Choose an active workplace" }); return; }
+  }
   const station = await prisma.attendanceStation.update({
     where: { id: existing.id },
     data: {
       ...(parsed.data.name !== undefined ? { name: parsed.data.name } : {}),
+      ...(parsed.data.workplaceId !== undefined ? { workplaceId: parsed.data.workplaceId } : {}),
       ...(parsed.data.location !== undefined ? { location: parsed.data.location || null } : {}),
       ...(parsed.data.active !== undefined ? { active: parsed.data.active } : {})
     },
-    select: { id: true, name: true, location: true, active: true, createdAt: true, updatedAt: true }
+    select: { id: true, name: true, location: true, active: true, workplaceId: true, createdAt: true, updatedAt: true }
   });
   await writeAudit(req.auth!.userId, "attendance.station.update", "attendanceStation", station.id, parsed.data);
   res.json({ ok: true, station });
@@ -389,6 +478,8 @@ attendanceRouter.post("/api/attendance/entries/:id/correct", requirePermission("
           occurredAt: new Date(parsed.data.occurredAt),
           source: "admin",
           stationId: target.stationId,
+          workplaceId: target.workplaceId,
+          workplaceName: target.workplaceName,
           note: parsed.data.note || target.note,
           reason: parsed.data.reason,
           createdById: req.auth!.userId,
@@ -431,6 +522,8 @@ attendanceRouter.post("/api/attendance/entries/:id/void", requirePermission("att
         data: {
           userId: target.userId,
           kind: "void",
+          workplaceId: target.workplaceId,
+          workplaceName: target.workplaceName,
           occurredAt: target.occurredAt,
           source: "admin",
           reason: parsed.data.reason,

@@ -1,3 +1,5 @@
+import { backfillLegacyAttendance } from "../services/attendanceWorkplaceService";
+import { isReportDate } from "../services/reportPeriodSummaryService";
 import { LeaveRecordStatus, LeaveType } from "@prisma/client";
 import { Router } from "express";
 import { z } from "zod";
@@ -407,11 +409,31 @@ leaveRouter.get("/api/leave/matrix", requirePermission("leave.read_self"), async
   const year = Number.isFinite(yearRaw) ? Math.min(Math.max(Math.trunc(yearRaw), MIN_TRACK_YEAR), 2200) : now.getUTCFullYear();
   const month = Number.isFinite(monthRaw) ? Math.min(Math.max(Math.trunc(monthRaw), 1), 12) : now.getUTCMonth() + 1;
 
-  const monthStart = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
-  const monthEnd = new Date(Date.UTC(year, month - 1, daysInMonth(year, month), 23, 59, 59, 999));
+  const from = req.query.from;
+  const to = req.query.to;
+  if ((from !== undefined || to !== undefined) &&
+      (typeof from !== "string" || typeof to !== "string" || !isReportDate(from) || !isReportDate(to) || from > to ||
+       Date.parse(to) - Date.parse(from) > 365 * DAY_MS)) {
+    res.status(400).json({ error: "Choose a valid period of up to 366 days." });
+    return;
+  }
+  const monthStart = typeof from === "string" ? new Date(`${from}T00:00:00.000Z`) : new Date(Date.UTC(year, month - 1, 1));
+  const monthEnd = typeof to === "string" ? new Date(`${to}T23:59:59.999Z`) : new Date(Date.UTC(year, month - 1, daysInMonth(year, month), 23, 59, 59, 999));
 
+  const timeZone = typeof req.query.timeZone === "string" ? req.query.timeZone : "UTC";
+  let dateFormatter: Intl.DateTimeFormat;
+  try {
+    dateFormatter = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" });
+  } catch {
+    res.status(400).json({ error: "Invalid time zone" });
+    return;
+  }
+  const attendanceReadSelf = hasPermission(permissions, "attendance.read_self");
+  const attendanceReadAll = attendanceReadSelf && hasPermission(permissions, "attendance.read_all");
+  const attendanceUserId = attendanceReadAll ? requestedUserId : req.auth!.userId;
   const prisma = getPrisma();
-  const [users, records, compBalances, workdayRecords] = await Promise.all([
+  await backfillLegacyAttendance(prisma);
+  const [users, records, compBalances, workdayRecords, attendancePunches] = await Promise.all([
     prisma.user.findMany({
       where: {
         isDeleted: false,
@@ -447,7 +469,19 @@ leaveRouter.get("/api/leave/matrix", requirePermission("leave.read_self"), async
         startDate: true,
         endDate: true
       }
-    })
+    }),
+    attendanceReadSelf && (!requestedUserId || requestedUserId === attendanceUserId || attendanceReadAll)
+      ? prisma.attendancePunch.findMany({
+        where: {
+          ...(attendanceUserId ? { userId: attendanceUserId } : {}),
+          kind: { in: ["check_in", "check_out"] },
+          supersededBy: { none: {} },
+          // Local midnight can fall on the adjacent UTC day.
+          occurredAt: { gte: new Date(monthStart.getTime() - DAY_MS), lte: new Date(monthEnd.getTime() + DAY_MS) }
+        },
+        select: { userId: true, occurredAt: true, workplaceId: true, workplaceName: true, workplace: { select: { name: true } } }
+      }) : Promise.resolve([])
+
   ]);
 
   const compByUser = new Map<string, number>();
@@ -455,10 +489,29 @@ leaveRouter.get("/api/leave/matrix", requirePermission("leave.read_self"), async
     compByUser.set(row.userId, Number(row.minutes || 0));
   }
 
-  const monthHolidaySet = collectDayOffHolidaySet(monthStart, monthEnd);
+  const holidays = buildHolidayOccurrencesFromConfig(loadHolidayRules(), toYmdUtc(monthStart), toYmdUtc(monthEnd)).filter(h => h.dayOff);
+  const monthHolidaySet = new Set(holidays.map(h => h.dateKey));
+  const visibleUserIds = new Set(users.map(u => u.id));
+  const attendanceByUser = new Map<string, Set<string>>();
+  const attendancePlacesByUser = new Map<string, Map<string, Map<string, { id: string | null; name: string }>>>();
+  for (const punch of attendancePunches) {
+    if (!visibleUserIds.has(punch.userId)) continue;
+    const parts = dateFormatter.formatToParts(punch.occurredAt);
+    const part = (type: string) => parts.find(p => p.type === type)!.value;
+    const dateKey = `${part("year")}-${part("month")}-${part("day")}`;
+    if (dateKey < toYmdUtc(monthStart) || dateKey > toYmdUtc(monthEnd)) continue;
+    if (!attendanceByUser.has(punch.userId)) attendanceByUser.set(punch.userId, new Set());
+    attendanceByUser.get(punch.userId)!.add(dateKey);
+    if (!attendancePlacesByUser.has(punch.userId)) attendancePlacesByUser.set(punch.userId, new Map());
+    const days = attendancePlacesByUser.get(punch.userId)!;
+    if (!days.has(dateKey)) days.set(dateKey, new Map());
+    const name = punch.workplaceName || punch.workplace?.name || "";
+    days.get(dateKey)!.set(`${punch.workplaceId || ""}:${name}`, { id: punch.workplaceId, name });
+  }
   const monthWorkingDaysBase = round2(workingDaysInclusive(monthStart, monthEnd, monthHolidaySet));
   const summary: Record<string, Record<LeaveType, number>> = {};
   for (const row of records) {
+    if (row.status === "rejected") continue;
     const overlap = overlapWorkingDaysInclusive(row.startDate, row.endDate, monthStart, monthEnd, monthHolidaySet);
     if (!overlap) continue;
     if (!summary[row.userId]) {
@@ -477,8 +530,12 @@ leaveRouter.get("/api/leave/matrix", requirePermission("leave.read_self"), async
   res.json({
     year,
     month,
+    from: toYmdUtc(monthStart),
+    to: toYmdUtc(monthEnd),
     daysInMonth: daysInMonth(year, month),
     workingDaysInMonth: monthWorkingDaysBase,
+    timeZone,
+    holidays,
     users: users.map((u) => ({
       id: u.id,
       username: u.username,
@@ -492,6 +549,9 @@ leaveRouter.get("/api/leave/matrix", requirePermission("leave.read_self"), async
         study: Number((summary[u.id] && summary[u.id].study) || 0)
       },
       workingDaysMonth: Math.max(0, round2(monthWorkingDaysBase - Number(absentWorkdaysByUser[u.id] || 0))),
+      attendanceDates: [...(attendanceByUser.get(u.id) || [])].sort(),
+      attendanceCells: [...(attendancePlacesByUser.get(u.id) || [])].map(([dateKey, places]) => ({ dateKey, workplaces: [...places.values()] })),
+      attendanceVisible: attendanceReadAll || (attendanceReadSelf && u.id === req.auth!.userId),
       compMinutes: Number(compByUser.get(u.id) || 0)
     })),
     records: records.map((r) => ({

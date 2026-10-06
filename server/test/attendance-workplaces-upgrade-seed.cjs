@@ -1,0 +1,30 @@
+// Run only inside the isolated OLD image before upgrading it.
+if (process.env.PROCAL_CONTAINER_NAME !== 'procal-workplace-upgrade-qa-app') throw new Error('Isolated upgrade QA stack only');
+const { getPrisma } = require('./dist/db/prisma');
+const crypto = require('node:crypto'), fs = require('node:fs'), bcrypt = require('bcrypt');
+const prisma = getPrisma();
+(async () => {
+ const password = crypto.randomBytes(20).toString('hex');
+ const passwordHash = await bcrypt.hash(password, 4);
+ const admin = await prisma.user.create({data:{username:'workplace-upgrade-admin',nickname:'QA Админ',passwordHash,role:'system_admin',status:'active'}});
+ const worker = await prisma.user.create({data:{username:'workplace-upgrade-worker',nickname:'QA Служител',passwordHash,role:'user',status:'active'}});
+ const race = await prisma.user.create({data:{username:'workplace-upgrade-race',nickname:'QA Едновременен вход',passwordHash,role:'user',status:'active'}});
+ const station = await prisma.attendanceStation.create({data:{name:'QA стара NFC станция',tokenHash:'v2'+crypto.randomBytes(31).toString('hex'),active:true,createdById:admin.id}});
+ const create = (userId, kind, date, extra={}) => prisma.attendancePunch.create({data:{userId,kind,occurredAt:new Date(date),source:'web',...extra}});
+ await create(admin.id,'check_in','2026-09-01T07:00:00Z',{stationId:station.id,note:'Legacy note'});
+ await create(admin.id,'check_out','2026-09-01T16:00:00Z');
+ const old = await create(admin.id,'check_in','2026-09-02T07:00:00Z');
+ await create(admin.id,'check_in','2026-09-02T08:00:00Z',{source:'admin',targetPunchId:old.id,reason:'Legacy correction'});
+ await create(admin.id,'check_out','2026-09-02T16:00:00Z');
+ const voided = await create(admin.id,'check_in','2026-09-03T07:00:00Z');
+ await create(admin.id,'void','2026-09-03T07:00:00Z',{source:'admin',targetPunchId:voided.id,reason:'Legacy void'});
+ await create(worker.id,'check_in',new Date(Date.now()-60000));
+ const punches = await prisma.attendancePunch.findMany({orderBy:{id:'asc'}});
+ fs.writeFileSync('/app/config/qa-workplace-upgrade-fixtures.json',JSON.stringify({password,admin,worker,race,station,punches}),{mode:0o600});
+ const backup = await require('./dist/services/backupService').createFullBackup(admin.id);
+ const saved = JSON.parse(fs.readFileSync('/app/config/qa-workplace-upgrade-fixtures.json','utf8'));
+ saved.legacyBackupFile = backup.fileName;
+ fs.writeFileSync('/app/config/qa-workplace-upgrade-fixtures.json',JSON.stringify(saved),{mode:0o600});
+ console.log(`Old-version fixtures ready: ${punches.length} records, correction, void, NFC station and open shift.`);
+ await prisma.$disconnect();
+})().catch(e=>{console.error(e);process.exitCode=1});

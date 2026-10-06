@@ -9,11 +9,13 @@
     entries: [],
     users: [],
     stations: [],
+    workplaces: [],
     selectedEntryId: "",
     selectedStationId: ""
   };
 
   const el = Object.fromEntries([
+    "workplacePunchButtons", "workplacesSection", "workplacesTitle", "workplaceForm", "workplaceNameLabel", "workplaceName", "workplaceEditId", "saveWorkplaceBtn", "cancelWorkplaceBtn", "workplacesList", "stationWorkplaceLabel", "stationWorkplace", "historyWorkplaceHead",
     "pageTitle", "pageSubtitle", "langBtn", "backBtn", "statusDot", "attendanceState", "statusTime", "statusStation",
     "qrBtn", "punchBtn", "userFilterWrap", "userLabel", "userFilter", "fromLabel", "fromInput", "toLabel", "toInput",
     "applyBtn", "overviewSection", "overviewTitle", "overviewRange", "overviewPeopleLabel", "overviewPeople", "overviewDaysLabel", "overviewDays",
@@ -27,9 +29,10 @@
 
   const I18N = {
     en: {
-      title: "Attendance", subtitle: "Workday log", back: "Back", checkedIn: "Checked in", checkedOut: "Not checked in",
+      workplaces: "Workplaces", workplace: "Workplace", addWorkplace: "Add workplace", saveWorkplace: "Save workplace", edit: "Edit", cancel: "Cancel", noWorkplaces: "No workplaces yet.",
+      title: "Working time", subtitle: "Workday log", back: "Back", checkedIn: "Checked in", checkedOut: "Not checked in",
       since: "Since", lastAction: "Last action", at: "at", checkIn: "Check in", checkOut: "Check out", scanNfc: "Scan NFC", scanQr: "Scan QR",
-      employee: "Employee", from: "From", to: "To", apply: "Apply", log: "Attendance log", noEntries: "No entries for this period.",
+      employee: "Employee", from: "From", to: "To", apply: "Apply", log: "Working time log", noEntries: "No entries for this period.",
       stations: "NFC / QR stations", name: "Name", location: "Location", createStation: "Create station", active: "Active",
       inactive: "Inactive", disable: "Disable", enable: "Enable", viewCode: "QR code", rotate: "Create new code", correct: "Correct", voidEntry: "Void",
       correction: "Correct entry", action: "Action", dateTime: "Date and time", reason: "Reason", saveCorrection: "Save correction",
@@ -39,14 +42,15 @@
       nfcUnsupported: "NFC scanning is available in the Android app.", voidTitle: "Void entry", confirmVoid: "Void entry", count: "entries",
       rotateConfirm: "Creating a new station code invalidates the previous one. Continue?",
       legacyCode: "This older station code cannot be shown again. Create a new reusable code now?",
-      overview: "Team overview", peopleWithRecords: "People with records", attendanceDays: "Attendance days", recordedTime: "Recorded time",
+      overview: "Working time overview", peopleWithRecords: "People with records", attendanceDays: "Attendance days", recordedTime: "Recorded time",
       date: "Date", arrival: "Arrival", departure: "Departure", status: "Status", completed: "Completed", openShift: "At work",
       noHistory: "No attendance records for this period.", hoursShort: "h", minutesShort: "m"
     },
     bg: {
-      title: "Присъствия", subtitle: "Дневник на работното време", back: "Назад", checkedIn: "На работа", checkedOut: "Не е на работа",
+      workplaces: "Работни места", workplace: "Работно място", addWorkplace: "Добави работно място", saveWorkplace: "Запази работно място", edit: "Редактирай", cancel: "Отказ", noWorkplaces: "Няма добавени работни места.",
+      title: "Работно време", subtitle: "Дневник на работното време", back: "Назад", checkedIn: "На работа", checkedOut: "Не е на работа",
       since: "От", lastAction: "Последно действие", at: "в", checkIn: "Пристигане", checkOut: "Тръгване", scanNfc: "Сканирай NFC", scanQr: "Сканирай QR",
-      employee: "Служител", from: "От", to: "До", apply: "Приложи", log: "Дневник на присъствията", noEntries: "Няма записи за този период.",
+      employee: "Служител", from: "От", to: "До", apply: "Приложи", log: "Дневник на работното време", noEntries: "Няма записи за този период.",
       stations: "NFC / QR станции", name: "Име", location: "Местоположение", createStation: "Създай станция", active: "Активна",
       inactive: "Неактивна", disable: "Изключи", enable: "Включи", viewCode: "QR код", rotate: "Създай нов код", correct: "Коригирай", voidEntry: "Анулирай",
       correction: "Корекция на запис", action: "Действие", dateTime: "Дата и час", reason: "Причина", saveCorrection: "Запази корекцията",
@@ -56,7 +60,7 @@
       nfcUnsupported: "NFC сканирането е достъпно в Android приложението.", voidTitle: "Анулиране на запис", confirmVoid: "Анулирай записа", count: "записа",
       rotateConfirm: "Създаването на нов код ще направи предишния невалиден. Да продължа ли?",
       legacyCode: "Този по-стар код не може да бъде показан отново. Да създам ли нов постоянен код сега?",
-      overview: "Обзор на присъствията", peopleWithRecords: "Хора със записи", attendanceDays: "Дни с присъствие", recordedTime: "Отчетено време",
+      overview: "Обзор на работното време", peopleWithRecords: "Хора със записи", attendanceDays: "Дни с присъствие", recordedTime: "Отчетено време",
       date: "Дата", arrival: "Пристигане", departure: "Тръгване", status: "Статус", completed: "Завършен", openShift: "На работа",
       noHistory: "Няма записи за присъствие за този период.", hoursShort: "ч", minutesShort: "м"
     }
@@ -134,7 +138,9 @@
   }
 
   function applyTranslations() {
+    document.title = `ProCal · ${t("title")}`;
     const map = {
+      workplacesTitle:"workplaces", workplaceNameLabel:"name", stationWorkplaceLabel:"workplace", cancelWorkplaceBtn:"cancel", historyWorkplaceHead:"workplace",
       pageTitle:"title", pageSubtitle:"subtitle", backBtn:"back", userLabel:"employee", fromLabel:"from", toLabel:"to", applyBtn:"apply",
       logTitle:"log", stationsTitle:"stations", stationNameLabel:"name", stationLocationLabel:"location", createStationBtn:"createStation",
       overviewTitle:"overview", overviewPeopleLabel:"peopleWithRecords", overviewDaysLabel:"attendanceDays", overviewTimeLabel:"recordedTime",
@@ -155,6 +161,7 @@
     renderOverview();
     renderStations();
     renderUserFilter();
+    renderWorkplaces();
   }
 
   function renderStatus() {
@@ -164,10 +171,15 @@
     el.attendanceState.textContent = checkedIn ? t("checkedIn") : t("checkedOut");
     el.punchBtn.textContent = state.status.nextAction === "check_out" ? t("checkOut") : t("checkIn");
     el.punchBtn.dataset.action = state.status.nextAction || "check_in";
+    window.ProCalAttendanceQuick.renderActions(el.workplacePunchButtons, state.status, {
+      lang: state.lang, canPunch: hasPermission("attendance.punch"),
+      onPunch: payload => punch(payload, false), onError: error => setPageStatus(error.message, true)
+    });
     if (state.status.latest) {
       el.statusTime.textContent = `${checkedIn ? t("since") : t("lastAction")}: ${formatDateTime(state.status.latest.occurredAt)}`;
       const station = state.status.latest.station;
-      el.statusStation.textContent = station ? `${t("station")}: ${station.name}${station.location ? `, ${station.location}` : ""}` : "";
+      const workplace = state.status.latest.workplaceName || state.status.latest.workplace?.name;
+      el.statusStation.textContent = [workplace ? `${t("workplace")}: ${workplace}` : "", station ? `${t("station")}: ${station.name}` : ""].filter(Boolean).join(" · ");
     } else {
       el.statusTime.textContent = "-";
       el.statusStation.textContent = "";
@@ -217,6 +229,7 @@
       const meta = document.createElement("div");
       meta.className = "entry-meta";
       const parts = [formatDateTime(entry.occurredAt), `${t("source")}: ${t(entry.source || "web")}`];
+      if (entry.workplaceName || entry.workplace?.name) parts.push(`${t("workplace")}: ${entry.workplaceName || entry.workplace.name}`);
       if (entry.station) parts.push(`${t("station")}: ${entry.station.name}`);
       if (!entry.effective) parts.push(entry.kind === "void" ? t("voided") : t("corrected"));
       if (entry.reason) parts.push(entry.reason);
@@ -285,6 +298,7 @@
             color: /^#[0-9a-fA-F]{6}$/.test(String(user.displayColor || "")) ? String(user.displayColor) : "#64748b",
             dateKey,
             entries: [],
+            workplaces: new Set(),
             firstIn: null,
             lastOut: null,
             openAt: null,
@@ -293,6 +307,7 @@
         }
         const row = grouped.get(key);
         row.entries.push(entry);
+        if (entry.workplaceName || entry.workplace?.name) row.workplaces.add(entry.workplaceName || entry.workplace.name);
         if (entry.kind === "check_in") {
           if (!row.firstIn) row.firstIn = entry.occurredAt;
           row.openAt = new Date(entry.occurredAt);
@@ -334,7 +349,7 @@
       person.append(dot, name);
       personCell.append(person);
 
-      const values = [formatDate(row.dateKey), row.firstIn ? formatTime(row.firstIn) : "-", row.openAt ? t("openShift") : (row.lastOut ? formatTime(row.lastOut) : "-"), formatDuration(row.totalMs)];
+      const values = [[...row.workplaces].join(", ") || "—", formatDate(row.dateKey), row.firstIn ? formatTime(row.firstIn) : "-", row.openAt ? t("openShift") : (row.lastOut ? formatTime(row.lastOut) : "-"), formatDuration(row.totalMs)];
       tr.append(personCell);
       values.forEach((value) => {
         const td = document.createElement("td");
@@ -349,6 +364,38 @@
       tr.append(statusCell);
       el.historyRows.append(tr);
     });
+  }
+
+  function renderWorkplaces() {
+    el.saveWorkplaceBtn.textContent = el.workplaceEditId.value ? t("saveWorkplace") : t("addWorkplace");
+    const selected = el.stationWorkplace.value;
+    el.stationWorkplace.replaceChildren();
+    for (const workplace of state.workplaces.filter(w => w.active)) {
+      const option = document.createElement("option"); option.value = workplace.id; option.textContent = workplace.name; el.stationWorkplace.append(option);
+    }
+    if ([...el.stationWorkplace.options].some(o => o.value === selected)) el.stationWorkplace.value = selected;
+    el.createStationBtn.disabled = !el.stationWorkplace.options.length;
+    el.workplacesList.replaceChildren();
+    if (!state.workplaces.length) { const empty = document.createElement("p"); empty.className = "muted"; empty.textContent = t("noWorkplaces"); el.workplacesList.append(empty); }
+    for (const workplace of state.workplaces) {
+      const row = document.createElement("article"); row.className = "station";
+      const name = document.createElement("div"); name.className = "entry-title"; name.textContent = `${workplace.name} · ${workplace.active ? t("active") : t("inactive")}`;
+      const actions = document.createElement("div"); actions.className = "entry-actions";
+      const edit = document.createElement("button"); edit.type = "button"; edit.className = "btn"; edit.textContent = t("edit");
+      edit.addEventListener("click", () => { el.workplaceEditId.value = workplace.id; el.workplaceName.value = workplace.name; el.cancelWorkplaceBtn.classList.remove("hidden"); el.saveWorkplaceBtn.textContent = t("saveWorkplace"); el.workplaceName.focus(); });
+      const toggle = document.createElement("button"); toggle.type = "button"; toggle.className = "btn"; toggle.textContent = workplace.active ? t("disable") : t("enable");
+      toggle.addEventListener("click", async () => {
+        toggle.disabled = true;
+        try { await bodyOrError(await api(`/api/attendance/workplaces/${encodeURIComponent(workplace.id)}`, { method:"PATCH", body:JSON.stringify({ active: !workplace.active }) })); await Promise.all([loadWorkplaces(), loadStatus(), loadStations()]); }
+        catch (error) { setPageStatus(error.message, true); toggle.disabled = false; }
+      });
+      actions.append(edit, toggle); row.append(name, actions); el.workplacesList.append(row);
+    }
+  }
+
+  async function loadWorkplaces() {
+    const body = await bodyOrError(await api("/api/attendance/workplaces"));
+    state.workplaces = body.items || []; renderWorkplaces(); renderStations();
   }
 
   function renderStations() {
@@ -380,7 +427,14 @@
       viewCode.type = "button";
       viewCode.textContent = t("viewCode");
       viewCode.addEventListener("click", () => openStationCode(station.id));
-      actions.append(toggle, viewCode);
+      const workplaceSelect = document.createElement("select");
+      workplaceSelect.setAttribute("aria-label", `${t("workplace")} · ${station.name}`);
+      for (const workplace of state.workplaces.filter(w => w.active || w.id === station.workplaceId)) {
+        const option = document.createElement("option"); option.value = workplace.id; option.textContent = workplace.name; workplaceSelect.append(option);
+      }
+      workplaceSelect.value = station.workplaceId || "";
+      workplaceSelect.addEventListener("change", () => updateStation(station.id, { workplaceId: workplaceSelect.value }));
+      actions.append(workplaceSelect, toggle, viewCode);
       row.append(main, actions);
       el.stations.append(row);
     });
@@ -519,6 +573,17 @@
   }
 
   function bindEvents() {
+    el.cancelWorkplaceBtn.addEventListener("click", () => { el.workplaceForm.reset(); el.workplaceEditId.value = ""; el.cancelWorkplaceBtn.classList.add("hidden"); el.saveWorkplaceBtn.textContent = t("addWorkplace"); });
+    el.workplaceForm.addEventListener("submit", async event => {
+      event.preventDefault(); el.saveWorkplaceBtn.disabled = true;
+      try {
+        const id = el.workplaceEditId.value;
+        await bodyOrError(await api(`/api/attendance/workplaces${id ? `/${encodeURIComponent(id)}` : ""}`, { method:id ? "PATCH" : "POST", body:JSON.stringify({ name:el.workplaceName.value.trim() }) }));
+        el.workplaceForm.reset(); el.workplaceEditId.value = ""; el.cancelWorkplaceBtn.classList.add("hidden");
+        await Promise.all([loadWorkplaces(), loadStatus(), loadEntries(), loadStations()]); setPageStatus(t("saved"), false);
+      } catch (error) { setPageStatus(error.message, true); }
+      finally { el.saveWorkplaceBtn.disabled = false; }
+    });
     el.langBtn.addEventListener("click", () => {
       state.lang = state.lang === "bg" ? "en" : "bg";
       localStorage.setItem("procal_lang", state.lang);
@@ -549,7 +614,7 @@
       try {
         const body = await bodyOrError(await api("/api/attendance/stations", {
           method:"POST",
-          body:JSON.stringify({ name:el.stationName.value.trim(), location:el.stationLocation.value.trim() })
+          body:JSON.stringify({ name:el.stationName.value.trim(), location:el.stationLocation.value.trim(), workplaceId:el.stationWorkplace.value })
         }));
         el.stationForm.reset();
         await loadStations();
@@ -616,12 +681,13 @@
       el.userFilterWrap.classList.toggle("hidden", !canReadAll());
       el.overviewSection.classList.toggle("hidden", !canReadAll());
       el.adminSection.classList.toggle("hidden", !canManage());
+      el.workplacesSection.classList.toggle("hidden", !canManage());
       const bridge = window.ProCalAndroidShell;
       const qrAvailable = bridge
         && typeof bridge.startAttendanceQrScan === "function"
         && (typeof bridge.isQrScannerAvailable !== "function" || bridge.isQrScannerAvailable());
       el.qrBtn.classList.toggle("hidden", !qrAvailable);
-      await Promise.all([loadStatus(), loadEntries(), loadUsers(), loadStations()]);
+      await Promise.all([loadStatus(), loadEntries(), loadUsers(), loadStations(), loadWorkplaces()]);
       setPageStatus("", false);
     } catch (error) {
       setPageStatus(error.message || t("failed"), true);

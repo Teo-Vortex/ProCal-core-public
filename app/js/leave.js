@@ -33,9 +33,7 @@
     records: [],
     filters: {
       userId: "",
-      leaveType: "",
-      from: "",
-      to: ""
+      leaveType: ""
     },
     approvingRecordId: "",
     selectedUserCompMinutes: 0
@@ -104,12 +102,8 @@
     legendStudy: document.getElementById("legendStudy"),
     lblFilterUser: document.getElementById("lblFilterUser"),
     lblFilterType: document.getElementById("lblFilterType"),
-    lblFilterFrom: document.getElementById("lblFilterFrom"),
-    lblFilterTo: document.getElementById("lblFilterTo"),
     filterUserId: document.getElementById("filterUserId"),
     filterLeaveType: document.getElementById("filterLeaveType"),
-    filterFrom: document.getElementById("filterFrom"),
-    filterTo: document.getElementById("filterTo"),
     applyFiltersBtn: document.getElementById("applyFiltersBtn"),
     resetFiltersBtn: document.getElementById("resetFiltersBtn"),
     approveSubstituteModal: document.getElementById("approveSubstituteModal"),
@@ -144,8 +138,6 @@
       records: "Records",
       filterUser: "Filter user",
       filterType: "Filter type",
-      filterFrom: "From",
-      filterTo: "To",
       filterApply: "Apply",
       filterReset: "Reset",
       all: "All",
@@ -223,8 +215,6 @@
       records: "\u0417\u0430\u043F\u0438\u0441\u0438",
       filterUser: "\u0424\u0438\u043B\u0442\u044A\u0440 \u0445\u043E\u0440\u0430",
       filterType: "\u0424\u0438\u043B\u0442\u044A\u0440 \u0442\u0438\u043F",
-      filterFrom: "\u041E\u0442",
-      filterTo: "\u0414\u043E",
       filterApply: "\u041F\u0440\u0438\u043B\u043E\u0436\u0438",
       filterReset: "\u041D\u0443\u043B\u0438\u0440\u0430\u0439",
       all: "\u0412\u0441\u0438\u0447\u043A\u0438",
@@ -363,15 +353,11 @@
   function syncFiltersFromControls() {
     state.filters.userId = String(el.filterUserId.value || "").trim();
     state.filters.leaveType = String(el.filterLeaveType.value || "").trim();
-    state.filters.from = String(el.filterFrom.value || "").trim();
-    state.filters.to = String(el.filterTo.value || "").trim();
   }
 
   function syncControlsFromFilters() {
     if (el.filterUserId) el.filterUserId.value = state.filters.userId;
     if (el.filterLeaveType) el.filterLeaveType.value = state.filters.leaveType;
-    if (el.filterFrom) el.filterFrom.value = state.filters.from;
-    if (el.filterTo) el.filterTo.value = state.filters.to;
   }
 
   function openDetailsModal() {
@@ -487,54 +473,111 @@
     state.canManage = hasPermission("leave.manage");
   }
 
-  function dayCellRecordMap(userId) {
+  function summaryColumns() {
+    return [
+      ["work", state.lang === "bg" ? "Р" : "W", t("workingDaysMonth")],
+      ["paid", t("abbrPaid"), t("paid")],
+      ["sick", t("abbrSick"), t("sick")],
+      ["unpaid", t("abbrUnpaid"), t("unpaid")],
+      ["study", state.lang === "bg" ? "У" : "E", t("study")]
+    ];
+  }
+
+  function periodDates(matrix) {
+    const dates = [];
+    for (let date = new Date(`${matrix.from}T00:00:00Z`); toYmdLocal(date) <= matrix.to; date.setUTCDate(date.getUTCDate() + 1)) {
+      dates.push(toYmdLocal(date));
+    }
+    return dates;
+  }
+
+  function dayCellRecordMap(userId, matrix, dates) {
     const out = new Map();
-    const rows = (state.matrix && state.matrix.records) || [];
-    for (const row of rows) {
-      if (row.userId !== userId) continue;
-      const from = Number(String(row.startDate || "").slice(8, 10));
-      const to = Number(String(row.endDate || "").slice(8, 10));
-      if (!Number.isFinite(from) || !Number.isFinite(to)) continue;
-      for (let d = from; d <= to; d += 1) {
-        const key = String(d);
-        if (!out.has(key)) out.set(key, []);
-        out.get(key).push(row);
+    for (const row of matrix.records || []) {
+      if (row.userId !== userId || !["approved", "pending"].includes(row.status)) continue;
+      for (const date of dates) {
+        if (date < row.startDate || date > row.endDate) continue;
+        if (!out.has(date)) out.set(date, []);
+        out.get(date).push(row);
       }
     }
     return out;
   }
 
-  function renderMatrix() {
-    const table = el.matrixTable;
+  function calendarDay(date, holidays) {
+    const weekday = new Date(`${date}T00:00:00Z`).getUTCDay() || 7;
+    const holiday = holidays.get(date);
+    const names = state.lang === "bg"
+      ? ["Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота", "Неделя"]
+      : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    return { weekday, className: holiday ? "holiday-day" : weekday >= 6 ? "weekend-day" : "",
+      title: `${date} · ${names[weekday - 1]}${holiday ? ` · ${holiday.names.join(", ")}` : ""}` };
+  }
+
+  function renderMatrix(matrix = state.matrix, table = el.matrixTable, dates = matrix ? periodDates(matrix) : []) {
     table.innerHTML = "";
 
-    if (!state.matrix || !Array.isArray(state.matrix.users)) return;
+    if (!matrix || !Array.isArray(matrix.users)) return;
 
-    const days = Number(state.matrix.daysInMonth || 31);
+    const caption = document.createElement("caption");
+    caption.textContent = `${matrix.from} — ${matrix.to}`;
+    table.appendChild(caption);
+    const colgroup = document.createElement("colgroup");
+    for (const className of ["matrix-user-column", ...dates.map(() => "matrix-day-column"), ...summaryColumns().map(() => "matrix-total-column")]) {
+      const col = document.createElement("col"); col.className = className; colgroup.appendChild(col);
+    }
+    table.style.setProperty("--matrix-days", String(dates.length));
+    table.appendChild(colgroup);
     const thead = document.createElement("thead");
     const hr = document.createElement("tr");
+    const weekdayRow = document.createElement("tr");
+    weekdayRow.className = "weekday-row";
+    const holidays = new Map((matrix.holidays || []).filter(h => h.dayOff).map(h => [h.dateKey, h]));
 
     const userHead = document.createElement("th");
     userHead.className = "sticky-left";
     userHead.textContent = t("user");
-    hr.appendChild(userHead);
+    userHead.rowSpan = 2;
+    weekdayRow.appendChild(userHead);
 
-    for (let d = 1; d <= days; d += 1) {
+    for (const date of dates) {
+      const day = calendarDay(date, holidays);
+      const weekdayHead = document.createElement("th");
+      weekdayHead.className = day.className;
+      weekdayHead.textContent = String(day.weekday);
+      weekdayHead.title = day.title;
+      weekdayHead.scope = "col";
+      weekdayRow.appendChild(weekdayHead);
       const th = document.createElement("th");
-      th.textContent = String(d);
+      th.className = day.className;
+      th.scope = "col";
+      th.textContent = dates[0].slice(0, 7) === dates[dates.length - 1].slice(0, 7)
+        ? String(Number(date.slice(8))) : `${date.slice(8)}.${date.slice(5, 7)}`;
+      th.title = day.title;
       hr.appendChild(th);
     }
 
-    const summaryHead = document.createElement("th");
-    summaryHead.textContent = state.lang === "bg" ? "Общо" : "Summary";
-    hr.appendChild(summaryHead);
+    for (const [type, letter, label] of summaryColumns()) {
+      const th = document.createElement("th");
+      th.className = "summary-column";
+      const badge = document.createElement("span");
+      badge.className = `cell t-${type}`;
+      badge.style.display = "block";
+      badge.textContent = letter;
+      th.appendChild(badge);
+      th.title = label;
+      th.setAttribute("aria-label", label);
+      th.scope = "col";
+      th.rowSpan = 2;
+      weekdayRow.appendChild(th);
+    }
 
-    thead.appendChild(hr);
+    thead.append(weekdayRow, hr);
     table.appendChild(thead);
 
     const tbody = document.createElement("tbody");
 
-    state.matrix.users.forEach((u) => {
+    matrix.users.forEach((u) => {
       const tr = document.createElement("tr");
       const left = document.createElement("td");
       left.className = "sticky-left";
@@ -546,15 +589,26 @@
       name.textContent = formatUserName(u);
       name.style.color = u.color || "";
       const s = (u.summary || {});
-      const workDaysMonth = Math.max(0, Number(u.workingDaysMonth ?? state.matrix.workingDaysInMonth ?? 0));
+      const workDaysMonth = Math.max(0, Number(u.workingDaysMonth ?? matrix.workingDaysInMonth ?? 0));
       const meta = document.createElement("div");
       meta.className = "user-meta";
       meta.textContent = `${t("abbrPaid")}:${s.leave || s.paid || 0} ${t("abbrSick")}:${s.sick || 0} ${t("abbrUnpaid")}:${s.unpaid || 0} ${t("abbrStudy")}:${s.study || 0} | ${t("workingDaysShort")}:${workDaysMonth}`;
+      const attendanceCells = new Map((u.attendanceCells || []).map(cell => [cell.dateKey, cell.workplaces]));
+      const workplaceTotals = new Map();
+      for (const cell of u.attendanceCells || []) {
+        for (const place of cell.workplaces) {
+          const key = `${place.id || ""}:${place.name}`;
+          if (!workplaceTotals.has(key)) workplaceTotals.set(key, { name: place.name || t("workingDaysMonth"), dates: new Set() });
+          workplaceTotals.get(key).dates.add(cell.dateKey);
+        }
+      }
+      const workplaceSummary = [...workplaceTotals.values()].map(place => `${place.name}: ${place.dates.size}`).join(" · ");
+      const locationTotals = document.createElement("div"); locationTotals.className = "workplace-totals"; locationTotals.textContent = workplaceSummary;
       const comp = document.createElement("div");
       const compMinutes = Number(u.compMinutes || 0);
       comp.className = `user-comp ${compMinutes > 0 ? "pos" : (compMinutes < 0 ? "neg" : "neu")}`;
       comp.textContent = `${t("clock")}: ${formatCompMinutes(compMinutes)}`;
-      nameBox.append(name, meta, comp);
+      nameBox.append(name, meta, comp, locationTotals);
       const detailsBtn = document.createElement("button");
       detailsBtn.type = "button";
       detailsBtn.className = "btn user-details-btn";
@@ -563,51 +617,61 @@
         event.preventDefault();
         await openDetailsForUser(u.id);
       });
-      wrap.append(nameBox, detailsBtn);
+      const actions = document.createElement("div"); actions.className = "user-matrix-actions";
+      const canPunch = hasPermission("attendance.read_self") && hasPermission("attendance.punch") && (u.id === state.me?.id || hasPermission("attendance.manage"));
+      if (canPunch) {
+        const attendanceBtn = document.createElement("button"); attendanceBtn.className = "btn user-details-btn"; attendanceBtn.type = "button"; attendanceBtn.textContent = "⏱";
+        attendanceBtn.title = state.lang === "bg" ? "Работно време" : "Working time"; attendanceBtn.setAttribute("aria-label", `${attendanceBtn.title} · ${formatUserName(u)}`);
+        attendanceBtn.addEventListener("click", () => window.ProCalAttendanceQuick.open({ lang: state.lang, userId:u.id, name:formatUserName(u), canPunch:true, onChange:reloadAll }));
+        actions.appendChild(attendanceBtn);
+      }
+      actions.appendChild(detailsBtn);
+      wrap.append(nameBox, actions);
       left.appendChild(wrap);
       tr.appendChild(left);
 
-      const recordMap = dayCellRecordMap(u.id);
-      for (let d = 1; d <= days; d += 1) {
+      const recordMap = dayCellRecordMap(u.id, matrix, dates);
+      const attendanceDates = new Set(u.attendanceDates || []);
+      const columns = summaryColumns();
+      for (const date of dates) {
         const td = document.createElement("td");
-        const rows = recordMap.get(String(d)) || [];
-        if (rows.length) {
-          const row = rows[rows.length - 1];
+        const day = calendarDay(date, holidays);
+        td.className = day.className;
+        td.title = day.title;
+        const rows = recordMap.get(date) || [];
+        // Show distinct approved absences; pending requests remain explicitly provisional.
+        const approved = rows.filter(row => row.status === "approved");
+        const shown = approved.length ? approved : rows;
+        const shownTypes = new Set();
+        for (const row of shown) {
+          if (shownTypes.has(row.leaveType)) continue;
+          shownTypes.add(row.leaveType);
           const badge = document.createElement("div");
           badge.className = `cell ${parseTypeClass(row.leaveType)}`;
-          if (String(row.status || "") === "pending") badge.classList.add("pending");
-          const labelMap = {
-            paid: t("abbrPaid"),
-            sick: t("abbrSick"),
-            unpaid: t("abbrUnpaid"),
-            study: t("abbrStudy")
-          };
-          badge.textContent = rows.length > 1 ? `${labelMap[row.leaveType] || "?"}+` : (labelMap[row.leaveType] || "?");
-          badge.title = rows.map((x) => `${x.leaveType === "paid" ? t("paid") : t(x.leaveType)} (${x.status === "pending" ? t("pending") : t("approved")}): ${x.startDate} - ${x.endDate}${x.note ? ` | ${x.note}` : ""}`).join("\n");
+          if (row.status === "pending") badge.classList.add("pending");
+          badge.textContent = columns.find(([type]) => type === row.leaveType)?.[1] || "?";
+          badge.title = `${row.leaveType === "paid" ? t("paid") : t(row.leaveType)} (${row.status === "pending" ? t("pending") : t("approved")}): ${row.startDate} — ${row.endDate}${row.note ? ` | ${row.note}` : ""}`;
+          td.appendChild(badge);
+        }
+        if (attendanceDates.has(date)) {
+          const badge = document.createElement("div");
+          badge.className = "cell t-work";
+          const places = attendanceCells.get(date) || [];
+          badge.textContent = [...new Set(places.map(place => Array.from(place.name.trim())[0]?.toLocaleUpperCase() || columns[0][1]))].join("") || columns[0][1];
+          badge.title = [state.lang === "bg" ? "Отчетено присъствие" : "Recorded attendance", ...places.map(place => place.name).filter(Boolean)].join(" · ");
           td.appendChild(badge);
         }
         tr.appendChild(td);
       }
 
-      const sum = document.createElement("td");
-      sum.className = "summary-cell";
-      const workBadge = document.createElement("span");
-      workBadge.className = "summary-badge t-work";
-      workBadge.textContent = `${t("workingDaysMonth")}: ${workDaysMonth}`;
-      const leaveBadge = document.createElement("span");
-      leaveBadge.className = "summary-badge t-paid";
-      leaveBadge.textContent = `${t("paid")}: ${Number(s.leave || s.paid || 0)}`;
-      const sickBadge = document.createElement("span");
-      sickBadge.className = "summary-badge t-sick";
-      sickBadge.textContent = `${t("sick")}: ${Number(s.sick || 0)}`;
-      const unpaidBadge = document.createElement("span");
-      unpaidBadge.className = "summary-badge t-unpaid";
-      unpaidBadge.textContent = `${t("unpaid")}: ${Number(s.unpaid || 0)}`;
-      const studyBadge = document.createElement("span");
-      studyBadge.className = "summary-badge t-study";
-      studyBadge.textContent = `${t("study")}: ${Number(s.study || 0)}`;
-      sum.append(workBadge, leaveBadge, sickBadge, unpaidBadge, studyBadge);
-      tr.appendChild(sum);
+      const totals = { work: u.attendanceVisible ? attendanceDates.size : "—", paid: s.leave || s.paid || 0, sick: s.sick || 0, unpaid: s.unpaid || 0, study: s.study || 0 };
+      for (const [type, , label] of summaryColumns()) {
+        const td = document.createElement("td");
+        td.className = `summary-column t-${type}`;
+        td.textContent = String(totals[type]);
+        td.title = type === "work" && workplaceSummary ? workplaceSummary : label;
+        tr.appendChild(td);
+      }
 
       tbody.appendChild(tr);
     });
@@ -695,10 +759,105 @@
     setStatus(`${t("loadedUsers")} ${state.users.length}`, false);
   }
 
+  async function exportPeriod(print) {
+    if (!state.canReadAll) return;
+    const buttons = [document.getElementById("printPeriodBtn"), document.getElementById("exportPeriodBtn")];
+    try {
+      const period = getMonthRangeYmd();
+      buttons.forEach((button) => { button.disabled = true; });
+      // Do not inherit person/type filters: this document includes all authorized staff and types.
+      const response = await api(`/api/leave/matrix?${new URLSearchParams({ ...period, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone })}`, { method: "GET" });
+      const matrix = await response.json();
+      if (!response.ok) throw new Error(matrix.error || "Export failed");
+      const groups = new Map();
+      for (const date of periodDates(matrix)) {
+        const month = date.slice(0, 7);
+        if (!groups.has(month)) groups.set(month, []);
+        groups.get(month).push(date);
+      }
+      const title = state.lang === "bg" ? "Отсъствия — целият персонал" : "Leave — all staff";
+      const note = state.lang === "bg"
+        ? "Обобщенията Р / О / Б / Н / У са за целия избран период. Пунктир: чака одобрение. Буква в клетката: работно място. Р в общото: дни с присъствие. 1–7: понеделник–неделя. Бледочервено: събота, неделя и празнични почивни дни."
+        : "W / L / S / U / E totals cover the entire selected period. Dashed border: pending approval. Cell letter: workplace. W total: days with attendance. 1–7: Monday–Sunday. Pale red: weekends and public holidays.";
+      const legend = summaryColumns().map(([type, letter, label]) => `<span class="badge t-${type}">${escapeHtml(letter)} — ${escapeHtml(label)}</span>`).join(" ");
+      const sections = [...groups].map(([month, dates]) => {
+        const table = document.createElement("table");
+        table.className = "matrix";
+        renderMatrix(matrix, table, dates);
+        table.querySelectorAll("button, .user-meta, .user-comp").forEach((node) => node.remove());
+        table.style.width = "100%";
+        table.querySelectorAll("col").forEach(col => { col.style.width = col.className === "matrix-user-column" ? "130px" : col.className === "matrix-total-column" ? "25px" : `calc((100% - 255px) / ${dates.length})`; });
+        table.querySelectorAll(".user-name").forEach((node) => node.removeAttribute("style"));
+        return `<section><h1>${escapeHtml(title)}</h1><p>${escapeHtml(period.from)} — ${escapeHtml(period.to)} · ${escapeHtml(month)}</p><div class="legend">${legend}</div><p class="note">${escapeHtml(note)}</p>${table.outerHTML}</section>`;
+      }).join("");
+      const html = `<!doctype html><html lang="${state.lang}"><head><meta charset="utf-8"><title>${escapeHtml(title)} ${period.from} — ${period.to}</title><style>
+        @page { size: A4 landscape; margin: 10mm; }
+        * { box-sizing: border-box; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        body { font-family: Arial, sans-serif; color: #1f2937; background: white; margin: 16px; }
+        h1 { font-size: 18px; margin: 0 0 8px; } p { font-size: 12px; }
+        section { margin: 0 0 24px; break-after: page; } section:last-child { break-after: auto; }
+        .matrix { border-collapse: collapse; width: 100%; table-layout: fixed; }
+        th, td { border: 1px solid #dbe3ec; text-align: center; font-size: 9px; padding: 4px 1px; overflow-wrap: anywhere; }
+        th { background: #f8fafc; } .sticky-left { width: 130px; text-align: left; padding: 4px; }
+        .summary-column { width: 25px; font-weight: bold; } .user-name { font-weight: bold; }
+        thead { display: table-header-group; } tr { break-inside: avoid; }
+        .legend { display: flex; flex-wrap: wrap; gap: 8px; } .badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; }
+        .cell { padding: 3px 0; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .workplace-totals { font-size: 9px; color:#64727a; } .pending { border: 1px dashed #64748b; }
+        .t-work { background: #fff7ed; color: #b45309; } .t-paid { background: #dff3ef; color: #0f766e; }
+        .t-sick { background: #fef2f2; color: #b42318; } .t-unpaid { background: #f3f7f6; color: #64727a; }
+        .t-study { background: #dcfce7; color: #15803d; }
+        .weekday-row th { background: #f3f7f6; color: #0f766e; font-weight: 700; border-bottom: 2px solid #d1e4df; }
+        .matrix .weekend-day, .matrix .holiday-day { background: rgba(254,226,226,.72); color: #64727a; }
+        .cell + .cell { margin-top: 2px; }
+        .print-button { padding: 8px 16px; margin-bottom: 16px; cursor: pointer; }
+        @media print { body { margin: 0; } .print-button { display: none; } }
+      </style></head><body><button class="print-button" onclick="window.print()">${state.lang === "bg" ? "Печат / Запази като PDF" : "Print / Save as PDF"}</button>${sections}</body></html>`;
+      if (print) {
+        const preview = document.createElement("div");
+        preview.className = "modal";
+        preview.setAttribute("role", "dialog");
+        preview.setAttribute("aria-modal", "true");
+        preview.setAttribute("aria-label", title);
+        const card = document.createElement("div");
+        card.className = "modal-card";
+        card.style.width = "96vw";
+        const close = document.createElement("button");
+        close.className = "btn";
+        close.textContent = t("close");
+        const dismiss = () => { preview.remove(); buttons[0].focus(); };
+        close.addEventListener("click", dismiss);
+        preview.addEventListener("keydown", (event) => { if (event.key === "Escape") dismiss(); });
+        const frame = document.createElement("iframe");
+        frame.title = title;
+        frame.style.cssText = "display:block;width:100%;height:75vh;border:0;background:white;margin-top:8px";
+        frame.srcdoc = html;
+        card.append(close, frame);
+        preview.appendChild(card);
+        document.body.appendChild(preview);
+        close.focus();
+      } else {
+        const url = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `procal-leave-${period.from}-${period.to}.html`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      }
+      setStatus(state.lang === "bg" ? "Експортът за целия персонал е готов." : "All-staff export is ready.", false);
+    } catch (error) {
+      setStatus(error.message || String(error), true);
+    } finally {
+      buttons.forEach((button) => { button.disabled = !state.canReadAll; });
+    }
+  }
+
   async function loadMatrix() {
     const y = state.month.getUTCFullYear();
     const m = state.month.getUTCMonth() + 1;
-    const params = new URLSearchParams({ year: String(y), month: String(m) });
+    const params = new URLSearchParams({ year: String(y), month: String(m), ...getMonthRangeYmd(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone });
     if (state.filters.userId) params.set("userId", state.filters.userId);
     if (state.filters.leaveType) params.set("leaveType", state.filters.leaveType);
     const res = await api(`/api/leave/matrix?${params.toString()}`, { method: "GET" });
@@ -741,9 +900,6 @@
     const targetMonth = new Date(`${oldest.startDate}T00:00:00.000Z`);
     if (!Number.isNaN(targetMonth.getTime())) {
       state.month = new Date(Date.UTC(targetMonth.getUTCFullYear(), targetMonth.getUTCMonth(), 1));
-      const range = getMonthRangeYmd();
-      state.filters.from = range.from;
-      state.filters.to = range.to;
     }
     state.selectedUserId = oldest.userId;
     state.filters.userId = oldest.userId;
@@ -881,9 +1037,7 @@
     }
     renderBalancesPanel(balanceBody);
 
-    const defaultRange = getMonthRangeYmd();
-    const from = state.filters.from || defaultRange.from;
-    const to = state.filters.to || defaultRange.to;
+    const { from, to } = getMonthRangeYmd();
     const params = new URLSearchParams({
       userId: targetUserId,
       from,
@@ -981,8 +1135,12 @@
     el.title.textContent = t("title");
     el.subtitle.textContent = t("subtitle");
     el.backBtn.textContent = t("back");
-    el.prevBtn.textContent = t("prev");
-    el.nextBtn.textContent = t("next");
+    el.prevBtn.textContent = "←";
+    el.nextBtn.textContent = "→";
+    el.prevBtn.title = state.lang === "bg" ? "Предишен месец" : "Previous month";
+    el.nextBtn.title = state.lang === "bg" ? "Следващ месец" : "Next month";
+    el.prevBtn.setAttribute("aria-label", el.prevBtn.title);
+    el.nextBtn.setAttribute("aria-label", el.nextBtn.title);
     el.panelTitle.textContent = t("details");
     el.detailsModalTitle.textContent = t("details");
     el.closeDetailsModalBtn.textContent = t("close");
@@ -1013,14 +1171,17 @@
     el.lblAllowanceDays.textContent = t("allowanceDays");
     el.saveAllowanceBtn.textContent = t("allowanceApply");
 
-    el.legendPaid.textContent = t("paid");
-    el.legendSick.textContent = t("sick");
-    el.legendUnpaid.textContent = t("unpaid");
-    el.legendStudy.textContent = t("study");
+    ["legendWork", "legendPaid", "legendSick", "legendUnpaid", "legendStudy"].forEach((id, i) => {
+      const [, letter, label] = summaryColumns()[i];
+      document.getElementById(id).textContent = `${letter} — ${label}`;
+    });
+    document.getElementById("calendarLegend").textContent = state.lang === "bg"
+      ? "1–7: понеделник–неделя · Бледочервено: събота, неделя и празнични почивни дни · Пунктир: чака одобрение · Буква в клетката: работно място. Р в общото: дни с присъствие."
+      : "1–7: Monday–Sunday · Pale red: weekends and public holidays · Dashed: pending approval · Cell letter: workplace. W total: days with attendance.";
+    document.getElementById("printPeriodBtn").textContent = state.lang === "bg" ? "Печат / PDF — целият персонал" : "Print / PDF — all staff";
+    document.getElementById("exportPeriodBtn").textContent = state.lang === "bg" ? "Експорт HTML — целият персонал" : "Export HTML — all staff";
     el.lblFilterUser.textContent = t("filterUser");
     el.lblFilterType.textContent = t("filterType");
-    el.lblFilterFrom.textContent = t("filterFrom");
-    el.lblFilterTo.textContent = t("filterTo");
     el.applyFiltersBtn.textContent = t("filterApply");
     el.resetFiltersBtn.textContent = t("filterReset");
     const allTypeOpt = el.filterLeaveType.querySelector("option[value='']");
@@ -1078,9 +1239,6 @@
       if (el.allowanceDays) {
         el.allowanceDays.value = "";
       }
-      const initialRange = getMonthRangeYmd();
-      state.filters.from = initialRange.from;
-      state.filters.to = initialRange.to;
       syncControlsFromFilters();
 
       const ok = await loadMe();
@@ -1088,29 +1246,21 @@
 
       await reloadAll();
 
-      el.prevBtn.addEventListener("click", async () => {
-        const oldRange = getMonthRangeYmd();
-        state.month = new Date(Date.UTC(state.month.getUTCFullYear(), state.month.getUTCMonth() - 1, 1));
-        const newRange = getMonthRangeYmd();
-        if (state.filters.from === oldRange.from && state.filters.to === oldRange.to) {
-          state.filters.from = newRange.from;
-          state.filters.to = newRange.to;
-          syncControlsFromFilters();
+      const changeMonth = async (offset) => {
+        el.prevBtn.disabled = true;
+        el.nextBtn.disabled = true;
+        try {
+          state.month = new Date(Date.UTC(state.month.getUTCFullYear(), state.month.getUTCMonth() + offset, 1));
+          await reloadAll();
+        } catch (error) {
+          setStatus(error.message || String(error), true);
+        } finally {
+          el.prevBtn.disabled = false;
+          el.nextBtn.disabled = false;
         }
-        await reloadAll();
-      });
-
-      el.nextBtn.addEventListener("click", async () => {
-        const oldRange = getMonthRangeYmd();
-        state.month = new Date(Date.UTC(state.month.getUTCFullYear(), state.month.getUTCMonth() + 1, 1));
-        const newRange = getMonthRangeYmd();
-        if (state.filters.from === oldRange.from && state.filters.to === oldRange.to) {
-          state.filters.from = newRange.from;
-          state.filters.to = newRange.to;
-          syncControlsFromFilters();
-        }
-        await reloadAll();
-      });
+      };
+      el.prevBtn.addEventListener("click", () => changeMonth(-1));
+      el.nextBtn.addEventListener("click", () => changeMonth(1));
       if (el.pendingRequestsIndicator) {
         el.pendingRequestsIndicator.addEventListener("click", async () => {
           try {
@@ -1205,18 +1355,25 @@
         });
       }
 
+      for (const [id, print] of [["printPeriodBtn", true], ["exportPeriodBtn", false]]) {
+        const button = document.getElementById(id);
+        button.disabled = !state.canReadAll;
+        button.addEventListener("click", () => exportPeriod(print));
+      }
+
       el.applyFiltersBtn.addEventListener("click", async () => {
-        syncFiltersFromControls();
-        if (state.filters.userId) state.selectedUserId = state.filters.userId;
-        await reloadAll();
+        try {
+          syncFiltersFromControls();
+          if (state.filters.userId) state.selectedUserId = state.filters.userId;
+          await reloadAll();
+        } catch (error) {
+          setStatus(error.message || String(error), true);
+        }
       });
 
       el.resetFiltersBtn.addEventListener("click", async () => {
         state.filters.userId = "";
         state.filters.leaveType = "";
-        const r = getMonthRangeYmd();
-        state.filters.from = r.from;
-        state.filters.to = r.to;
         syncControlsFromFilters();
         await reloadAll();
       });

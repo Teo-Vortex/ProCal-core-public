@@ -1,0 +1,193 @@
+/* Leave matrix uses the shared application palette in both themes. */
+body.procal-module-page {
+  --leave-paid-bg: var(--ui-accent-soft);
+  --leave-paid-ink: var(--ui-accent);
+  --leave-sick-bg: var(--ui-danger-soft);
+  --leave-sick-ink: var(--ui-danger);
+  --leave-unpaid-bg: var(--ui-surface-subtle);
+  --leave-unpaid-ink: var(--ui-muted);
+  --leave-study-bg: var(--ui-success-soft);
+  --leave-study-ink: var(--ui-success);
+  --leave-work-bg: var(--ui-warning-soft);
+  --leave-work-ink: var(--ui-warning);
+}
+body.procal-module-page .layout > .card {
+  min-width: 0;
+  border-radius: var(--ui-radius);
+  padding: 12px;
+  box-shadow: none;
+}
+body.procal-module-page .layout {
+  min-height: 0;
+}
+body.procal-module-page .matrix-wrap {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-line);
+  border-radius: var(--ui-radius);
+  box-shadow: none;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: 70vh;
+  max-height: 70dvh;
+  overflow: auto;
+}
+body.procal-module-page .matrix {
+  --matrix-user-width: 190px;
+  --matrix-total-width: 32px;
+  --matrix-day-min: 26px;
+  color: var(--ui-text);
+  font-variant-numeric: tabular-nums;
+  table-layout: fixed;
+  width: 100%;
+  min-width: calc(var(--matrix-user-width) + var(--matrix-days) * var(--matrix-day-min) + 5 * var(--matrix-total-width));
+}
+body.procal-module-page .matrix-user-column {
+  width: var(--matrix-user-width);
+}
+body.procal-module-page .matrix-day-column {
+  /* Fixed table layout divides the remaining space equally between day columns. */
+  width: auto;
+}
+body.procal-module-page .matrix-total-column {
+  width: var(--matrix-total-width);
+}
+body.procal-module-page .matrix caption {
+  padding: 9px 12px;
+  background: var(--ui-surface);
+  color: var(--ui-muted);
+  text-align: left;
+  font-size: var(--ui-text-xs);
+  font-weight: 600;
+  border-bottom: 1px solid var(--ui-line);
+}
+body.procal-module-page .matrix th,
+body.procal-module-page .matrix td {
+  border-color: color-mix(in srgb, var(--ui-line) 65%, transparent);
+  padding: 5px 4px;
+  font-size: var(--ui-text-xs);
+}
+body.procal-module-page .matrix thead th {
+  background: var(--ui-surface-subtle);
+  color: var(--ui-muted);
+  font-weight: 600;
+}
+body.procal-module-page .matrix .weekday-row th {
+  height: 28px;
+  padding-block: 4px;
+  background: color-mix(in srgb, var(--ui-accent-soft) 35%, var(--ui-surface-subtle));
+  color: var(--ui-accent);
+  font-weight: 700;
+  border-bottom: 1px solid var(--ui-line);
+}
+body.procal-module-page .matrix th.sticky-left,
+body.procal-module-page .matrix td.sticky-left {
+  min-width: 0;
+  padding: 10px;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border-right: 1px solid var(--ui-line);
+}
+body.procal-module-page .matrix th.sticky-left {
+  z-index: 4;
+  background: var(--ui-surface-subtle);
+  color: var(--ui-muted);
+}
+body.procal-module-page .matrix tbody tr:hover td.sticky-left {
+  background: color-mix(in srgb, var(--ui-accent-soft) 30%, var(--ui-surface));
+}
+body.procal-module-page .matrix th.weekend-day,
+body.procal-module-page .matrix td.weekend-day,
+body.procal-module-page .matrix th.holiday-day,
+body.procal-module-page .matrix td.holiday-day {
+  background: rgba(254,226,226,.72);
+  color: var(--ui-muted);
+}
+:root[data-theme="dark"] body.procal-module-page .matrix th.weekend-day,
+:root[data-theme="dark"] body.procal-module-page .matrix td.weekend-day,
+:root[data-theme="dark"] body.procal-module-page .matrix th.holiday-day,
+:root[data-theme="dark"] body.procal-module-page .matrix td.holiday-day {
+  background: rgba(71,35,45,.56);
+  border-color: rgba(251,113,133,.24);
+}
+body.procal-module-page .matrix .summary-column {
+  min-width: 0;
+  width: var(--matrix-total-width);
+  background: var(--ui-surface-subtle);
+  border-right-color: transparent;
+  font-weight: 700;
+}
+body.procal-module-page .matrix td.summary-column.t-work {
+  border-left: 1px solid var(--ui-line);
+}
+body.procal-module-page .cell {
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  height: auto;
+  min-height: 24px;
+  padding: 3px 2px;
+  line-height: 16px;
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: var(--ui-radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+}
+body.procal-module-page .cell.pending {
+  border: 1px dashed currentColor;
+}
+body.procal-module-page .legend .badge {
+  padding: 3px 9px;
+  border-radius: var(--ui-radius-sm);
+  font-size: var(--ui-text-xs);
+  font-weight: 600;
+  border-color: color-mix(in srgb, currentColor 18%, transparent);
+}
+body.procal-module-page .t-paid { background: var(--leave-paid-bg); color: var(--leave-paid-ink); }
+body.procal-module-page .t-sick { background: var(--leave-sick-bg); color: var(--leave-sick-ink); }
+body.procal-module-page .t-unpaid { background: var(--leave-unpaid-bg); color: var(--leave-unpaid-ink); }
+body.procal-module-page .t-study { background: var(--leave-study-bg); color: var(--leave-study-ink); }
+body.procal-module-page .t-work { background: var(--leave-work-bg); color: var(--leave-work-ink); }
+/* Legends and totals retain their semantic colors instead of generic dark badges. */
+body.procal-module-page .legend .badge.t-paid { background: var(--leave-paid-bg); color: var(--leave-paid-ink); }
+body.procal-module-page .legend .badge.t-sick { background: var(--leave-sick-bg); color: var(--leave-sick-ink); }
+body.procal-module-page .legend .badge.t-unpaid { background: var(--leave-unpaid-bg); color: var(--leave-unpaid-ink); }
+body.procal-module-page .legend .badge.t-study { background: var(--leave-study-bg); color: var(--leave-study-ink); }
+body.procal-module-page .legend .badge.t-work { background: var(--leave-work-bg); color: var(--leave-work-ink); }
+
+body.procal-module-page .user-matrix-actions { display:flex; flex-direction:column; gap:4px; flex:0 0 auto; }
+body.procal-module-page .user-cell > div:first-child { min-width:0; overflow-wrap:anywhere; }
+
+@media (max-width: 768px) {
+  body.procal-module-page .matrix {
+    --matrix-user-width: 160px;
+    --matrix-total-width: 30px;
+    --matrix-day-min: 28px;
+  }
+  body.procal-module-page .user-cell {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  body.procal-module-page .user-matrix-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  body.procal-module-page .user-details-btn {
+    min-height: 32px;
+  }
+}
+@media (max-width: 480px) {
+  body.procal-module-page .layout > .card {
+    padding: 8px;
+  }
+  body.procal-module-page .matrix {
+    --matrix-user-width: 136px;
+  }
+  body.procal-module-page .matrix th.sticky-left,
+  body.procal-module-page .matrix td.sticky-left {
+    padding: 8px;
+  }
+}

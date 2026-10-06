@@ -34,7 +34,12 @@
     .matrix th, .matrix td { border-bottom:1px solid #eef2f7; border-right:1px solid #eef2f7; padding:4px 6px; text-align:center; font-size:12px; }
     .matrix th.sticky-left, .matrix td.sticky-left { position:sticky; left:0; background:#fff; z-index:2; min-width:170px; text-align:left; }
     .matrix thead th { position:sticky; top:0; background:#f8fafc; z-index:3; }
-    .matrix th:last-child, .matrix td:last-child { min-width:290px; width:290px; text-align:left; }
+    .matrix thead tr:nth-child(2) th { top:28px; }
+    .matrix .weekday-row th { height:28px; background:#e2e8f0; color:#475569; font-weight:800; border-bottom:2px solid #94a3b8; }
+    .matrix th.weekend-day, .matrix td.weekend-day { background:#edf0f4; color:#64748b; }
+    .matrix th.holiday-day, .matrix td.holiday-day { background:#ede9fe; color:#6d28d9; }
+    .cell + .cell { margin-top:2px; }
+    .matrix .summary-column { min-width:32px; width:32px; font-weight:700; }
     .user-cell { display:flex; align-items:center; justify-content:space-between; gap:8px; }
     .user-meta { margin-top:2px; font-size:11px; color:var(--muted); line-height:1.2; }
     .user-comp { font-size:11px; font-weight:700; margin-top:2px; }
@@ -45,11 +50,6 @@
     .user-details-btn { padding:4px 8px; font-size:11px; }
     .cell { min-width:26px; height:24px; border-radius:6px; font-size:11px; font-weight:700; line-height:16px; padding:2px 0; }
     .cell.pending { border:1px dashed #64748b; }
-    .t-paid { background:#dbeafe; color:#1e3a8a; }
-    .t-sick { background:#fee2e2; color:#991b1b; }
-    .t-unpaid { background:#f3f4f6; color:#374151; }
-    .t-study { background:#dcfce7; color:#166534; }
-    .t-work { background:#fff7ed; color:#9a3412; }
     label { font-size:13px; color:var(--muted); display:grid; gap:4px; }
     input, select, textarea { width:100%; border:1px solid var(--line); border-radius:8px; padding:7px 8px; font:inherit; }
     textarea { min-height:64px; resize:vertical; }
@@ -78,15 +78,8 @@
     :root[data-theme="dark"] .btn.primary { background:linear-gradient(180deg,#48e0ca,#18a99a); border-color:rgba(54,214,191,.72); color:#06251f; }
     :root[data-theme="dark"] .pending-indicator.has-pending { background:rgba(251,191,36,.16); border-color:rgba(251,191,36,.52); color:#fde68a; }
     :root[data-theme="dark"] input,:root[data-theme="dark"] select,:root[data-theme="dark"] textarea { background:#08141d; border-color:var(--line); color:var(--ink); }
-    :root[data-theme="dark"] .matrix th,:root[data-theme="dark"] .matrix td,:root[data-theme="dark"] .record { border-color:rgba(184,208,216,.14); }
-    :root[data-theme="dark"] .matrix th.sticky-left,:root[data-theme="dark"] .matrix td.sticky-left,:root[data-theme="dark"] .matrix thead th { background:#132a37; color:var(--ink); }
-    :root[data-theme="dark"] .matrix tbody tr:hover { background:rgba(24,52,66,.72); }
+    :root[data-theme="dark"] .record { border-color:var(--ui-line); }
     :root[data-theme="dark"] .summary-badge,:root[data-theme="dark"] .legend .badge { background:rgba(24,52,66,.82); border-color:var(--line); color:#d8e7ed; }
-    :root[data-theme="dark"] .t-paid { background:rgba(56,189,248,.18); color:#bae6fd; }
-    :root[data-theme="dark"] .t-sick { background:rgba(251,113,133,.18); color:#fecdd3; }
-    :root[data-theme="dark"] .t-unpaid { background:rgba(148,163,184,.16); color:#cbd5e1; }
-    :root[data-theme="dark"] .t-study { background:rgba(74,222,128,.16); color:#bbf7d0; }
-    :root[data-theme="dark"] .t-work { background:rgba(251,191,36,.18); color:#fde68a; }
     :root[data-theme="dark"] .user-comp.pos { color:#86efac; }
     :root[data-theme="dark"] .user-comp.neg { color:#fda4af; }
     :root[data-theme="dark"] .user-comp.neu { color:#cbd5e1; }
@@ -98,6 +91,8 @@
     }
   </style>
   <link rel="stylesheet" href="css/ui-system.css">
+  <link rel="stylesheet" href="css/attendance-quick.css">
+  <link rel="stylesheet" href="css/leave-matrix.css">
 </head>
 <body class="procal-module-page">
   <div class="wrap">
@@ -118,17 +113,19 @@
     <div class="card">
       <div class="row">
         <button id="prevBtn" class="btn" type="button">Prev</button>
-        <strong id="monthLabel">-</strong>
+        <strong id="monthLabel" aria-live="polite">-</strong>
         <button id="nextBtn" class="btn" type="button">Next</button>
         <button id="pendingRequestsIndicator" class="btn pending-indicator hidden" type="button">Pending requests: 0</button>
         <span id="me" class="muted">-</span>
       </div>
       <div class="legend" style="margin-top:8px;">
+        <span class="badge t-work" id="legendWork">Working days</span>
         <span class="badge t-paid" id="legendPaid">Leave</span>
         <span class="badge t-sick" id="legendSick">Sick</span>
         <span class="badge t-unpaid" id="legendUnpaid">Unpaid</span>
         <span class="badge t-study" id="legendStudy">Study</span>
       </div>
+      <div id="calendarLegend" class="muted" style="margin-top:6px;"></div>
       <div class="row" style="margin-top:8px;">
         <label style="min-width:170px;">
           <span id="lblFilterUser">Filter user</span>
@@ -144,23 +141,17 @@
             <option value="study">study</option>
           </select>
         </label>
-        <label>
-          <span id="lblFilterFrom">From</span>
-          <input id="filterFrom" type="date">
-        </label>
-        <label>
-          <span id="lblFilterTo">To</span>
-          <input id="filterTo" type="date">
-        </label>
         <button id="applyFiltersBtn" class="btn" type="button">Apply</button>
         <button id="resetFiltersBtn" class="btn" type="button">Reset</button>
+        <button id="printPeriodBtn" class="btn" type="button" disabled>Print / PDF — all staff</button>
+        <button id="exportPeriodBtn" class="btn" type="button" disabled>Export HTML — all staff</button>
       </div>
       <div id="status" class="muted" style="margin-top:8px;"></div>
     </div>
 
     <div class="layout">
       <section class="card">
-        <div class="matrix-wrap">
+        <div class="matrix-wrap" tabindex="0" role="region" aria-labelledby="monthLabel">
           <table class="matrix" id="matrixTable"></table>
         </div>
       </section>
@@ -263,6 +254,7 @@
       </div>
     </div>
   </div>
+  <script src="js/attendance-quick.js"></script>
   <script src="js/leave.js"></script>
 </body>
 </html>

@@ -5,11 +5,11 @@ This public Core package was generated from the private ProCal Platform reposito
 | Field | Value |
 | --- | --- |
 | Source branch | main |
-| Source commit | 05e2b0f29be46723eea123810eac45bb44a1ad9c |
+| Source commit | c910804f648c351b46764fb1cdf2b5b64cd21127 |
 | Source tags at commit | - |
 | Stable source | yes (branch main) |
 | Worktree dirty during export | no |
 | Release version | 0.10.1 |
-| Exported at | 2026-09-11T15:37:25.825Z |
+| Exported at | 2026-10-06T20:12:56.104Z |
 
 Release rule: publish `latest` or `stable` Docker tags only from exports where `Stable source` is `yes` and `Worktree dirty during export` is `no`.

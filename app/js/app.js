@@ -1168,14 +1168,15 @@ const I18N = {
     reportsWorkdaysBasis: "Mon–Fri, excluding non-working holidays and approved leave/sick leave.",
     mediaMonitoring: "Media",
     leave: "Leave",
-    attendance: "Attendance",
+    attendance: "Working time",
     selectedDayView: "Selected day view",
     selectedDayPlan: "Plan",
-    attendanceLoading: "Loading attendance...",
-    attendanceLoadFailed: "Attendance could not be loaded.",
+    attendanceLoading: "Loading working time...",
+    attendanceLoadFailed: "Working time could not be loaded.",
     attendanceNoRecordsDay: "No attendance records for this day.",
     attendanceArrival: "Arrival",
     attendanceDeparture: "Departure",
+    attendanceNoWorkplace: "No workplace assigned",
     attendanceWorked: "Recorded time",
     attendanceAtWork: "At work",
     attendanceLeftWork: "Left",
@@ -1746,14 +1747,15 @@ const I18N = {
     reportsWorkdaysBasis: "Пон–пет, без неработните празници и одобрените отпуски и болнични.",
     mediaMonitoring: "\u041C\u0435\u0434\u0438\u0438",
     leave: "\u041E\u0442\u0441\u044A\u0441\u0442\u0432\u0438\u044F",
-    attendance: "\u041F\u0440\u0438\u0441\u044A\u0441\u0442\u0432\u0438\u044F",
+    attendance: "Работно време",
     selectedDayView: "\u0418\u0437\u0433\u043B\u0435\u0434 \u0437\u0430 \u0438\u0437\u0431\u0440\u0430\u043D\u0438\u044F \u0434\u0435\u043D",
     selectedDayPlan: "\u041F\u043B\u0430\u043D",
-    attendanceLoading: "\u0417\u0430\u0440\u0435\u0436\u0434\u0430\u043D\u0435 \u043D\u0430 \u043F\u0440\u0438\u0441\u044A\u0441\u0442\u0432\u0438\u044F\u0442\u0430...",
-    attendanceLoadFailed: "\u041F\u0440\u0438\u0441\u044A\u0441\u0442\u0432\u0438\u044F\u0442\u0430 \u043D\u0435 \u043C\u043E\u0436\u0430\u0445\u0430 \u0434\u0430 \u0441\u0435 \u0437\u0430\u0440\u0435\u0434\u044F\u0442.",
+    attendanceLoading: "Зареждане на работното време...",
+    attendanceLoadFailed: "Работното време не може да се зареди.",
     attendanceNoRecordsDay: "\u041D\u044F\u043C\u0430 \u0437\u0430\u043F\u0438\u0441\u0438 \u0437\u0430 \u043F\u0440\u0438\u0441\u044A\u0441\u0442\u0432\u0438\u0435 \u0437\u0430 \u0442\u043E\u0437\u0438 \u0434\u0435\u043D.",
     attendanceArrival: "\u041F\u0440\u0438\u0441\u0442\u0438\u0433\u0430\u043D\u0435",
     attendanceDeparture: "\u0422\u0440\u044A\u0433\u0432\u0430\u043D\u0435",
+    attendanceNoWorkplace: "Без работно място",
     attendanceWorked: "\u041E\u0442\u0447\u0435\u0442\u0435\u043D\u043E \u0432\u0440\u0435\u043C\u0435",
     attendanceAtWork: "\u041D\u0430 \u0440\u0430\u0431\u043E\u0442\u0430",
     attendanceLeftWork: "\u0422\u0440\u044A\u0433\u043D\u0430\u043B",
@@ -5231,7 +5233,17 @@ function setTitle(id, value) {
   const el = document.getElementById(id);
   if (el) el.setAttribute("title", value);
 }
+document.getElementById("calendarAttendanceBtn")?.addEventListener("click", () => {
+  window.ProCalAttendanceQuick.open({ lang: currentLang, name: currentUserName, canPunch: currentUserHasPermission("attendance.punch"), onChange: () => { if (selectedDayPanelTab === "attendance") renderSelectedDayAttendance(); } });
+});
+
 function renderCurrentUserLabel() {
+  const attendanceQuickBtn = document.getElementById("calendarAttendanceBtn");
+  if (attendanceQuickBtn) {
+    attendanceQuickBtn.classList.toggle("hidden-section", !currentUserId || !currentUserHasPermission("attendance.read_self") || !currentUserHasPermission("attendance.punch"));
+    attendanceQuickBtn.title = t("attendance");
+    attendanceQuickBtn.setAttribute("aria-label", t("attendance"));
+  }
   const el = document.getElementById("currentUserLabel");
   if (!currentUserName) {
     if (el) el.textContent = "";
@@ -12786,6 +12798,10 @@ function formatAttendanceDuration(milliseconds) {
   return `${hours}${t("attendanceHoursShort")} ${String(minutes).padStart(2, "0")}${t("attendanceMinutesShort")}`;
 }
 
+function attendanceWorkplaceLabel(entry) {
+  return entry.workplaceName || entry.workplace?.name || t("attendanceNoWorkplace");
+}
+
 function summarizeAttendanceEntries(entries) {
   const groups = new Map();
   (Array.isArray(entries) ? entries : [])
@@ -12874,15 +12890,25 @@ async function renderSelectedDayAttendance() {
 
       const firstIn = summary.entries.find((entry) => entry.kind === "check_in");
       const lastOut = summary.entries.slice().reverse().find((entry) => entry.kind === "check_out");
+      const departureEntry = summary.openAt
+        ? summary.entries.slice().reverse().find((entry) => entry.kind === "check_in")
+        : lastOut;
       const facts = document.createElement("div");
       facts.className = "side-attendance-facts";
-      [[t("attendanceArrival"), firstIn ? formatAttendanceTime(firstIn.occurredAt) : "-"],
-       [t("attendanceDeparture"), summary.openAt ? t("attendanceAtWork") : (lastOut ? formatAttendanceTime(lastOut.occurredAt) : "-")],
-       [t("attendanceWorked"), formatAttendanceDuration(summary.totalMs)]].forEach(([label, value]) => {
+      [[t("attendanceArrival"), firstIn ? formatAttendanceTime(firstIn.occurredAt) : "-", firstIn],
+       [t("attendanceDeparture"), summary.openAt ? t("attendanceAtWork") : (lastOut ? formatAttendanceTime(lastOut.occurredAt) : "-"), departureEntry],
+       [t("attendanceWorked"), formatAttendanceDuration(summary.totalMs)]].forEach(([label, value, entry]) => {
         const fact = document.createElement("span");
         fact.innerHTML = `<small></small><b></b>`;
         fact.querySelector("small").textContent = label;
         fact.querySelector("b").textContent = value;
+        if (entry) {
+          const workplace = document.createElement("small");
+          workplace.className = "side-attendance-workplace";
+          workplace.textContent = attendanceWorkplaceLabel(entry);
+          workplace.title = workplace.textContent;
+          fact.append(workplace);
+        }
         facts.append(fact);
       });
 
@@ -12895,7 +12921,8 @@ async function renderSelectedDayAttendance() {
       summary.entries.forEach((entry) => {
         const line = document.createElement("div");
         const label = document.createElement("span");
-        label.textContent = entry.kind === "check_in" ? t("attendanceArrival") : t("attendanceDeparture");
+        const action = entry.kind === "check_in" ? t("attendanceArrival") : t("attendanceDeparture");
+        label.textContent = `${action} · ${attendanceWorkplaceLabel(entry)}`;
         const time = document.createElement("strong");
         time.textContent = formatAttendanceTime(entry.occurredAt);
         line.append(label, time);
@@ -16171,8 +16198,6 @@ async function patchAdminUser(userId, payload) {
     reloadUsers: loadAdminUsers
   });
 }
-
-
 
 
 

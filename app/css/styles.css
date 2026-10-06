@@ -5690,6 +5690,12 @@ button {
   white-space: nowrap;
 }
 
+.side-attendance-workplace,
+.side-attendance-timeline > div > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .side-attendance-details summary {
   cursor: pointer;
   color: var(--muted);
@@ -5712,6 +5718,7 @@ button {
 }
 
 .side-attendance-timeline strong {
+  flex-shrink: 0;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }

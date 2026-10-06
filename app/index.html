@@ -14,6 +14,7 @@
   </script>
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/ui-system.css">
+  <link rel="stylesheet" href="css/attendance-quick.css">
 </head>
 <body>
   <div class="bg-shape bg-shape-a"></div>
@@ -50,6 +51,7 @@
               <strong id="currentCompBalanceValue" class="own-balance-value">-</strong>
             </div>
             <div class="user-quick-actions" aria-label="User shortcuts">
+              <button id="calendarAttendanceBtn" class="ghost-btn topbar-icon-btn hidden-section" type="button" aria-label="Working time" title="Working time"><span class="topbar-icon" aria-hidden="true">⏱</span></button>
               <button id="notificationsBtn" class="ghost-btn topbar-icon-btn" type="button" title="Notifications" aria-label="Notifications">
                 <span class="topbar-icon" aria-hidden="true">🔔</span>
                 <span id="notificationsLabel" class="sr-only">Notifications</span>
@@ -108,7 +110,7 @@
         </div>
         <div id="sideDayViewTabs" class="side-day-view-tabs" role="tablist" aria-label="Selected day view">
           <button id="sideDayPlanTabBtn" class="ghost-btn side-day-view-tab active" type="button" role="tab" aria-selected="true" aria-controls="sideDayList">Plan</button>
-          <button id="sideDayAttendanceTabBtn" class="ghost-btn side-day-view-tab" type="button" role="tab" aria-selected="false" aria-controls="sideDayAttendancePanel">Attendance</button>
+          <button id="sideDayAttendanceTabBtn" class="ghost-btn side-day-view-tab" type="button" role="tab" aria-selected="false" aria-controls="sideDayAttendancePanel">Working time</button>
         </div>
         <ul id="sideDayList" class="event-list" role="tabpanel"></ul>
         <div id="sideDayAttendancePanel" class="side-day-attendance hidden-section" role="tabpanel" aria-live="polite"></div>
@@ -746,7 +748,7 @@
               <button id="mediaMonitoringBtn" class="ghost-btn" type="button">Media</button>
               <button id="reportsBtn" class="ghost-btn" type="button">Reports</button>
               <button id="leaveBtn" class="ghost-btn" type="button">Leave</button>
-              <button id="attendanceBtn" class="ghost-btn" type="button">Attendance</button>
+              <button id="attendanceBtn" class="ghost-btn" type="button">Working time</button>
               <button id="inventoryBtn" class="ghost-btn" type="button">Inventory</button>
               <button id="compensationBtn" class="ghost-btn" type="button">Compensations</button>
               <button id="filesBtn" class="ghost-btn" type="button">Files</button>
@@ -1340,10 +1342,10 @@
   <script src="js/modules/notes/meta.js"></script>
   <script src="js/modules/notes/render.js"></script>
   <script src="js/modules/notes/drag.js"></script>
+  <script src="js/attendance-quick.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
-
 
 
 

@@ -1,3 +1,4 @@
+import { backfillLegacyAttendance } from "./attendanceWorkplaceService";
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -1044,6 +1045,7 @@ export async function restoreFullBackupFromFile(fileName: string, encryptionKey?
 
   const clearedTables = await clearCurrentDatabase(cfg.dbName);
   const importResult = await importTables(pkg.tables);
+  await backfillLegacyAttendance();
   if (pkg.backupKind !== "working") {
     writeConfigFilesSnapshot(pkg.configFiles);
   }
@@ -1080,6 +1082,7 @@ export async function importBackupIntoCurrentRealmFromFile(
     allowedTables,
     transformRow: (table, row) => remapCrossRealmImportRow(table, row, userMapResult.userIdMap)
   });
+  await backfillLegacyAttendance();
   await closePrisma();
 
   return {

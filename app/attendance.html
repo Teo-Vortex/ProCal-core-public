@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ProCal Attendance</title>
+  <title>ProCal Working time</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script>
     try {
@@ -100,13 +100,14 @@
     }
   </style>
   <link rel="stylesheet" href="css/ui-system.css">
+  <link rel="stylesheet" href="css/attendance-quick.css">
 </head>
 <body class="procal-module-page">
   <main class="wrap">
     <header class="head">
       <div class="brand">
         <img src="favicon.ico" alt="" width="44" height="44">
-        <div><h1 id="pageTitle">Attendance</h1><div id="pageSubtitle" class="muted">Workday log</div></div>
+        <div><h1 id="pageTitle">Working time</h1><div id="pageSubtitle" class="muted">Workday log</div></div>
       </div>
       <div class="row"><button id="langBtn" class="btn" type="button">BG</button><a id="backBtn" class="btn" href="/">Back</a></div>
     </header>
@@ -119,7 +120,8 @@
       </div>
       <div class="status-actions">
         <button id="qrBtn" class="btn hidden" type="button">Scan QR</button>
-        <button id="punchBtn" class="btn primary" type="button">Check in</button>
+        <div id="workplacePunchButtons" class="attendance-quick-actions"></div>
+        <button id="punchBtn" class="btn primary hidden" type="button">Check in</button>
       </div>
     </section>
 
@@ -141,7 +143,7 @@
       </div>
       <div class="history-wrap">
         <table class="history-table">
-          <thead><tr><th id="historyEmployeeHead">Employee</th><th id="historyDateHead">Date</th><th id="historyArrivalHead">Arrival</th><th id="historyDepartureHead">Departure</th><th id="historyTimeHead">Recorded time</th><th id="historyStatusHead">Status</th></tr></thead>
+          <thead><tr><th id="historyEmployeeHead">Employee</th><th id="historyWorkplaceHead">Workplace</th><th id="historyDateHead">Date</th><th id="historyArrivalHead">Arrival</th><th id="historyDepartureHead">Departure</th><th id="historyTimeHead">Recorded time</th><th id="historyStatusHead">Status</th></tr></thead>
           <tbody id="historyRows"></tbody>
         </table>
       </div>
@@ -149,8 +151,19 @@
     </section>
 
     <section class="card">
-      <div class="section-head"><h2 id="logTitle">Attendance log</h2><span id="entryCount" class="muted"></span></div>
+      <div class="section-head"><h2 id="logTitle">Working time log</h2><span id="entryCount" class="muted"></span></div>
       <div id="entries" class="entries"></div>
+    </section>
+
+    <section id="workplacesSection" class="card hidden">
+      <div class="section-head"><h2 id="workplacesTitle">Workplaces</h2></div>
+      <form id="workplaceForm" class="workplace-form">
+        <input id="workplaceEditId" type="hidden">
+        <label><span id="workplaceNameLabel">Name</span><input id="workplaceName" maxlength="191" required></label>
+        <button id="saveWorkplaceBtn" class="btn primary" type="submit">Add workplace</button>
+        <button id="cancelWorkplaceBtn" class="btn hidden" type="button">Cancel</button>
+      </form>
+      <div id="workplacesList" class="stations"></div>
     </section>
 
     <section id="adminSection" class="card hidden">
@@ -158,6 +171,7 @@
       <div class="admin-grid">
         <form id="stationForm" class="station-form">
           <label><span id="stationNameLabel">Name</span><input id="stationName" maxlength="191" required></label>
+          <label><span id="stationWorkplaceLabel">Workplace</span><select id="stationWorkplace" required></select></label>
           <label><span id="stationLocationLabel">Location</span><input id="stationLocation" maxlength="191"></label>
           <button id="createStationBtn" class="btn primary" type="submit">Create station</button>
         </form>
@@ -202,6 +216,7 @@
     </div>
   </div>
 
+  <script src="js/attendance-quick.js"></script>
   <script src="js/attendance.js"></script>
 </body>
 </html>

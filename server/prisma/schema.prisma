@@ -173,6 +173,7 @@ model User {
   attendancePunches AttendancePunch[] @relation("AttendancePunchTarget")
   attendanceActions AttendancePunch[] @relation("AttendancePunchActor")
   attendanceStationsCreated AttendanceStation[] @relation("AttendanceStationCreator")
+  attendanceWorkplacesCreated AttendanceWorkplace[] @relation("AttendanceWorkplaceCreator")
   inventoryItemsCreated InventoryItem[] @relation("InventoryItemCreator")
   inventoryLocationsCreated InventoryLocation[] @relation("InventoryLocationCreator")
   inventoryMovementsCreated InventoryMovement[] @relation("InventoryMovementCreator")
@@ -596,6 +597,20 @@ model ChatThreadRead {
   @@index([userId, updatedAt])
 }
 
+model AttendanceWorkplace {
+  id          String   @id @default(cuid())
+  name        String   @unique @db.VarChar(191)
+  active      Boolean  @default(true)
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   User?    @relation("AttendanceWorkplaceCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  stations    AttendanceStation[]
+  punches     AttendancePunch[]
+
+  @@index([active, name])
+}
+
 model AttendanceStation {
   id          String   @id @default(cuid())
   name        String   @db.VarChar(191)
@@ -607,7 +622,10 @@ model AttendanceStation {
   updatedAt   DateTime @updatedAt
   createdBy   User?    @relation("AttendanceStationCreator", fields: [createdById], references: [id], onDelete: SetNull)
   punches     AttendancePunch[]
+  workplaceId String?
+  workplace   AttendanceWorkplace? @relation(fields: [workplaceId], references: [id], onDelete: Restrict)
 
+  @@index([workplaceId])
   @@index([active, name])
   @@index([createdById])
 }
@@ -619,6 +637,9 @@ model AttendancePunch {
   occurredAt    DateTime
   source        AttendancePunchSource @default(web)
   stationId     String?
+  workplaceId   String?
+  workplaceName String?               @db.VarChar(191)
+  workplace     AttendanceWorkplace?   @relation(fields: [workplaceId], references: [id], onDelete: Restrict)
   note          String?               @db.VarChar(512)
   reason        String?               @db.VarChar(512)
   createdById   String?
@@ -632,6 +653,7 @@ model AttendancePunch {
 
   @@index([userId, occurredAt])
   @@index([stationId, occurredAt])
+  @@index([workplaceId, occurredAt])
   @@index([createdById, createdAt])
   @@index([kind, occurredAt])
 }
